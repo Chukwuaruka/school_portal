@@ -11,7 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-local-dev-secret-key')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['https://school-portal-mqic.onrender.com']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'school-portal-mqic.onrender.com'  # ✅ Add your Render domain here
+]
 
 # Applications
 INSTALLED_APPS = [
