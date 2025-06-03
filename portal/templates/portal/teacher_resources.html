@@ -1,0 +1,53 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📁 Upload Resource</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm mb-5">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" name="title" id="title" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="subject" class="form-label">Subject</label>
+      <input type="text" name="subject" id="subject" class="form-control">
+    </div>
+    <div class="mb-3">
+      <label for="classroom" class="form-label">Classroom</label>
+      <select name="classroom" id="classroom" class="form-select" required>
+        <option value="">-- Select Class --</option>
+        {% for room in classrooms %}
+          <option value="{{ room.name }}">{{ room.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="file" class="form-label">Upload File</label>
+      <input type="file" name="file" id="file" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+  </form>
+
+  <h3 class="mt-5">📚 Uploaded Resources</h3>
+  {% if resources %}
+    <ul class="list-group">
+      {% for resource in resources %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ resource.title }}</strong><br>
+            <small>{{ resource.subject }} - {{ resource.classroom.name }}</small>
+          </div>
+          <a href="{{ resource.file.url }}" class="btn btn-sm btn-outline-secondary" download>Download</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="alert alert-info">No resources uploaded yet.</div>
+  {% endif %}
+</div>
+{% endblock %}

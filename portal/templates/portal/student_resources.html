@@ -1,0 +1,41 @@
+{% extends 'portal/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📚 Available Resources</h2>
+
+  {% if resources %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+      {% for resource in resources %}
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">{{ resource.title }}</h5>
+              <p class="card-text">
+                {% if resource.description %}
+                  {{ resource.description }}
+                {% else %}
+                  <em>No description provided.</em>
+                {% endif %}
+              </p>
+            </div>
+            <div class="card-footer small text-muted">
+              Uploaded by: {{ resource.created_by.get_full_name|default:resource.created_by.username }}<br>
+              On: {{ resource.uploaded_at|date:"F j, Y, g:i a" }}
+              <br>
+              <a href="{{ resource.file.url }}" class="btn btn-sm btn-primary mt-2" download>
+                📎 Download
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      No resources available at the moment.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

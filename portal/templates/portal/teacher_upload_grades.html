@@ -1,0 +1,131 @@
+{% extends 'portal/base.html' %}
+{% block title %}Upload Grades{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📝 Upload or Edit Student Grades</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Select Student</label>
+        <select name="student_username" class="form-select" required>
+          <option value="">-- Select Student --</option>
+          {% for student in students %}
+            <option value="{{ student.username }}">{{ student.get_full_name }} ({{ student.username }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Subject</label>
+        <input type="text" name="subject" class="form-control" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">1st Test (out of 20)</label>
+        <input type="number" name="first_test" class="form-control" max="20" min="0">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">2nd Test (out of 20)</label>
+        <input type="number" name="second_test" class="form-control" max="20" min="0">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Exam (out of 60)</label>
+        <input type="number" name="exam" class="form-control" max="60" min="0">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Manual Total (Optional)</label>
+        <input type="number" name="manual_total" class="form-control" min="0" max="100" placeholder="Override total score">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Manual Grade (Optional)</label>
+        <input type="text" name="manual_grade" class="form-control" maxlength="2" placeholder="e.g. A, B+, C">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Term</label>
+        <select name="term" class="form-select" required>
+          <option value="">-- Select Term --</option>
+          <option>1st Term</option>
+          <option>2nd Term</option>
+          <option>3rd Term</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Session</label>
+        <input type="text" name="session" class="form-control" placeholder="e.g. 2024/2025" required>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Comment (Optional)</label>
+        <textarea name="comment" class="form-control" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="mt-4 d-grid">
+      <button type="submit" class="btn btn-primary">Submit Grade</button>
+    </div>
+  </form>
+
+  {% if messages %}
+    <div class="mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <hr class="my-5">
+
+  <h4>📋 Uploaded Grades</h4>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover mt-3 align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Student</th>
+          <th>Subject</th>
+          <th>1st Test</th>
+          <th>2nd Test</th>
+          <th>Exam</th>
+          <th>Total (100)</th>
+          <th>Grade</th>
+          <th>Term</th>
+          <th>Session</th>
+          <th>Comment</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for grade in grades %}
+          <tr>
+            <td>{{ grade.student.get_full_name }}</td>
+            <td>{{ grade.subject }}</td>
+            <td>{{ grade.first_test|default:"–" }}</td>
+            <td>{{ grade.second_test|default:"–" }}</td>
+            <td>{{ grade.exam|default:"–" }}</td>
+            <td>{{ grade.total_score }}</td>
+            <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+            <td>{{ grade.term }}</td>
+            <td>{{ grade.session }}</td>
+            <td>{{ grade.comment|default:"–" }}</td>
+            <td>
+                <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-warning">Edit</a>
+            </td>
+        </tr>
+
+        {% empty %}
+          <tr><td colspan="11" class="text-center">No grades uploaded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

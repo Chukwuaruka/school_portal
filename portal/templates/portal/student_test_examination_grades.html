@@ -1,0 +1,43 @@
+{% extends 'portal/base.html' %}
+{% block title %}Test & Examination Grades{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📊 Test & Examination Grades</h2>
+
+  {% if grades %}
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Subject</th>
+            <th>1st Test (20)</th>
+            <th>2nd Test (20)</th>
+            <th>Exam (60)</th>
+            <th>Total (100)</th>
+            <th>Grade</th>
+            <th>Teacher</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for grade in grades %}
+          <tr>
+            <td>{{ grade.subject }}</td>
+            <td>{{ grade.first_test }}</td>
+            <td>{{ grade.second_test }}</td>
+            <td>{{ grade.exam }}</td>
+            <td>{{ grade.total_score }}</td>  {# Here is the fix #}
+            <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+            <td>{{ grade.teacher.get_full_name|default:"–" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center">
+      No grades available at this time.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

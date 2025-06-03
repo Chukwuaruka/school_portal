@@ -1,0 +1,49 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+  <div class="container mt-4">
+    <h2>📝 My Assignments</h2>
+
+    {% if assignments %}
+      <table class="table table-bordered table-hover mt-3">
+        <thead class="table-dark">
+          <tr>
+            <th>Title</th>
+            <th>Due Date</th>
+            <th>Description</th>
+            <th>Attachment</th>
+            <th>Submit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for assignment in assignments %}
+            <tr {% if assignment.due_date <= today|date:"Y-m-d"|add:"3"|date:"Y-m-d" %} class="table-warning" {% endif %}>
+              <td>{{ assignment.title }}</td>
+              <td>{{ assignment.due_date|date:"M d, Y" }}</td>
+              <td>{{ assignment.description|default:"No description" }}</td>
+              <td>
+                {% if assignment.file %}
+                  <a href="{{ assignment.file.url }}" class="btn btn-sm btn-outline-secondary" download>
+                    📥 Download
+                  </a>
+                {% else %}
+                  <span class="text-muted">No file</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if assignment.id in submitted_assignment_ids %}
+                  <span class="badge bg-success">Submitted</span>
+                {% else %}
+                  <a href="{% url 'submit_assignment' assignment.id %}" class="btn btn-sm btn-primary">Submit</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="alert alert-info mt-3">
+        No assignments available at the moment.
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'portal/base.html' %}
+{% block title %}Teacher Dashboard – Pen-Ark Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-4">
+    <h2>Welcome, {{ request.user.first_name }}!</h2>
+    <p class="text-muted">Here’s your dashboard overview.</p>
+  </div>
+
+  <div class="row g-4">
+
+    <div class="col-md-3">
+      <a href="{% url 'teacher_assignments' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">📚 Assignments</h5>
+            <p class="card-text">Create and manage assignments</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'teacher_submissions' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">📥 Submissions</h5>
+            <p class="card-text">Review and grade submissions</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'teacher_grades' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">📝 Grades</h5>
+            <p class="card-text">Enter or view student grades</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'teacher_resources' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">📁 Resources</h5>
+            <p class="card-text">Upload learning materials</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'teacher_profile' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">👤 Profile</h5>
+            <p class="card-text">View or update your profile</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-3">
+      <a href="{% url 'teacher_upload_grades' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">📊 Manage Test/Exam Grades</h5>
+            <p class="card-text">Upload or edit test and exam scores</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+
+    <div class="col-md-3">
+      <a href="{% url 'teacher_timetable' %}" class="text-decoration-none">
+        <div class="card text-center shadow-sm h-100">
+          <div class="card-body">
+            <h5 class="card-title">🗓️ Timetable</h5>
+            <p class="card-text">View your class schedule</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

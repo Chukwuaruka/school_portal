@@ -1,0 +1,66 @@
+{% extends 'portal/base.html' %}
+{% block title %}Edit Timetable Period{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Edit Timetable Period</h2>
+  <form method="POST">
+    {% csrf_token %}
+    
+    <!-- Class selection -->
+    <div class="mb-3">
+      <label>Class</label>
+      <select name="classroom" class="form-select" required>
+        {% for classroom in classrooms %}
+          <option value="{{ classroom.id }}" {% if classroom.id == period.classroom.id %}selected{% endif %}>
+            {{ classroom.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Subject -->
+    <div class="mb-3">
+      <label>Subject</label>
+      <input type="text" name="subject" value="{{ period.subject }}" class="form-control" required>
+    </div>
+
+    <!-- Day -->
+    <div class="mb-3">
+      <label>Day</label>
+      <select name="day" class="form-select" required>
+        {% for day in days %}
+          <option value="{{ day }}" {% if period.day == day %}selected{% endif %}>{{ day }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Start Time -->
+    <div class="mb-3">
+      <label>Start Time</label>
+      <input type="time" name="start_time" value="{{ period.start_time|time:"H:i" }}" class="form-control" required>
+    </div>
+
+    <!-- End Time -->
+    <div class="mb-3">
+      <label>End Time</label>
+      <input type="time" name="end_time" value="{{ period.end_time|time:"H:i" }}" class="form-control" required>
+    </div>
+
+    <!-- Teacher -->
+    <div class="mb-3">
+      <label>Teacher</label>
+      <select name="teacher" class="form-select" required>
+        {% for teacher in teachers %}
+          <option value="{{ teacher.id }}" {% if teacher.id == period.teacher.id %}selected{% endif %}>
+            {{ teacher.get_full_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">💾 Save Changes</button>
+    <a href="{% url 'admin_timetables' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

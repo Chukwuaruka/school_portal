@@ -1,0 +1,54 @@
+{% extends 'portal/auth_base.html' %}
+{% load static %}
+
+{% block title %}Login – Pen-Ark Portal{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="w-100" style="max-width: 400px;">
+
+    <!-- Logo & Tagline -->
+    <div class="text-center mb-4">
+      <img src="{% static 'portal/images/logo.jpg' %}" alt="Pen-Ark Logo" class="mb-2" width="300">
+      <p class="text-white fst-italic small">
+        <b>Pen-Ark Schools</b><br> Trained for duty and for thee
+      </p>
+    </div>
+
+    <!-- Heading -->
+    <h2 class="mb-4 text-center text-white">Login</h2>
+
+    <!-- Form -->
+    <form method="post" class="card p-4 shadow-sm bg-light">
+      {% csrf_token %}
+      <div class="mb-3">
+        <input type="text" name="username" class="form-control" placeholder="Username" required autofocus>
+      </div>
+      <div class="mb-3">
+        <input type="password" name="password" class="form-control" placeholder="Password" required>
+      </div>
+      <button type="submit" class="btn btn-success w-100">Login</button>
+    </form>
+
+    <!-- Links -->
+    <p class="mt-3 text-center">
+      <a href="{% url 'password_reset' %}" class="text-white">Forgot your password?</a>
+    </p>
+    <p class="mt-2 text-center text-white">
+      Don't have an account?
+      <br>
+      <a href="{% url 'student_register' %}" class="text-white">Register as Student</a> |
+      <a href="{% url 'teacher_register' %}" class="text-white">Register as Teacher</a>
+    </p>
+
+    <!-- Django Messages -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-warning mt-3">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

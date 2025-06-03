@@ -1,0 +1,25 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Grade Submission</h2>
+  <p><strong>Student:</strong> {{ submission.student.get_full_name }}</p>
+  <p><strong>Assignment:</strong> {{ submission.assignment.title }}</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Total Marks</label>
+      <input type="number" name="total_marks" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Score</label>
+      <input type="number" name="score" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Feedback</label>
+      <textarea name="feedback" class="form-control" rows="4"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit Grade</button>
+  </form>
+</div>
+{% endblock %}

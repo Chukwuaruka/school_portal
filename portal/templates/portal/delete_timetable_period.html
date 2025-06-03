@@ -1,0 +1,19 @@
+{% extends 'portal/base.html' %}
+{% block title %}Confirm Delete – Timetable Period{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Confirm Deletion</h2>
+  <div class="alert alert-warning">
+    Are you sure you want to delete the timetable period for 
+    <strong>{{ period.classroom.name }}</strong> – 
+    <strong>{{ period.subject }}</strong> on 
+    <strong>{{ period.day }}</strong>?
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">🗑️ Yes, Delete</button>
+    <a href="{% url 'admin_timetables' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

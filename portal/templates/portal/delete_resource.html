@@ -1,0 +1,18 @@
+{% extends 'portal/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card border-danger shadow-sm">
+    <div class="card-body">
+      <h2 class="text-danger">Delete Resource</h2>
+      <p>Are you sure you want to permanently delete the resource titled <strong>{{ resource.title }}</strong>?</p>
+
+      <form method="post" class="mt-4">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'admin_resources' %}" class="btn btn-secondary ms-2">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

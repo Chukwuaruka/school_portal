@@ -1,0 +1,32 @@
+{% extends 'portal/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📝 Submit Assignment: {{ assignment.title }}</h2>
+
+  <div class="mb-3">
+    <p><strong>Due Date:</strong> {{ assignment.due_date|date:"F j, Y" }}</p>
+    {% if assignment.description %}
+      <p><strong>Description:</strong> {{ assignment.description }}</p>
+    {% endif %}
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data" class="shadow-sm p-4 border rounded bg-light">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="file" class="form-label">📎 Upload Your File</label>
+      <input type="file" class="form-control" id="file" name="file" required>
+      <div class="form-text">Accepted formats: PDF, DOCX, ZIP, etc.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">📤 Submit</button>
+    <a href="{% url 'student_assignments' %}" class="btn btn-secondary ms-2">Cancel</a>
+  </form>
+</div>
+{% endblock %}

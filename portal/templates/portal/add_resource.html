@@ -1,0 +1,45 @@
+{% extends 'portal/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">📁 Add Resource</h2>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-info">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm bg-light">
+    {% csrf_token %}
+    
+    <div class="mb-3">
+      <label for="title" class="form-label">Resource Title</label>
+      <input type="text" name="title" id="title" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="subject" class="form-label">Subject</label>
+      <input type="text" name="subject" id="subject" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="classroom" class="form-label">Classroom</label>
+      <select name="classroom" id="classroom" class="form-select" required>
+        <option value="">-- Select Class --</option>
+        {% for room in classrooms %}
+          <option value="{{ room.name }}">{{ room.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="file" class="form-label">Upload File</label>
+      <input type="file" name="file" id="file" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Upload</button>
+    <a href="{% url 'admin_resources' %}" class="btn btn-secondary ms-2">Cancel</a>
+  </form>
+</div>
+{% endblock %}

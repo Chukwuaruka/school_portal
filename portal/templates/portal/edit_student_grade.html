@@ -1,0 +1,30 @@
+{% extends 'portal/base.html' %}
+{% block title %}Edit Student Grade{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">✏️ Edit Grade for {{ grade.student.get_full_name }} - {{ grade.subject }}</h2>
+
+  <form method="post" class="card p-4 shadow-lg border-0 rounded-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">1st Test</label>
+      <input type="number" step="0.1" name="first_test" class="form-control" value="{{ grade.first_test }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">2nd Test</label>
+      <input type="number" step="0.1" name="second_test" class="form-control" value="{{ grade.second_test }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Exam</label>
+      <input type="number" step="0.1" name="exam" class="form-control" value="{{ grade.exam }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Comment</label>
+      <textarea name="comment" class="form-control" rows="3">{{ grade.comment }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-success">Update Grade</button>
+    <a href="{% url 'admin_manage_grades' %}" class="btn btn-secondary ms-2">Cancel</a>
+  </form>
+</div>
+{% endblock %}

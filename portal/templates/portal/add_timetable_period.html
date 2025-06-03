@@ -1,0 +1,68 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">➕ Add Timetable Period</h2>
+  <form method="POST">
+    {% csrf_token %}
+
+    <!-- Classroom Selection by Name -->
+    <div class="mb-3">
+      <label for="classroom" class="form-label">Classroom</label>
+      <select name="classroom" id="classroom" class="form-select" required>
+        <option value="">-- Select Class --</option>
+        {% for room in classrooms %}
+          <option value="{{ room.name }}">{{ room.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Subject Input -->
+    <div class="mb-3">
+      <label for="subject" class="form-label">Subject</label>
+      <input type="text" name="subject" id="subject" class="form-control" required>
+    </div>
+
+    <!-- Day Dropdown -->
+    <div class="mb-3">
+      <label for="day" class="form-label">Day</label>
+      <select name="day" id="day" class="form-select" required>
+        <option value="">-- Select Day --</option>
+        <option value="Monday">Monday</option>
+        <option value="Tuesday">Tuesday</option>
+        <option value="Wednesday">Wednesday</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Friday">Friday</option>
+      </select>
+    </div>
+
+    <!-- Start Time -->
+    <div class="mb-3">
+      <label for="start_time" class="form-label">Start Time</label>
+      <input type="time" name="start_time" id="start_time" class="form-control" required>
+    </div>
+
+    <!-- End Time -->
+    <div class="mb-3">
+      <label for="end_time" class="form-label">End Time</label>
+      <input type="time" name="end_time" id="end_time" class="form-control" required>
+    </div>
+
+    <!-- Teacher Selection by Username -->
+    <div class="mb-3">
+      <label for="teacher" class="form-label">Teacher</label>
+      <select name="teacher" id="teacher" class="form-select" required>
+        <option value="">-- Select Teacher --</option>
+        {% for teacher in teachers %}
+          <option value="{{ teacher.username }}">{{ teacher.get_full_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="d-flex justify-content-between">
+      <button type="submit" class="btn btn-primary">Add Period</button>
+      <a href="{% url 'manage_timetables' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

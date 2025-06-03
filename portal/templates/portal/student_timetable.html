@@ -1,0 +1,36 @@
+{% extends 'portal/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">📅 {{ class_name }} Timetable</h2>
+
+  <div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Day / Time</th>
+          {% for slot in time_slots %}
+            <th>{{ slot }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for day, subjects in timetable.items %}
+          <tr{% if day == current_day %} class="table-info"{% endif %}>
+            <th class="table-secondary">{{ day }}</th>
+            {% for subject in subjects %}
+              <td>
+                {% if subject %}
+                  {{ subject }}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

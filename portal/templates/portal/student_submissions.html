@@ -1,0 +1,63 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<h2 class="mb-4">📤 My Submissions</h2>
+
+{% if submissions %}
+  <div class="table-responsive">
+    <table class="table table-hover table-bordered align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Assignment Title</th>
+          <th>Due Date</th>
+          <th>Submitted On</th>
+          <th>Status</th>
+          <th>Grade</th>
+          <th>Download</th>
+          <th>Feedback</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for submission in submissions %}
+        <tr>
+          <td>{{ submission.assignment.title }}</td>
+          <td>{{ submission.assignment.due_date|date:"M d, Y" }}</td>
+          <td>{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
+          <td>
+            {% if submission.graded %}
+              <span class="badge bg-success">Graded</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if submission.graded %}
+              {{ submission.grade|default:"-" }}
+            {% else %}
+              <em>–</em>
+            {% endif %}
+          </td>
+          <td>
+            {% if submission.file %}
+              <a href="{{ submission.file.url }}" class="btn btn-sm btn-outline-primary" download>📎 Download</a>
+            {% else %}
+              <em>No file</em>
+            {% endif %}
+          </td>
+          <td>
+            {% if submission.feedback %}
+              <blockquote class="blockquote mb-0 small text-muted">{{ submission.feedback }}</blockquote>
+            {% else %}
+              <em>No feedback yet</em>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    You haven’t submitted any assignments yet.
+  </div>
+{% endif %}
+{% endblock %}

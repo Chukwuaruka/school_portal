@@ -1,0 +1,64 @@
+{% extends 'portal/base.html' %}
+{% block title %}Timetables – Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">🗓️ Admin – Timetables</h2>
+
+  <!-- Add Period -->
+  <div class="mb-3 text-end">
+    <a href="{% url 'add_timetable_period' %}" class="btn btn-primary">➕ Add Period</a>
+  </div>
+
+  <!-- Class Filter -->
+  <form method="get" class="mb-3">
+    <label for="classroom">Filter by Class:</label>
+    <select name="classroom" onchange="this.form.submit()" class="form-select w-auto d-inline-block ms-2">
+      <option value="">All Classes</option>
+      {% for c in classrooms %}
+        <option value="{{ c.name }}" {% if c.name == selected_class %}selected{% endif %}>
+          {{ c.name }}
+        </option>
+      {% endfor %}
+    </select>
+  </form>
+
+  {% if timetable_data %}
+    {% for class_name, data in timetable_data.items %}
+      <div class="mb-5">
+        <h4 class="text-primary">Class: {{ class_name }}</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered text-center align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>Day / Time</th>
+                {% for slot in data.time_slots %}
+                  <th>{{ slot }}</th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for day, subjects in data.timetable.items %}
+              <tr{% if day == current_day %} class="table-info"{% endif %}>
+                <th class="table-secondary">{{ day }}</th>
+                {% for subject in subjects %}
+                  <td>
+                    {% if subject %}
+                      {{ subject|safe }}
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info">No timetable data found.</div>
+  {% endif %}
+</div>
+{% endblock %}

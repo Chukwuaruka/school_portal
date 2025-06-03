@@ -1,0 +1,58 @@
+{% extends 'portal/base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📝 Create Assignment</h2>
+
+  <!-- Assignment Creation Form -->
+  <form method="POST" class="card p-4 shadow-sm mb-5">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" name="title" id="title" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea name="description" id="description" class="form-control" rows="4" placeholder="Optional..."></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="classroom" class="form-label">Classroom</label>
+      <select name="classroom" required>
+  <option value="">-- Select Class --</option>
+  {% for room in classrooms %}
+    <option value="{{ room.name }}">{{ room.name }}</option>
+  {% empty %}
+    <option disabled>No classrooms available</option>
+  {% endfor %}
+</select>
+    </div>
+    <div class="mb-3">
+  <label for="due_date" class="form-label">Due Date</label>
+  <input type="date" name="due_date" id="due_date" class="form-control" required>
+</div>
+
+    <button type="submit" class="btn btn-success">Create Assignment</button>
+  </form>
+
+  <!-- Assignment List -->
+  <h3 class="mb-3">📋 Your Assignments</h3>
+
+  {% if assignments %}
+    <div class="list-group">
+      {% for assignment in assignments %}
+        <div class="list-group-item mb-3 shadow-sm border rounded">
+          <h5 class="mb-1">{{ assignment.title }}</h5>
+          <small class="text-muted">Due: {{ assignment.due_date|date:"M d, Y" }}</small>
+          <p class="mt-2">{{ assignment.description|default:"No description provided." }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info">
+      No assignments created yet.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

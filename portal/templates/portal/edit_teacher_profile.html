@@ -1,0 +1,54 @@
+{% extends 'portal/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">✏️ Edit Teacher Profile</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm border-0">
+    {% csrf_token %}
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label"><i class="bi bi-person"></i> First Name</label>
+        <input type="text" name="first_name" value="{{ teacher.first_name }}" class="form-control" required>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label"><i class="bi bi-person"></i> Middle Name (optional)</label>
+        <input type="text" name="middle_name" value="{{ teacher.middle_name|default:'' }}" class="form-control">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label"><i class="bi bi-person"></i> Last Name</label>
+        <input type="text" name="last_name" value="{{ teacher.last_name }}" class="form-control" required>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label"><i class="bi bi-envelope"></i> Email</label>
+        <input type="email" name="email" value="{{ teacher.email }}" class="form-control" required>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label"><i class="bi bi-telephone"></i> Phone</label>
+        <input type="text" name="phone" value="{{ teacher.phone }}" class="form-control">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label"><i class="bi bi-book"></i> Subject / Department</label>
+        <input type="text" name="subject" value="{{ teacher.subject }}" class="form-control">
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label class="form-label"><i class="bi bi-image"></i> Profile Picture</label>
+        <input type="file" name="profile_picture" class="form-control">
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Save Changes</button>
+      <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

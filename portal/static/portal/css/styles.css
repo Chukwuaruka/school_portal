@@ -1,0 +1,90 @@
+/* ===========================
+   AUTH PAGE STYLING
+=========================== */
+
+/* Background image and dark overlay */
+body.auth-page {
+  background-image: url('../images/school.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: relative;
+  min-height: 100vh;
+}
+
+body.auth-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5); /* Slightly stronger overlay for contrast */
+  z-index: -1;
+}
+
+/* Centered container for auth cards */
+.auth-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Auth card styling */
+.auth-card {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Title inside the auth card */
+.auth-title {
+  font-size: 22px;
+  margin-bottom: 25px;
+  color: #333333;
+}
+
+/* Role selection (e.g. Student, Teacher) */
+.role-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Auth button styling */
+.auth-btn {
+  padding: 12px;
+  background-color: #007bff;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  display: block;
+}
+
+.auth-btn:hover {
+  background-color: #0056b3;
+}
+
+/* ===========================
+   RESPONSIVE ADJUSTMENTS
+=========================== */
+
+@media (max-width: 400px) {
+  .auth-card {
+    padding: 20px;
+  }
+
+  .auth-title {
+    font-size: 18px;
+  }
+
+  .auth-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

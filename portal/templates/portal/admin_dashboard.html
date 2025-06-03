@@ -1,0 +1,46 @@
+{% extends 'portal/base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-body p-4">
+      <h2 class="mb-4 text-center">Welcome, {{ request.user.first_name }} (Admin)</h2>
+      <p class="text-center text-muted">This is your administrator dashboard. Use the links below to manage the system.</p>
+
+      <div class="row mt-4">
+        <div class="col-md-6 mb-3">
+          <a href="{% url 'manage_registration_codes' %}" class="btn btn-outline-primary w-100 py-3">
+            <i class="bi bi-key me-2"></i> Manage Registration Codes
+          </a>
+        </div>
+        <div class="col-md-6 mb-3">
+          <a href="{% url 'create_announcement' %}" class="btn btn-outline-success w-100 py-3">
+            <i class="bi bi-megaphone me-2"></i> Create Announcement
+          </a>
+        </div>
+        <div class="col-md-6 mb-3">
+          <a href="{% url 'manage_announcements' %}" class="btn btn-outline-warning w-100 py-3">
+            <i class="bi bi-bell me-2"></i> Manage Announcements
+          </a>
+        </div>
+        <div class="col-md-6 mb-3">
+          <a href="{% url 'admin_resources' %}" class="btn btn-outline-info w-100 py-3">
+            <i class="bi bi-folder2-open me-2"></i> Manage Resources
+          </a>
+        </div>
+        <div class="col-md-6 mb-3">
+          <a href="{% url 'admin_manage_grades' %}" class="btn btn-outline-danger w-100 py-3">
+            <i class="bi bi-journal-check me-2"></i> Manage Student Grades
+          </a>
+        </div>
+        <div class="col-md-12 mb-3">
+          <a href="{% url 'manage_timetables' %}" class="btn btn-outline-secondary w-100 py-3">
+            <i class="bi bi-calendar3 me-2"></i> Manage Timetables
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

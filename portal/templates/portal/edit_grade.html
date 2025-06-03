@@ -1,0 +1,70 @@
+{% extends 'portal/base.html' %}
+{% block title %}Edit Grade{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">✏️ Edit Grade for {{ grade.student.get_full_name }}</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Subject</label>
+        <input type="text" name="subject" class="form-control" value="{{ grade.subject }}" required>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">1st Test (out of 20)</label>
+        <input type="number" name="first_test" class="form-control" max="20" min="0" value="{{ grade.first_test|default:'' }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">2nd Test (out of 20)</label>
+        <input type="number" name="second_test" class="form-control" max="20" min="0" value="{{ grade.second_test|default:'' }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Exam (out of 60)</label>
+        <input type="number" name="exam" class="form-control" max="60" min="0" value="{{ grade.exam|default:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Total</label>
+        <input type="number" name="total" class="form-control" value="{{ grade.total|default:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Grade</label>
+        <input type="text" name="grade" class="form-control" value="{{ grade.grade|default:'' }}">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Term</label>
+        <select name="term" class="form-select" required>
+          <option value="">-- Select Term --</option>
+          <option value="1st Term" {% if grade.term == '1st Term' %}selected{% endif %}>1st Term</option>
+          <option value="2nd Term" {% if grade.term == '2nd Term' %}selected{% endif %}>2nd Term</option>
+          <option value="3rd Term" {% if grade.term == '3rd Term' %}selected{% endif %}>3rd Term</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Session</label>
+        <input type="text" name="session" class="form-control" value="{{ grade.session }}" required>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Comment (Optional)</label>
+        <textarea name="comment" class="form-control" rows="2">{{ grade.comment|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <div class="mt-4 d-grid">
+      <button type="submit" class="btn btn-success">💾 Save Changes</button>
+      <a href="{% url 'teacher_upload_grades' %}" class="btn btn-secondary mt-2">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+    
