@@ -14,7 +14,7 @@ from datetime import time, timedelta
 from django.utils.timezone import now
 from .models import RegistrationCode
 from .models import SubjectGrade
-
+from django.db.models import Q
 
 def welcome(request):
     return render(request, 'portal/welcome.html')
@@ -190,7 +190,7 @@ def student_timetable(request):
             timetable[p.day][col_index] = p.subject
 
     return render(request, 'portal/student_timetable.html', {
-        'class_name': classroom.name,
+        'class_name': classroom,
         'time_slots': time_slots,
         'timetable': timetable,
         'current_day': current_day
@@ -278,13 +278,12 @@ def submit_assignment(request, assignment_id):
 
 
 # --- Teacher Views ---
-@login_required
+
+@login_required(login_url='login')
 def teacher_dashboard(request):
-    try:
-        teacher = request.user.teacher
-    except:
-        return redirect('login')
-    return render(request, 'portal/teacher_dashboard.html', {'teacher': teacher})
+    if request.user.role != 'teacher':
+        return redirect('login')  # Or a 403 page
+    return render(request, 'portal/teacher_dashboard.html', {'teacher': request.user})
 
 @login_required
 @teacher_required
