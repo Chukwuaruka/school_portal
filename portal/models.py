@@ -48,7 +48,7 @@ class User(AbstractUser):
     )
     
     # Replaced ForeignKey with CharField for classroom
-    classroom = models.CharField(max_length=100, blank=True, null=True)
+    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True)
 
     address = models.CharField(max_length=255, default='N/A', blank=True)
 
