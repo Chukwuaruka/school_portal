@@ -15,7 +15,9 @@ DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'school-portal-mqic.onrender.com',  # ✅ Your Render domain
+    'school-portal-mqic.onrender.com',
+    'penarkschoolsportal.com',
+    'www.penarkschoolsportal.com',  # ✅ Your Render domain
 ]
 
 # Applications
