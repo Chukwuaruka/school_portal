@@ -26,7 +26,8 @@
         <img src="{{ student.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail mb-2" width="150">
         <p><small class="text-muted">Profile Picture</small></p>
       {% else %}
-        <p><strong>Profile Picture:</strong> Not uploaded</p>
+        <img src="{% static 'portal/images/default.jpg' %}" alt="Default Picture" class="img-thumbnail mb-2" width="150">
+        <p><small class="text-muted">Default Profile Picture</small></p>
       {% endif %}
     </div>
 
