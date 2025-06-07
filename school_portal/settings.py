@@ -105,6 +105,7 @@ AWS_QUERYSTRING_AUTH = False
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
 
 AWS_DEFAULT_ACL = 'public-read'
+AWS_QUERYSTRING_AUTH = False
 
 # Custom user model
 AUTH_USER_MODEL = 'portal.User'
