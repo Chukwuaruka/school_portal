@@ -111,9 +111,7 @@ STATICFILES_DIRS = [BASE_DIR / 'portal' / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# -------------------------------------------------
-# MEDIA FILES (S3 ONLY — NO LOCAL STORAGE)
-# -------------------------------------------------
+# MEDIA FILES (USE ONLY S3)
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
@@ -128,10 +126,7 @@ AWS_QUERYSTRING_AUTH = False
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
-# No MEDIA_ROOT since we’re not storing files locally
-
 # Debug log to confirm which backend is in use
-import logging
 logging.warning(f"STORAGE BACKEND = {DEFAULT_FILE_STORAGE}")
 
 # -------------------------------------------------
