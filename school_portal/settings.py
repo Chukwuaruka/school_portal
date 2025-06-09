@@ -163,3 +163,8 @@ LOGIN_URL = '/login/'
 # AUTO FIELD
 # -------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+print("AWS_ACCESS_KEY_ID:", AWS_ACCESS_KEY_ID)
+print("AWS_SECRET_ACCESS_KEY:", "SET" if AWS_SECRET_ACCESS_KEY else "NOT SET")
+print("AWS_STORAGE_BUCKET_NAME:", AWS_STORAGE_BUCKET_NAME)
+print("DEFAULT_FILE_STORAGE:", DEFAULT_FILE_STORAGE)
