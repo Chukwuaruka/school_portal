@@ -46,7 +46,8 @@ urlpatterns = [
     path('dashboard-admin/resources/delete/<int:resource_id>/', views.delete_resource, name='delete_resource'),
     path('dashboard-admin/timetables/', views.manage_timetables, name='manage_timetables'),
     path('timetables/add/', views.add_timetable_period, name='add_timetable_period'),
-    path('dmin/registration-codes/delete/<int:code_id>/', views.delete_registration_code, name='delete_registration_code'),
+    path('dashboard-admin/registration-codes/delete/<int:code_id>/', views.delete_registration_code, name='delete_registration_code'),
+
 
     # 📣 Announcements (Admin)
     path('dashboard-admin/announcements/', views.manage_announcements, name='manage_announcements'),
