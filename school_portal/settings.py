@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'portal',
-    'storages',  # <--- Added for S3
+    'storages',  # For AWS S3
 ]
 
 # -------------------------------------------------
@@ -52,7 +52,7 @@ MIDDLEWARE = [
 ]
 
 # -------------------------------------------------
-# TEMPLATES
+# URLS AND TEMPLATES
 # -------------------------------------------------
 ROOT_URLCONF = 'school_portal.urls'
 
@@ -75,7 +75,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'school_portal.wsgi.application'
 
 # -------------------------------------------------
-# DATABASE (Render PostgreSQL)
+# DATABASE (PostgreSQL via Render or Local)
 # -------------------------------------------------
 DATABASES = {
     'default': dj_database_url.config(
@@ -104,7 +104,7 @@ USE_I18N = True
 USE_TZ = True
 
 # -------------------------------------------------
-# STATIC FILES (Whitenoise + Render)
+# STATIC FILES (Whitenoise for all environments)
 # -------------------------------------------------
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'portal' / 'static']
@@ -112,30 +112,24 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # -------------------------------------------------
-# MEDIA FILES (S3 in production, local in dev)
+# MEDIA FILES (S3 in all environments)
 # -------------------------------------------------
-if DEBUG:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
-else:
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_DEFAULT_ACL = 'public-read'
-    AWS_QUERYSTRING_AUTH = False
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'us-east-1')
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = 'public-read'
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
 # Debug log for storage
 logging.warning(f"STORAGE BACKEND = {DEFAULT_FILE_STORAGE}")
 
-
 # -------------------------------------------------
-# EMAIL (Gmail SMTP)
+# EMAIL SETTINGS (Gmail SMTP)
 # -------------------------------------------------
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -170,3 +164,36 @@ LOGIN_URL = '/login/'
 # AUTO FIELD
 # -------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# -------------------------------------------------
+# LOGGING: IGNORE WORDPRESS BOT REQUESTS
+# -------------------------------------------------
+class IgnoreWordPressRequests(logging.Filter):
+    def filter(self, record):
+        return not any(
+            path in record.getMessage()
+            for path in ["/wp-admin/", "/wordpress/"]
+        )
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'ignore_wp': {
+            '()': IgnoreWordPressRequests,
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['ignore_wp'],
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+    },
+}
