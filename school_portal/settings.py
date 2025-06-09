@@ -113,6 +113,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # MEDIA FILES (USE ONLY S3)
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+print("### STORAGE BACKEND SET TO:", DEFAULT_FILE_STORAGE)
+
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -198,3 +200,8 @@ LOGGING = {
         },
     },
 }
+
+from django.core.files.storage import default_storage
+from storages.backends.s3boto3 import S3Boto3Storage
+
+default_storage._wrapped = S3Boto3Storage()
