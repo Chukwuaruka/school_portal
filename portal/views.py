@@ -802,7 +802,15 @@ def teacher_upload_grades(request):
         return redirect(f"{reverse('teacher_upload_grades')}?class={selected_classroom}")
 
     # ✅ Unique classroom list for dropdown
-    class_choices = User.objects.filter(role='student').values_list('classroom', flat=True).distinct()
+    classrooms = Classroom.objects.all()  # import Classroom model
+
+    selected_classroom = request.GET.get('classroom')
+
+    if selected_classroom:
+        students = students.filter(classroom__name=selected_classroom)
+
+# pass 'classrooms' instead of 'class_choices' to template
+ 
 
     return render(request, 'portal/teacher_upload_grades.html', {
         'students': students,
