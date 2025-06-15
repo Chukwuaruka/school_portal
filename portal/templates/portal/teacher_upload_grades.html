@@ -86,46 +86,62 @@
   <hr class="my-5">
 
   <h4>📋 Uploaded Grades</h4>
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover mt-3 align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th>Student</th>
-          <th>Subject</th>
-          <th>1st Test</th>
-          <th>2nd Test</th>
-          <th>Exam</th>
-          <th>Total (100)</th>
-          <th>Grade</th>
-          <th>Term</th>
-          <th>Session</th>
-          <th>Comment</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for grade in grades %}
-          <tr>
-            <td>{{ grade.student.get_full_name }}</td>
-            <td>{{ grade.subject }}</td>
-            <td>{{ grade.first_test|default:"–" }}</td>
-            <td>{{ grade.second_test|default:"–" }}</td>
-            <td>{{ grade.exam|default:"–" }}</td>
-            <td>{{ grade.total_score }}</td>
-            <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-            <td>{{ grade.term }}</td>
-            <td>{{ grade.session }}</td>
-            <td>{{ grade.comment|default:"–" }}</td>
-            <td>
-                <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-warning">Edit</a>
-            </td>
-        </tr>
 
-        {% empty %}
-          <tr><td colspan="11" class="text-center">No grades uploaded yet.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <form method="get" class="row g-3 mb-3">
+  <div class="col-md-4">
+    <label class="form-label">Filter by Class</label>
+    <select name="class" class="form-select" onchange="this.form.submit()">
+      <option value="">-- All Classes --</option>
+      {% for cls in class_choices %}
+        <option value="{{ cls }}" {% if selected_class == cls %}selected{% endif %}>{{ cls }}</option>
+      {% endfor %}
+    </select>
   </div>
+</form>
+
+  {% if grades %}
+    {% regroup grades by student as student_grades %}
+    {% for group in student_grades %}
+      <h5 class="mt-4 text-primary">{{ group.grouper.get_full_name }} ({{ group.grouper.username }})</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover mt-2 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Subject</th>
+              <th>1st Test</th>
+              <th>2nd Test</th>
+              <th>Exam</th>
+              <th>Total (100)</th>
+              <th>Grade</th>
+              <th>Term</th>
+              <th>Session</th>
+              <th>Comment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for grade in group.list %}
+            <tr>
+              <td>{{ grade.subject }}</td>
+              <td>{{ grade.first_test|default:"–" }}</td>
+              <td>{{ grade.second_test|default:"–" }}</td>
+              <td>{{ grade.exam|default:"–" }}</td>
+              <td>{{ grade.total_score }}</td>
+              <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+              <td>{{ grade.term }}</td>
+              <td>{{ grade.session }}</td>
+              <td>{{ grade.comment|default:"–" }}</td>
+              <td>
+                <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-warning">Edit</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-muted mt-3">No grades uploaded yet.</p>
+  {% endif %}
 </div>
 {% endblock %}

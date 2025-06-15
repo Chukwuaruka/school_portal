@@ -718,7 +718,23 @@ def teacher_grades(request):
 @teacher_required
 def teacher_upload_grades(request):
     students = User.objects.filter(role='student')
-    grades = SubjectGrade.objects.filter(teacher=request.user).select_related('student')
+
+    # ✅ Get selected class from GET params
+    selected_class = request.GET.get('class')
+
+    if selected_class:
+        students = students.filter(student_class=selected_class)
+
+    # ✅ Get grades only for the filtered students
+    all_grades = SubjectGrade.objects.filter(student__in=students).select_related('student', 'teacher')
+
+    # ✅ Group grades by student
+    student_grades = {}
+    for grade in all_grades:
+        student = grade.student
+        if student not in student_grades:
+            student_grades[student] = []
+        student_grades[student].append(grade)
 
     if request.method == 'POST':
         student_username = request.POST.get('student_username')
@@ -731,11 +747,9 @@ def teacher_upload_grades(request):
         second_test = request.POST.get('second_test')
         exam = request.POST.get('exam')
 
-        # New manual overrides
         manual_total = request.POST.get('manual_total')
         manual_grade = request.POST.get('manual_grade')
 
-        # Convert scores to int if provided, else -
         first_test = int(first_test) if first_test else None 
         second_test = int(second_test) if second_test else None
         exam = int(exam) if exam else None
@@ -765,15 +779,14 @@ def teacher_upload_grades(request):
         )
 
         if not created:
-            # Update existing fields selectively
             if first_test is not None:
                 grade.first_test = first_test
             if second_test is not None:
                 grade.second_test = second_test
             if exam is not None:
                 grade.exam = exam
-            grade.manual_total = manual_total  # None or int
-            grade.manual_grade = manual_grade  # None or string
+            grade.manual_total = manual_total
+            grade.manual_grade = manual_grade
             grade.comment = comment or grade.comment
             grade.save()
             messages.success(request, "Grade updated successfully.")
@@ -782,7 +795,16 @@ def teacher_upload_grades(request):
 
         return redirect('teacher_upload_grades')
 
-    return render(request, 'portal/teacher_upload_grades.html', {'students': students, 'grades': grades})
+    # ✅ Unique class list for dropdown
+    class_choices = User.objects.filter(role='student').values_list('student_class', flat=True).distinct()
+
+    return render(request, 'portal/teacher_upload_grades.html', {
+        'students': students,
+        'student_grades': student_grades,
+        'selected_class': selected_class,
+        'class_choices': class_choices,
+    })
+
 
 @login_required
 @user_passes_test(is_admin)
