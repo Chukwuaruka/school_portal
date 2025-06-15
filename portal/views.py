@@ -719,11 +719,11 @@ def teacher_grades(request):
 def teacher_upload_grades(request):
     students = User.objects.filter(role='student')
 
-    # ✅ Get selected class from GET params
-    selected_class = request.GET.get('class')
+    # ✅ Get selected classroom from GET params
+    selected_classroom = request.GET.get('class')
 
-    if selected_class:
-        students = students.filter(student_class=selected_class)
+    if selected_classroom:
+        students = students.filter(classroom=selected_classroom)
 
     # ✅ Get grades only for the filtered students
     all_grades = SubjectGrade.objects.filter(student__in=students).select_related('student', 'teacher')
@@ -750,15 +750,21 @@ def teacher_upload_grades(request):
         manual_total = request.POST.get('manual_total')
         manual_grade = request.POST.get('manual_grade')
 
-        first_test = int(first_test) if first_test else None 
-        second_test = int(second_test) if second_test else None
-        exam = int(exam) if exam else None
-        manual_total = int(manual_total) if manual_total else None
-        manual_grade = manual_grade.strip() if manual_grade else None
+        try:
+            first_test = int(first_test) if first_test else None 
+            second_test = int(second_test) if second_test else None
+            exam = int(exam) if exam else None
+            manual_total = int(manual_total) if manual_total else None
+        except ValueError:
+            messages.error(request, "Test and exam scores must be numbers.")
+            return redirect(f"{reverse('teacher_upload_grades')}?class={selected_classroom}")
+
+        subject = subject.strip().title() if subject else subject
+        manual_grade = manual_grade.strip().upper() if manual_grade else None
 
         if not all([student_username, subject, term, session]):
             messages.error(request, "All required fields (except scores) must be filled.")
-            return redirect('teacher_upload_grades')
+            return redirect(f"{reverse('teacher_upload_grades')}?class={selected_classroom}")
 
         student = get_object_or_404(User, username=student_username, role='student')
 
@@ -793,18 +799,17 @@ def teacher_upload_grades(request):
         else:
             messages.success(request, "Grade uploaded successfully.")
 
-        return redirect('teacher_upload_grades')
+        return redirect(f"{reverse('teacher_upload_grades')}?class={selected_classroom}")
 
-    # ✅ Unique class list for dropdown
-    class_choices = User.objects.filter(role='student').values_list('student_class', flat=True).distinct()
+    # ✅ Unique classroom list for dropdown
+    class_choices = User.objects.filter(role='student').values_list('classroom', flat=True).distinct()
 
     return render(request, 'portal/teacher_upload_grades.html', {
         'students': students,
         'student_grades': student_grades,
-        'selected_class': selected_class,
+        'selected_class': selected_classroom,
         'class_choices': class_choices,
     })
-
 
 @login_required
 @user_passes_test(is_admin)
