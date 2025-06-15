@@ -47,7 +47,7 @@ urlpatterns = [
     path('dashboard-admin/timetables/', views.manage_timetables, name='manage_timetables'),
     path('timetables/add/', views.add_timetable_period, name='add_timetable_period'),
     path('dashboard-admin/registration-codes/delete/<int:code_id>/', views.delete_registration_code, name='delete_registration_code'),
-
+    path('admin/grades/delete/<int:grade_id>/', delete_student_grade, name='delete_student_grade'),
 
     # 📣 Announcements (Admin)
     path('dashboard-admin/announcements/', views.manage_announcements, name='manage_announcements'),

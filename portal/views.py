@@ -834,6 +834,7 @@ def admin_manage_grades(request):
 
     grades = grades.order_by('student__last_name', 'subject')
     return render(request, 'portal/admin_manage_grades.html', {'grades': grades})
+
 @login_required
 @student_required
 def student_grades_view(request):
@@ -910,3 +911,11 @@ def edit_student_grade(request, grade_id):
         return redirect('admin_manage_grades')
 
     return render(request, 'portal/edit_student_grade.html', {'grade': grade})
+
+@login_required
+@user_passes_test(is_admin)
+def delete_student_grade(request, grade_id):
+    grade = get_object_or_404(Grade, id=grade_id)
+    grade.delete()
+    messages.success(request, "Grade deleted successfully.")
+    return redirect('admin_manage_grades')
