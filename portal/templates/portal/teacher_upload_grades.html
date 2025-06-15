@@ -20,6 +20,16 @@
       </div>
 
       <div class="col-md-6">
+  <label class="form-label">Classroom</label>
+  <select name="classroom" class="form-select" required>
+    <option value="">-- Select Classroom --</option>
+    {% for room in classrooms %}
+      <option value="{{ room.name }}">{{ room.name }}</option>
+    {% endfor %}
+  </select>
+</div>
+
+      <div class="col-md-6">
         <label class="form-label">Subject</label>
         <input type="text" name="subject" class="form-control" required>
       </div>

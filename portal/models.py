@@ -242,6 +242,7 @@ class Teacher(models.Model):
 class SubjectGrade(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='grades')
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='uploaded_grades')
+    classroom = models.ForeignKey('portal.Classroom', on_delete=models.CASCADE, null=True, blank=True)
     subject = models.CharField(max_length=100)
     first_test = models.IntegerField(null=True, blank=True)
     second_test = models.IntegerField(null=True, blank=True)

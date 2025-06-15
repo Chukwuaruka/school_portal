@@ -714,31 +714,28 @@ def teacher_grades(request):
         'submissions': submissions,
     })
 
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from .models import User, SubjectGrade, Classroom  # Make sure Classroom is imported
-from .decorators import teacher_required  # Assuming you have this decorator
+
 
 @login_required
 @teacher_required
 def teacher_upload_grades(request):
-    # Get all students
+    # Get all students with role 'student'
     students = User.objects.filter(role='student')
 
-    # Get selected classroom name from GET parameters
+    # Get selected classroom from GET params (for filtering students & grades)
     selected_classroom = request.GET.get('classroom')
 
-    # If a classroom is selected, filter students by classroom name
     if selected_classroom:
         students = students.filter(classroom__name=selected_classroom)
 
-    # Get grades for filtered students
-    all_grades = SubjectGrade.objects.filter(student__in=students).select_related('student', 'teacher')
+    # Get all grades for these students, filtered by classroom if selected
+    all_grades = SubjectGrade.objects.filter(student__in=students)
+    if selected_classroom:
+        all_grades = all_grades.filter(classroom__name=selected_classroom)
 
     # Group grades by student
     student_grades = {}
-    for grade in all_grades:
+    for grade in all_grades.select_related('student', 'teacher', 'classroom'):
         student = grade.student
         if student not in student_grades:
             student_grades[student] = []
@@ -750,6 +747,7 @@ def teacher_upload_grades(request):
         term = request.POST.get('term')
         session = request.POST.get('session')
         comment = request.POST.get('comment')
+        classroom_name = request.POST.get('classroom')
 
         first_test = request.POST.get('first_test')
         second_test = request.POST.get('second_test')
@@ -758,23 +756,25 @@ def teacher_upload_grades(request):
         manual_total = request.POST.get('manual_total')
         manual_grade = request.POST.get('manual_grade')
 
-        first_test = int(first_test) if first_test else None 
+        first_test = int(first_test) if first_test else None
         second_test = int(second_test) if second_test else None
         exam = int(exam) if exam else None
         manual_total = int(manual_total) if manual_total else None
         manual_grade = manual_grade.strip() if manual_grade else None
 
-        if not all([student_username, subject, term, session]):
-            messages.error(request, "All required fields (except scores) must be filled.")
+        if not all([student_username, subject, term, session, classroom_name]):
+            messages.error(request, "Please fill in all required fields including classroom.")
             return redirect('teacher_upload_grades')
 
         student = get_object_or_404(User, username=student_username, role='student')
+        classroom = get_object_or_404(Classroom, name=classroom_name)
 
         grade, created = SubjectGrade.objects.get_or_create(
             student=student,
             subject=subject,
             term=term,
             session=session,
+            classroom=classroom,
             defaults={
                 'teacher': request.user,
                 'first_test': first_test,
@@ -803,7 +803,6 @@ def teacher_upload_grades(request):
 
         return redirect('teacher_upload_grades')
 
-    # Get all classrooms for dropdown
     classrooms = Classroom.objects.all()
 
     return render(request, 'portal/teacher_upload_grades.html', {
