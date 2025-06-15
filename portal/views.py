@@ -801,7 +801,7 @@ def teacher_upload_grades(request):
         else:
             messages.success(request, "Grade uploaded successfully.")
 
-        return redirect('teacher_upload_grades')
+        return redirect(f'{reverse("teacher_upload_grades")}?classroom={classroom_name}')
 
     classrooms = Classroom.objects.all()
 

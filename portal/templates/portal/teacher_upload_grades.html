@@ -5,6 +5,7 @@
 <div class="container mt-4">
   <h2 class="mb-4">📝 Upload or Edit Student Grades</h2>
 
+  <!-- Grade Upload Form -->
   <form method="POST">
     {% csrf_token %}
 
@@ -20,14 +21,14 @@
       </div>
 
       <div class="col-md-6">
-  <label class="form-label">Classroom</label>
-  <select name="classroom" class="form-select" required>
-    <option value="">-- Select Classroom --</option>
-    {% for room in classrooms %}
-      <option value="{{ room.name }}">{{ room.name }}</option>
-    {% endfor %}
-  </select>
-</div>
+        <label class="form-label">Classroom</label>
+        <select name="classroom" class="form-select" required>
+          <option value="">-- Select Classroom --</option>
+          {% for room in classrooms %}
+            <option value="{{ room.name }}">{{ room.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
       <div class="col-md-6">
         <label class="form-label">Subject</label>
@@ -95,19 +96,22 @@
 
   <hr class="my-5">
 
+  <!-- Grade Filter -->
   <h4>📋 Uploaded Grades</h4>
 
-<select name="classroom" class="form-select" onchange="this.form.submit()">
-  <option value="">-- All Classrooms --</option>
-  {% for room in classrooms %}
-    <option value="{{ room.name }}" {% if selected_classroom == room.name %}selected{% endif %}>{{ room.name }}</option>
-  {% endfor %}
-</select>
+  <form method="get" class="mb-4">
+    <label class="form-label">Filter by Classroom</label>
+    <select name="classroom" class="form-select" onchange="this.form.submit()">
+      <option value="">-- All Classrooms --</option>
+      {% for room in classrooms %}
+        <option value="{{ room.name }}" {% if selected_classroom == room.name %}selected{% endif %}>{{ room.name }}</option>
+      {% endfor %}
+    </select>
+  </form>
 
-  {% if grades %}
-    {% regroup grades by student as student_grades %}
-    {% for group in student_grades %}
-      <h5 class="mt-4 text-primary">{{ group.grouper.get_full_name }} ({{ group.grouper.username }})</h5>
+  {% if student_grades %}
+    {% for student, grades in student_grades.items %}
+      <h5 class="mt-4 text-primary">{{ student.get_full_name }} ({{ student.username }})</h5>
       <div class="table-responsive">
         <table class="table table-bordered table-hover mt-2 align-middle">
           <thead class="table-light">
@@ -125,21 +129,21 @@
             </tr>
           </thead>
           <tbody>
-            {% for grade in group.list %}
-            <tr>
-              <td>{{ grade.subject }}</td>
-              <td>{{ grade.first_test|default:"–" }}</td>
-              <td>{{ grade.second_test|default:"–" }}</td>
-              <td>{{ grade.exam|default:"–" }}</td>
-              <td>{{ grade.total_score }}</td>
-              <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-              <td>{{ grade.term }}</td>
-              <td>{{ grade.session }}</td>
-              <td>{{ grade.comment|default:"–" }}</td>
-              <td>
-                <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-warning">Edit</a>
-              </td>
-            </tr>
+            {% for grade in grades %}
+              <tr>
+                <td>{{ grade.subject }}</td>
+                <td>{{ grade.first_test|default:"–" }}</td>
+                <td>{{ grade.second_test|default:"–" }}</td>
+                <td>{{ grade.exam|default:"–" }}</td>
+                <td>{{ grade.total_score }}</td>
+                <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+                <td>{{ grade.term }}</td>
+                <td>{{ grade.session }}</td>
+                <td>{{ grade.comment|default:"–" }}</td>
+                <td>
+                  <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-warning">Edit</a>
+                </td>
+              </tr>
             {% endfor %}
           </tbody>
         </table>
