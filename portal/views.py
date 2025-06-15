@@ -714,21 +714,29 @@ def teacher_grades(request):
         'submissions': submissions,
     })
 
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import User, SubjectGrade, Classroom  # Make sure Classroom is imported
+from .decorators import teacher_required  # Assuming you have this decorator
+
 @login_required
 @teacher_required
 def teacher_upload_grades(request):
+    # Get all students
     students = User.objects.filter(role='student')
 
-    # ✅ Get selected classroom from GET params
-    selected_classroom = request.GET.get('class')
+    # Get selected classroom name from GET parameters
+    selected_classroom = request.GET.get('classroom')
 
+    # If a classroom is selected, filter students by classroom name
     if selected_classroom:
-        students = students.filter(classroom=selected_classroom)
+        students = students.filter(classroom__name=selected_classroom)
 
-    # ✅ Get grades only for the filtered students
+    # Get grades for filtered students
     all_grades = SubjectGrade.objects.filter(student__in=students).select_related('student', 'teacher')
 
-    # ✅ Group grades by student
+    # Group grades by student
     student_grades = {}
     for grade in all_grades:
         student = grade.student
@@ -750,21 +758,15 @@ def teacher_upload_grades(request):
         manual_total = request.POST.get('manual_total')
         manual_grade = request.POST.get('manual_grade')
 
-        try:
-            first_test = int(first_test) if first_test else None 
-            second_test = int(second_test) if second_test else None
-            exam = int(exam) if exam else None
-            manual_total = int(manual_total) if manual_total else None
-        except ValueError:
-            messages.error(request, "Test and exam scores must be numbers.")
-            return redirect(f"{reverse('teacher_upload_grades')}?class={selected_classroom}")
-
-        subject = subject.strip().title() if subject else subject
-        manual_grade = manual_grade.strip().upper() if manual_grade else None
+        first_test = int(first_test) if first_test else None 
+        second_test = int(second_test) if second_test else None
+        exam = int(exam) if exam else None
+        manual_total = int(manual_total) if manual_total else None
+        manual_grade = manual_grade.strip() if manual_grade else None
 
         if not all([student_username, subject, term, session]):
             messages.error(request, "All required fields (except scores) must be filled.")
-            return redirect(f"{reverse('teacher_upload_grades')}?class={selected_classroom}")
+            return redirect('teacher_upload_grades')
 
         student = get_object_or_404(User, username=student_username, role='student')
 
@@ -799,24 +801,16 @@ def teacher_upload_grades(request):
         else:
             messages.success(request, "Grade uploaded successfully.")
 
-        return redirect(f"{reverse('teacher_upload_grades')}?class={selected_classroom}")
+        return redirect('teacher_upload_grades')
 
-    # ✅ Unique classroom list for dropdown
-    classrooms = Classroom.objects.all()  # import Classroom model
-
-    selected_classroom = request.GET.get('classroom')
-
-    if selected_classroom:
-        students = students.filter(classroom__name=selected_classroom)
-
-# pass 'classrooms' instead of 'class_choices' to template
- 
+    # Get all classrooms for dropdown
+    classrooms = Classroom.objects.all()
 
     return render(request, 'portal/teacher_upload_grades.html', {
         'students': students,
         'student_grades': student_grades,
-        'selected_class': selected_classroom,
-        'class_choices': class_choices,
+        'selected_classroom': selected_classroom,
+        'classrooms': classrooms,
     })
 
 @login_required

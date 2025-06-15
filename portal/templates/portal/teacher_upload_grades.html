@@ -87,17 +87,12 @@
 
   <h4>📋 Uploaded Grades</h4>
 
-<form method="get" class="row g-3 mb-3">
-  <div class="col-md-4">
-    <label class="form-label">Filter by Classroom</label>
-    <select name="class" class="form-select" onchange="this.form.submit()">
-      <option value="">-- All Classrooms --</option>
-      {% for classroom in class_choices %}
-        <option value="{{ classroom }}" {% if selected_class == classroom %}selected{% endif %}>{{ classroom }}</option>
-      {% endfor %}
-    </select>
-  </div>
-</form>
+<select name="classroom" class="form-select" onchange="this.form.submit()">
+  <option value="">-- All Classrooms --</option>
+  {% for room in classrooms %}
+    <option value="{{ room.name }}" {% if selected_classroom == room.name %}selected{% endif %}>{{ room.name }}</option>
+  {% endfor %}
+</select>
 
   {% if grades %}
     {% regroup grades by student as student_grades %}
