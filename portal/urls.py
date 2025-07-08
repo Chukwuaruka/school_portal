@@ -25,7 +25,7 @@ urlpatterns = [
     path('student/announcements/', views.student_announcements, name='student_announcements'),
     path('student/details/', views.student_details, name='student_details'),
     path('student/details/edit/', views.edit_student_profile, name='edit_student_profile'),
-    path('student/report/download/', views.download_grade_report_pdf, name='download_grade_report_pdf'),
+    path('download-grade-report/', views.download_grade_report_pdf, name='download_grade_report_pdf'),
 
     # 🧑‍🏫 Teacher Dashboard & Features
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),

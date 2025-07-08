@@ -90,6 +90,9 @@
     <div class="alert alert-info text-center">
         No grades available at this time.
     </div>
+    <a href="{% url 'download_grade_report_pdf' %}" class="btn btn-primary" target="_blank">
+    Download PDF Report
+    </a>
     {% endif %}
 </div>
 {% endblock %}
