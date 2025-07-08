@@ -79,6 +79,10 @@
                 <textarea name="comment" class="form-control" rows="2">{{ grade.comment|default:'' }}</textarea>
             </div>
         </div>
+        <div class="col-12">
+            <label class="form-label">Admin Comment (optional)</label>
+            <textarea name="admin_comment" class="form-control" rows="2">{{ grade.admin_comment|default:'' }}</textarea>
+        </div>
 
         <div class="mt-4 d-grid">
             <button type="submit" class="btn btn-success">💾 Save Changes</button>

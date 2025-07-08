@@ -946,15 +946,15 @@ def edit_grade(request, grade_id):
         exam = request.POST.get('exam')
         term = request.POST.get('term')
         session = request.POST.get('session')
-        comment = request.POST.get('comment')
+        comment = request.POST.get('comment')  # teacher comment
+        admin_comment = request.POST.get('admin_comment')  # admin comment
 
-        # New fields
         first_term_score = request.POST.get('first_term_score')
         second_term_score = request.POST.get('second_term_score')
         average_score = request.POST.get('average_score')
         grade_comment = request.POST.get('grade_comment')
 
-        # Convert safely
+        # Safely convert values or set defaults
         first_test = int(first_test) if first_test else 0
         second_test = int(second_test) if second_test else 0
         exam = int(exam) if exam else 0
@@ -962,10 +962,9 @@ def edit_grade(request, grade_id):
         second_term_score = int(second_term_score) if second_term_score else None
         average_score = float(average_score) if average_score else None
 
-        # Compute total
         total = first_test + second_test + exam
 
-        # Compute grade
+        # Grade logic
         if total >= 90:
             grade_letter = 'A++'
         elif total >= 80:
@@ -981,7 +980,7 @@ def edit_grade(request, grade_id):
         else:
             grade_letter = 'F'
 
-        # Save changes
+        # Update the grade record
         grade.subject = subject
         grade.first_test = first_test
         grade.second_test = second_test
@@ -991,6 +990,7 @@ def edit_grade(request, grade_id):
         grade.term = term
         grade.session = session
         grade.comment = comment
+        grade.admin_comment = admin_comment
         grade.first_term_score = first_term_score
         grade.second_term_score = second_term_score
         grade.average_score = average_score
@@ -998,7 +998,7 @@ def edit_grade(request, grade_id):
         grade.save()
 
         messages.success(request, 'Grade updated successfully.')
-        return redirect('teacher_upload_grades')
+        return redirect('teacher_upload_grades')  # Make sure this URL name exists
 
     return render(request, 'portal/edit_grade.html', {'grade': grade})
 
@@ -1052,26 +1052,23 @@ def delete_student_grade(request, grade_id):
 @login_required
 def download_grade_report_pdf(request):
     student = request.user
-    # Adjust these as needed or get from GET params or student's current term/session
     term = "First Term"
     session = "2024/2025"
 
-    # Get the student's classroom (adjust if you store classroom differently)
-    classroom = Classroom.objects.filter(students=student).first()
+    # Get classroom directly from the student's ForeignKey field
+    classroom = student.classroom
 
-    # Get the student's grades for the term and session
+    # Get grades
     subject_grades = SubjectGrade.objects.filter(
         student=student,
         term=term,
         session=session
     )
 
-    # Calculate overall average and position if needed
-    # For now, placeholders
+    # Placeholders (can calculate these later)
     overall_average = None
     overall_position = None
 
-    # Example comments, adjust if stored in another model or field
     teacher_comment = "Good performance."
     admin_comment = "Keep it up!"
 
