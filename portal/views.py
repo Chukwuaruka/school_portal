@@ -1084,7 +1084,7 @@ def download_grade_report_pdf(request):
         'admin_comment': admin_comment,
     }
 
-    template = get_template('grades_pdf.html')
+    template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
     response = HttpResponse(content_type='application/pdf')
