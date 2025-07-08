@@ -187,7 +187,7 @@ def student_dashboard(request):
 def student_timetable(request):
     student = request.user
     classroom = student.classroom
-    current_day = datetime.datetime.now().strftime("%A")
+    current_day = datetime.now().strftime("%A")
 
     periods = Timetable.objects.filter(classroom=classroom).order_by('day', 'start_time')
 
