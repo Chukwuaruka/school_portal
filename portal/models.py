@@ -1,7 +1,8 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+
 
 # 🏫 Classroom Model
 class Classroom(models.Model):
@@ -10,8 +11,8 @@ class Classroom(models.Model):
     def __str__(self):
         return self.name
 
-from django.contrib.auth.models import BaseUserManager
 
+# 🔧 Custom User Manager
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
         if not username:
@@ -25,7 +26,7 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, username, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('role', 'admin')  # ✅ Ensure role is set to 'admin'
+        extra_fields.setdefault('role', 'admin')
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -34,6 +35,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(username, email, password, **extra_fields)
 
+
 # 🔐 Custom User Model
 class User(AbstractUser):
     email = models.EmailField(blank=True, null=True)
@@ -41,18 +43,11 @@ class User(AbstractUser):
     dob = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=50, default='Not specified', blank=True)
     phone = models.CharField(max_length=20, default='Not specified', blank=True)
-    profile_picture = models.ImageField(
-        upload_to='profile_pics/',
-        default='profile_pics/default.jpg',
-        blank=True
-    )
-    
-    # Replaced ForeignKey with CharField for classroom
+    profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default.jpg', blank=True)
     classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True)
-
     address = models.CharField(max_length=255, default='N/A', blank=True)
 
-    # Parent information
+    # Parent Info
     parent_first_name = models.CharField(max_length=50, blank=True)
     parent_last_name = models.CharField(max_length=50, blank=True)
     parent_phone = models.CharField(max_length=20, blank=True)
@@ -72,12 +67,12 @@ class User(AbstractUser):
         return self.username
 
 
-# 🔐 Registration Code Model
+# 🔐 Registration Code
 class RegistrationCode(models.Model):
     code = models.CharField(max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
-    used_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL)
+    used_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.code
@@ -87,22 +82,10 @@ class RegistrationCode(models.Model):
         return self.used_by is not None
 
 
-# 📅 Timetable Model
+# 📅 Timetable
 class Timetable(models.Model):
-    classroom = models.ForeignKey(
-        Classroom,
-        on_delete=models.CASCADE,
-        default=1,
-        help_text="Select the class this timetable belongs to"
-    )
-    teacher = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        limit_choices_to={'role': 'teacher'},
-        null=True,
-        blank=True,
-        related_name='teacher_timetables'
-    )
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, default=1)
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'teacher'}, null=True, blank=True, related_name='teacher_timetables')
     subject = models.CharField(max_length=100)
     day = models.CharField(max_length=20)
     start_time = models.TimeField()
@@ -112,42 +95,21 @@ class Timetable(models.Model):
         return f"{self.subject} - {self.day} ({self.classroom.name})"
 
 
-# 📝 Assignment Model
+# 📝 Assignment
 class Assignment(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     due_date = models.DateField()
     created_at = models.DateTimeField(default=timezone.now)
-
-    teacher = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        limit_choices_to={'role': 'teacher'},
-        related_name='teacher_assignments',
-        null=True,
-    )
-    student = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        limit_choices_to={'role': 'student'},
-        related_name='student_assignments'
-    )
-
-    classroom = models.ForeignKey(
-        Classroom,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        help_text="Class this assignment is for (optional if assigned to individual student)"
-    )
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'teacher'}, related_name='teacher_assignments', null=True)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'student'}, related_name='student_assignments', null=True, blank=True)
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.title} (Due {self.due_date})"
 
 
-# 📤 Submission Model
+# 📤 Submission
 class Submission(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
@@ -162,13 +124,9 @@ class Submission(models.Model):
         return f"{self.student.username} - {self.assignment.title}"
 
 
-# 📊 Grade Model
+# 📊 Grade
 class Grade(models.Model):
-    student = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        limit_choices_to={'role': 'student'}
-    )
+    student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     score = models.FloatField()
     total_marks = models.FloatField()
@@ -179,7 +137,7 @@ class Grade(models.Model):
         return f"{self.assignment.title} - {self.student.username}"
 
 
-# 📁 Resource Model
+# 📁 Resource
 class Resource(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -188,20 +146,13 @@ class Resource(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(default=timezone.now)
     subject = models.CharField(max_length=100, blank=True, null=True)
-
-    classroom = models.ForeignKey(
-        Classroom,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        help_text="Class this resource is for"
-    )
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.title
 
 
-# 📢 Announcement Model
+# 📢 Announcement
 class Announcement(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
@@ -209,26 +160,16 @@ class Announcement(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     target_audience = models.CharField(
         max_length=20,
-        choices=[
-            ('student', 'Student'),
-            ('teacher', 'Teacher'),
-            ('all', 'All'),
-        ],
+        choices=[('student', 'Student'), ('teacher', 'Teacher'), ('all', 'All')],
         default='all'
     )
-    classroom = models.ForeignKey(
-        Classroom,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        help_text="Optional – only needed if this announcement is class-specific"
-    )
+    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.title
 
 
-# 👨‍🏫 Teacher Profile Model
+# 👨‍🏫 Teacher Profile
 class Teacher(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=20)
@@ -239,10 +180,12 @@ class Teacher(models.Model):
     def __str__(self):
         return self.user.get_full_name()
 
+
+# 🧮 Subject Grade
 class SubjectGrade(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='grades')
     teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='uploaded_grades')
-    classroom = models.ForeignKey('portal.Classroom', on_delete=models.CASCADE, null=True, blank=True)
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True)
     subject = models.CharField(max_length=100)
     first_test = models.IntegerField(null=True, blank=True)
     second_test = models.IntegerField(null=True, blank=True)
@@ -252,16 +195,40 @@ class SubjectGrade(models.Model):
     comment = models.TextField(blank=True, null=True)
     date_uploaded = models.DateTimeField(auto_now_add=True)
 
-    # New manual override fields
+    # Additional Fields
     manual_total = models.PositiveIntegerField(blank=True, null=True)
     manual_grade = models.CharField(max_length=20, blank=True, null=True)
+    first_term_score = models.IntegerField(null=True, blank=True)
+    second_term_score = models.IntegerField(null=True, blank=True)
+    average_score = models.FloatField(null=True, blank=True)
+    grade_comment = models.CharField(max_length=255, blank=True, null=True)
 
     @property
     def total_score(self):
-        # Use manual_total if set, else calculate
         if self.manual_total is not None:
             return self.manual_total
         return (self.first_test or 0) + (self.second_test or 0) + (self.exam or 0)
 
     def __str__(self):
         return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
+
+
+# 📄 Student Report
+class StudentReport(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')
+    term = models.CharField(max_length=20)
+    session = models.CharField(max_length=20)
+    total_available_score = models.IntegerField(null=True, blank=True)
+    overall_score = models.IntegerField(null=True, blank=True)
+    overall_average = models.FloatField(null=True, blank=True)
+    overall_position = models.CharField(max_length=10, blank=True, null=True)
+    teacher_comment = models.TextField(blank=True, null=True)
+    admin_comment = models.TextField(blank=True, null=True)
+    next_term_date = models.DateField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['student', 'term', 'session']
+
+    def __str__(self):
+        return f"{self.student.username} - {self.term} {self.session}"

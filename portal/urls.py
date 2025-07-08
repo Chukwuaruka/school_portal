@@ -4,6 +4,7 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from .views import delete_student_grade
+from .views import download_grade_report_pdf
 
 urlpatterns = [
     # 🔐 Authentication
@@ -24,6 +25,7 @@ urlpatterns = [
     path('student/announcements/', views.student_announcements, name='student_announcements'),
     path('student/details/', views.student_details, name='student_details'),
     path('student/details/edit/', views.edit_student_profile, name='edit_student_profile'),
+    path('student/report/download/', views.download_grade_report_pdf, name='download_grade_report_pdf'),
 
     # 🧑‍🏫 Teacher Dashboard & Features
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),

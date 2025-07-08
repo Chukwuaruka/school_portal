@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Report - {{ student.get_full_name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        .summary {
+            margin-top: 30px;
+            font-weight: bold;
+        }
+        .comments {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>School Name</h1>
+    <h2>Student Report</h2>
+    <p><strong>Name:</strong> {{ student.get_full_name }}</p>
+    <p><strong>Class:</strong> {{ classroom.name }}</p>
+    <p><strong>Term:</strong> {{ term }}</p>
+    <p><strong>Session:</strong> {{ session }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>First Test</th>
+                <th>Second Test</th>
+                <th>Exam</th>
+                <th>Total Score</th>
+                <th>Grade</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for grade in subject_grades %}
+            <tr>
+                <td>{{ grade.subject }}</td>
+                <td>{{ grade.first_test|default:"N/A" }}</td>
+                <td>{{ grade.second_test|default:"N/A" }}</td>
+                <td>{{ grade.exam|default:"N/A" }}</td>
+                <td>{{ grade.total_score }}</td>
+                <td>{{ grade.manual_grade|default:"N/A" }}</td>
+                <td>{{ grade.grade_comment|default:"" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary">
+        <p><strong>Overall Average:</strong> {{ overall_average|default:"N/A" }}</p>
+        <p><strong>Overall Position:</strong> {{ overall_position|default:"N/A" }}</p>
+    </div>
+
+    <div class="comments">
+        <p><strong>Teacher's Comment:</strong> {{ teacher_comment|default:"No comment" }}</p>
+        <p><strong>Admin's Comment:</strong> {{ admin_comment|default:"No comment" }}</p>
+    </div>
+
+</body>
+</html>
