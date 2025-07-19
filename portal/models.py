@@ -234,30 +234,32 @@ class SubjectGrade(models.Model):
         return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
 
 
-# 📄 Student Report
-class StudentReport(models.Model):
-    student = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='reports'
-    )
+class SubjectGrade(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    subject = models.CharField(max_length=100)
+
+    # Scores
+    first_test = models.PositiveIntegerField(null=True, blank=True)
+    second_test = models.PositiveIntegerField(null=True, blank=True)
+    exam = models.PositiveIntegerField(null=True, blank=True)
+
+    manual_total = models.PositiveIntegerField(null=True, blank=True)
+    manual_grade = models.CharField(max_length=5, blank=True)
+
+    # Term & session
     term = models.CharField(max_length=20)
     session = models.CharField(max_length=20)
 
-    total_available_score = models.IntegerField(null=True, blank=True)
-    overall_score = models.IntegerField(null=True, blank=True)
-    overall_average = models.FloatField(null=True, blank=True)
-    overall_position = models.CharField(max_length=10, blank=True, null=True)
+    # Cumulative data
+    first_term_score = models.IntegerField(null=True, blank=True)
+    second_term_score = models.IntegerField(null=True, blank=True)
+    average_score = models.FloatField(null=True, blank=True)
 
-    teacher_comment = models.TextField(blank=True, null=True)
-    admin_comment = models.TextField(blank=True, null=True)
-    next_term_date = models.DateField(blank=True, null=True)
+    # Comments
+    grade_comment = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
+    admin_comment = models.TextField(blank=True)
+    next_term_date = models.DateField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  # track when updated
-
-    class Meta:
-        unique_together = ['student', 'term', 'session']
-
-    def __str__(self):
-        return f"{self.student.username} - {self.term} {self.session}"
+    updated_at = models.DateTimeField(auto_now=True)
