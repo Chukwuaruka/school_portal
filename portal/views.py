@@ -737,11 +737,21 @@ def teacher_grades(request):
 
 
 @login_required
-def edit_student_grades(request):
-    # Fetch all graded submissions for the logged-in student
-    submissions = Submission.objects.filter(student=request.user, graded=True).select_related('assignment')
+@teacher_required
+@user_passes_test(is_admin)
+def edit_student_grade(request, grade_id):
+    # Here grade_id corresponds to submission id
+    submission = get_object_or_404(Submission, id=grade_id)
 
-    return render(request, 'portal/edit_student_grades.html', {'submissions': submissions})
+    if request.method == 'POST':
+        submission.score = request.POST.get('score') or 0
+        submission.total_marks = request.POST.get('total_marks') or 0
+        submission.feedback = request.POST.get('feedback') or ''
+        submission.graded = True
+        submission.save()
+        return redirect('teacher_submissions')  # or admin_manage_grades or wherever you want
+
+    return render(request, 'portal/edit_student_grades.html', {'submission': submission})
 
 @login_required
 @teacher_required
@@ -1048,7 +1058,6 @@ def edit_grade(request, grade_id):
         return redirect('teacher_upload_grades')  # Adjust if needed
 
     return render(request, 'portal/edit_grade.html', {'grade': grade, 'report': report})
-
 
 @login_required
 @user_passes_test(is_admin)
