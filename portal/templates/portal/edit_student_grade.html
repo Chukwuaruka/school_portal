@@ -1,67 +1,27 @@
 {% extends 'portal/base.html' %}
-{% block title %}Edit Student Grade{% endblock %}
+
+{% block title %}Your Grades & Feedback{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">✏️ Edit Grade for {{ grade.student.get_full_name }} - {{ grade.subject }}</h2>
+  <h2 class="mb-4">📚 Your Assignment Grades & Feedback</h2>
 
-    <form method="post" class="card p-4 shadow-lg border-0 rounded-4">
-        {% csrf_token %}
-
-        <div class="mb-3">
-            <label class="form-label">1st Test (out of 20)</label>
-            <input type="number" step="1" name="first_test" class="form-control" value="{{ grade.first_test }}">
+  {% if submissions %}
+    {% for submission in submissions %}
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <h5>{{ submission.assignment.title }}</h5>
+          <p><strong>Submitted At:</strong> {{ submission.submitted_at|date:"M d, Y H:i" }}</p>
+          <p><strong>Score:</strong> {{ submission.score }} / {{ submission.total_marks }}</p>
+          {% if submission.feedback %}
+            <p><strong>Teacher Feedback:</strong> {{ submission.feedback }}</p>
+          {% endif %}
+          <a href="{{ submission.file.url }}" class="btn btn-outline-primary btn-sm" target="_blank">View Submission</a>
         </div>
-
-        <div class="mb-3">
-            <label class="form-label">2nd Test (out of 20)</label>
-            <input type="number" step="1" name="second_test" class="form-control" value="{{ grade.second_test }}">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Exam (out of 60)</label>
-            <input type="number" step="1" name="exam" class="form-control" value="{{ grade.exam }}">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Manual Total (optional)</label>
-            <input type="number" step="1" name="manual_total" class="form-control" value="{{ grade.manual_total }}">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Manual Grade (e.g. A+, B++)</label>
-            <input type="text" name="manual_grade" class="form-control" value="{{ grade.manual_grade }}">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Grade Comment (e.g. Excellent, Very Good)</label>
-            <input type="text" name="grade_comment" class="form-control" value="{{ grade.grade_comment }}">
-        </div>
-
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <label class="form-label">1st Term Score</label>
-                <input type="number" name="first_term_score" class="form-control" value="{{ grade.first_term_score }}">
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <label class="form-label">2nd Term Score</label>
-                <input type="number" name="second_term_score" class="form-control" value="{{ grade.second_term_score }}">
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <label class="form-label">Average Score</label>
-                <input type="number" step="0.01" name="average_score" class="form-control" value="{{ grade.average_score }}">
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Teacher Comment</label>
-            <textarea name="comment" class="form-control" rows="3">{{ grade.comment }}</textarea>
-        </div>
-
-        <button type="submit" class="btn btn-success">Update Grade</button>
-        <a href="{% url 'admin_manage_grades' %}" class="btn btn-secondary ms-2">Cancel</a>
-    </form>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info">You have no graded submissions yet.</div>
+  {% endif %}
 </div>
 {% endblock %}

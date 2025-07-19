@@ -736,6 +736,12 @@ def teacher_grades(request):
 
 
 
+@login_required
+def edit_student_grades(request):
+    # Fetch all graded submissions for the logged-in student
+    submissions = Submission.objects.filter(student=request.user, graded=True).select_related('assignment')
+
+    return render(request, 'portal/edit_student_grades.html', {'submissions': submissions})
 
 @login_required
 @teacher_required
@@ -1042,44 +1048,7 @@ def edit_grade(request, grade_id):
         return redirect('teacher_upload_grades')  # Adjust if needed
 
     return render(request, 'portal/edit_grade.html', {'grade': grade, 'report': report})
-@login_required
-@user_passes_test(is_admin)
-def edit_student_grade(request, grade_id):
-    grade = get_object_or_404(SubjectGrade, id=grade_id)
 
-    if request.method == 'POST':
-        # Numeric fields
-        grade.first_test = request.POST.get('first_test') or None
-        grade.second_test = request.POST.get('second_test') or None
-        grade.exam = request.POST.get('exam') or None
-        grade.manual_total = request.POST.get('manual_total') or None
-        grade.first_term_score = request.POST.get('first_term_score') or None
-        grade.second_term_score = request.POST.get('second_term_score') or None
-        grade.average_score = request.POST.get('average_score') or None
-
-        # Clean and cast numeric inputs
-        try:
-            grade.first_test = int(grade.first_test) if grade.first_test else None
-            grade.second_test = int(grade.second_test) if grade.second_test else None
-            grade.exam = int(grade.exam) if grade.exam else None
-            grade.manual_total = int(grade.manual_total) if grade.manual_total else None
-            grade.first_term_score = int(grade.first_term_score) if grade.first_term_score else None
-            grade.second_term_score = int(grade.second_term_score) if grade.second_term_score else None
-            grade.average_score = float(grade.average_score) if grade.average_score else None
-        except ValueError:
-            messages.error(request, "Invalid number input.")
-            return redirect('edit_student_grade', grade_id=grade.id)
-
-        # Text fields
-        grade.manual_grade = request.POST.get('manual_grade') or None
-        grade.grade_comment = request.POST.get('grade_comment') or None
-        grade.comment = request.POST.get('comment') or ''
-
-        grade.save()
-        messages.success(request, "Grade updated successfully.")
-        return redirect('admin_manage_grades')
-
-    return render(request, 'portal/edit_student_grade.html', {'grade': grade})
 
 @login_required
 @user_passes_test(is_admin)
@@ -1095,35 +1064,40 @@ def download_grade_report_pdf(request):
     term = "First Term"
     session = "2024/2025"
 
-    # Get classroom directly from the student's ForeignKey field
+    # Get the student's classroom
     classroom = student.classroom
 
-    # Get grades
+    # Get subject grades for this term/session
     subject_grades = SubjectGrade.objects.filter(
         student=student,
         term=term,
         session=session
     )
 
-    # Placeholders (can calculate these later)
-    overall_average = None
-    overall_position = None
+    # Try to get the full student report (if it exists)
+    report = StudentReport.objects.filter(
+        student=student,
+        term=term,
+        session=session
+    ).first()
 
-    teacher_comment = "Good performance."
-    admin_comment = "Keep it up!"
-
+    # Provide data from report if it exists, or use defaults
     context = {
         'student': student,
         'classroom': classroom,
         'term': term,
         'session': session,
         'subject_grades': subject_grades,
-        'overall_average': overall_average,
-        'overall_position': overall_position,
-        'teacher_comment': teacher_comment,
-        'admin_comment': admin_comment,
+        'total_available_score': report.total_available_score if report else None,
+        'overall_score': report.overall_score if report else None,
+        'overall_average': report.overall_average if report else None,
+        'overall_position': report.overall_position if report else None,
+        'teacher_comment': report.teacher_comment if report else "No comment",
+        'admin_comment': report.admin_comment if report else "No comment",
+        'next_term_date': report.next_term_date if report else None,
     }
 
+    # Render HTML template into PDF
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
