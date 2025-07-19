@@ -180,7 +180,6 @@ class Teacher(models.Model):
     def __str__(self):
         return self.user.get_full_name()
 
-# 🧮 Subject Grade
 class SubjectGrade(models.Model):
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -211,7 +210,6 @@ class SubjectGrade(models.Model):
     comment = models.TextField(blank=True, null=True)
     date_uploaded = models.DateTimeField(auto_now_add=True)
 
-    # Additional Score/Grade Fields
     manual_total = models.PositiveIntegerField(blank=True, null=True)
     manual_grade = models.CharField(max_length=20, blank=True, null=True)
     first_term_score = models.IntegerField(null=True, blank=True)
@@ -219,7 +217,6 @@ class SubjectGrade(models.Model):
     average_score = models.FloatField(null=True, blank=True)
     grade_comment = models.CharField(max_length=255, blank=True, null=True)
 
-    # Optional comments (not used if using StudentReport)
     teacher_comment = models.TextField(blank=True, null=True)
     admin_comment = models.TextField(blank=True, null=True)
     next_term_date = models.DateField(blank=True, null=True)
@@ -233,33 +230,3 @@ class SubjectGrade(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
 
-
-class SubjectGrade(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=100)
-
-    # Scores
-    first_test = models.PositiveIntegerField(null=True, blank=True)
-    second_test = models.PositiveIntegerField(null=True, blank=True)
-    exam = models.PositiveIntegerField(null=True, blank=True)
-
-    manual_total = models.PositiveIntegerField(null=True, blank=True)
-    manual_grade = models.CharField(max_length=5, blank=True)
-
-    # Term & session
-    term = models.CharField(max_length=20)
-    session = models.CharField(max_length=20)
-
-    # Cumulative data
-    first_term_score = models.IntegerField(null=True, blank=True)
-    second_term_score = models.IntegerField(null=True, blank=True)
-    average_score = models.FloatField(null=True, blank=True)
-
-    # Comments
-    grade_comment = models.TextField(blank=True)
-    comment = models.TextField(blank=True)
-    admin_comment = models.TextField(blank=True)
-    next_term_date = models.DateField(null=True, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
