@@ -954,10 +954,10 @@ def student_grades_view(request):
     return render(request, 'portal/student_test_examination_grades.html', context)
 
 
+@login_required
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
 
-    # Try to get the related StudentReport for this student, term, session
     report, created = StudentReport.objects.get_or_create(
         student=grade.student,
         term=grade.term,
@@ -974,88 +974,51 @@ def edit_grade(request, grade_id):
     )
 
     if request.method == 'POST':
-        subject = request.POST.get('subject')
-        first_test = request.POST.get('first_test')
-        second_test = request.POST.get('second_test')
-        exam = request.POST.get('exam')
-        term = request.POST.get('term')
-        session = request.POST.get('session')
-        comment = request.POST.get('comment')  # teacher comment
-        admin_comment = request.POST.get('admin_comment')  # admin comment
+        # SubjectGrade fields
+        grade.subject = request.POST.get('subject')
+        grade.first_test = int(request.POST.get('first_test') or 0)
+        grade.second_test = int(request.POST.get('second_test') or 0)
+        grade.exam = int(request.POST.get('exam') or 0)
+        grade.term = request.POST.get('term')
+        grade.session = request.POST.get('session')
+        grade.comment = request.POST.get('comment')
+        grade.admin_comment = request.POST.get('admin_comment')
+        grade.first_term_score = request.POST.get('first_term_score') or None
+        grade.second_term_score = request.POST.get('second_term_score') or None
+        grade.average_score = request.POST.get('average_score') or None
+        grade.grade_comment = request.POST.get('grade_comment')
 
-        first_term_score = request.POST.get('first_term_score')
-        second_term_score = request.POST.get('second_term_score')
-        average_score = request.POST.get('average_score')
-        grade_comment = request.POST.get('grade_comment')
-
-        # Student report fields
-        total_available_score = request.POST.get('total_available_score')
-        overall_score = request.POST.get('overall_score')
-        overall_average = request.POST.get('overall_average')
-        overall_position = request.POST.get('overall_position')
-        teacher_comment = request.POST.get('teacher_comment')
-        admin_comment_report = request.POST.get('admin_comment_report')
-        next_term_date = request.POST.get('next_term_date')
-
-        # Safely convert values or set defaults
-        first_test = int(first_test) if first_test else 0
-        second_test = int(second_test) if second_test else 0
-        exam = int(exam) if exam else 0
-        first_term_score = int(first_term_score) if first_term_score else None
-        second_term_score = int(second_term_score) if second_term_score else None
-        average_score = float(average_score) if average_score else None
-
-        total_available_score = int(total_available_score) if total_available_score else None
-        overall_score = int(overall_score) if overall_score else None
-        overall_average = float(overall_average) if overall_average else None
-
-        total = first_test + second_test + exam
-
-        # Grade logic
+        total = grade.first_test + grade.second_test + grade.exam
         if total >= 90:
-            grade_letter = 'A++'
+            grade.manual_grade = 'A++'
         elif total >= 80:
-            grade_letter = 'A+'
+            grade.manual_grade = 'A+'
         elif total >= 70:
-            grade_letter = 'B++'
+            grade.manual_grade = 'B++'
         elif total >= 60:
-            grade_letter = 'B+'
+            grade.manual_grade = 'B+'
         elif total >= 50:
-            grade_letter = 'C'
+            grade.manual_grade = 'C'
         elif total >= 40:
-            grade_letter = 'D'
+            grade.manual_grade = 'D'
         else:
-            grade_letter = 'F'
-
-        # Update the grade record
-        grade.subject = subject
-        grade.first_test = first_test
-        grade.second_test = second_test
-        grade.exam = exam
+            grade.manual_grade = 'F'
         grade.manual_total = total
-        grade.manual_grade = grade_letter
-        grade.term = term
-        grade.session = session
-        grade.comment = comment
-        grade.admin_comment = admin_comment
-        grade.first_term_score = first_term_score
-        grade.second_term_score = second_term_score
-        grade.average_score = average_score
-        grade.grade_comment = grade_comment
+
         grade.save()
 
-        # Update the student report record
-        report.total_available_score = total_available_score
-        report.overall_score = overall_score
-        report.overall_average = overall_average
-        report.overall_position = overall_position
-        report.teacher_comment = teacher_comment
-        report.admin_comment = admin_comment_report
-        report.next_term_date = next_term_date if next_term_date else None
+        # StudentReport fields
+        report.total_available_score = request.POST.get('total_available_score') or None
+        report.overall_score = request.POST.get('overall_score') or None
+        report.overall_average = request.POST.get('overall_average') or None
+        report.overall_position = request.POST.get('overall_position')
+        report.teacher_comment = request.POST.get('teacher_comment')
+        report.admin_comment = request.POST.get('admin_comment_report')  # important!
+        report.next_term_date = request.POST.get('next_term_date') or None
         report.save()
 
         messages.success(request, 'Grade and report updated successfully.')
-        return redirect('teacher_upload_grades')  # Adjust if needed
+        return redirect('teacher_upload_grades')
 
     return render(request, 'portal/edit_grade.html', {'grade': grade, 'report': report})
 

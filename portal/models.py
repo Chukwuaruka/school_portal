@@ -219,7 +219,7 @@ class SubjectGrade(models.Model):
     average_score = models.FloatField(null=True, blank=True)
     grade_comment = models.CharField(max_length=255, blank=True, null=True)
 
-    # 🆕 NEW fields for comments and next term
+    # Optional comments (not used if using StudentReport)
     teacher_comment = models.TextField(blank=True, null=True)
     admin_comment = models.TextField(blank=True, null=True)
     next_term_date = models.DateField(blank=True, null=True)
@@ -234,20 +234,27 @@ class SubjectGrade(models.Model):
         return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
 
 
-
 # 📄 Student Report
 class StudentReport(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reports')
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='reports'
+    )
     term = models.CharField(max_length=20)
     session = models.CharField(max_length=20)
+
     total_available_score = models.IntegerField(null=True, blank=True)
     overall_score = models.IntegerField(null=True, blank=True)
     overall_average = models.FloatField(null=True, blank=True)
     overall_position = models.CharField(max_length=10, blank=True, null=True)
+
     teacher_comment = models.TextField(blank=True, null=True)
     admin_comment = models.TextField(blank=True, null=True)
     next_term_date = models.DateField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # track when updated
 
     class Meta:
         unique_together = ['student', 'term', 'session']
