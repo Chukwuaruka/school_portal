@@ -17,7 +17,7 @@ from .models import SubjectGrade, Classroom
 
 # Models
 from .models import (
-    User, Assignment, Grade, SubjectGrade, StudentReport, Resource,
+    User, Assignment, Grade, SubjectGrade, Resource,
     Announcement, Timetable, Submission, Teacher, Classroom, RegistrationCode
 )
 
