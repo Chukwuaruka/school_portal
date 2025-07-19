@@ -24,12 +24,11 @@
         th {
             background-color: #f0f0f0;
         }
-        .summary {
+        .summary, .comments {
             margin-top: 30px;
-            font-weight: bold;
         }
-        .comments {
-            margin-top: 20px;
+        .summary p, .comments p {
+            font-weight: bold;
         }
     </style>
 </head>
@@ -37,6 +36,7 @@
 
     <h1>School Name</h1>
     <h2>Student Report</h2>
+
     <p><strong>Name:</strong> {{ student.get_full_name }}</p>
     <p><strong>Class:</strong> {{ classroom.name }}</p>
     <p><strong>Term:</strong> {{ term }}</p>
@@ -61,7 +61,7 @@
                 <td>{{ grade.first_test|default:"N/A" }}</td>
                 <td>{{ grade.second_test|default:"N/A" }}</td>
                 <td>{{ grade.exam|default:"N/A" }}</td>
-                <td>{{ grade.total_score }}</td>
+                <td>{{ grade.total_score|default:"N/A" }}</td>
                 <td>{{ grade.manual_grade|default:"N/A" }}</td>
                 <td>{{ grade.grade_comment|default:"" }}</td>
             </tr>
@@ -70,6 +70,8 @@
     </table>
 
     <div class="summary">
+        <p><strong>Overall Score:</strong> {{ overall_score|default:"N/A" }}</p>
+        <p><strong>Total Available Score:</strong> {{ total_available_score|default:"N/A" }}</p>
         <p><strong>Overall Average:</strong> {{ overall_average|default:"N/A" }}</p>
         <p><strong>Overall Position:</strong> {{ overall_position|default:"N/A" }}</p>
     </div>
@@ -77,6 +79,7 @@
     <div class="comments">
         <p><strong>Teacher's Comment:</strong> {{ teacher_comment|default:"No comment" }}</p>
         <p><strong>Admin's Comment:</strong> {{ admin_comment|default:"No comment" }}</p>
+        <p><strong>Next Term Begins:</strong> {{ next_term_date|date:"F j, Y"|default:"TBD" }}</p>
     </div>
 
 </body>

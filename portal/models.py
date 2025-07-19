@@ -180,28 +180,49 @@ class Teacher(models.Model):
     def __str__(self):
         return self.user.get_full_name()
 
-
 # 🧮 Subject Grade
 class SubjectGrade(models.Model):
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='grades')
-    teacher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='uploaded_grades')
-    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, null=True, blank=True)
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='grades'
+    )
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='uploaded_grades'
+    )
+    classroom = models.ForeignKey(
+        'Classroom',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
     subject = models.CharField(max_length=100)
     first_test = models.IntegerField(null=True, blank=True)
     second_test = models.IntegerField(null=True, blank=True)
     exam = models.IntegerField(null=True, blank=True)
+
     term = models.CharField(max_length=20)
     session = models.CharField(max_length=20)
+
     comment = models.TextField(blank=True, null=True)
     date_uploaded = models.DateTimeField(auto_now_add=True)
 
-    # Additional Fields
+    # Additional Score/Grade Fields
     manual_total = models.PositiveIntegerField(blank=True, null=True)
     manual_grade = models.CharField(max_length=20, blank=True, null=True)
     first_term_score = models.IntegerField(null=True, blank=True)
     second_term_score = models.IntegerField(null=True, blank=True)
     average_score = models.FloatField(null=True, blank=True)
     grade_comment = models.CharField(max_length=255, blank=True, null=True)
+
+    # 🆕 NEW fields for comments and next term
+    teacher_comment = models.TextField(blank=True, null=True)
+    admin_comment = models.TextField(blank=True, null=True)
+    next_term_date = models.DateField(blank=True, null=True)
 
     @property
     def total_score(self):
@@ -211,6 +232,7 @@ class SubjectGrade(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
+
 
 
 # 📄 Student Report
