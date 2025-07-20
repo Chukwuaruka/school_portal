@@ -926,23 +926,25 @@ def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
 
     if request.method == 'POST':
-        # Grade-level fields
+        # Core subject/term/session
         grade.subject = request.POST.get('subject')
         grade.first_test = int(request.POST.get('first_test') or 0)
         grade.second_test = int(request.POST.get('second_test') or 0)
         grade.exam = int(request.POST.get('exam') or 0)
         grade.term = request.POST.get('term')
         grade.session = request.POST.get('session')
-        grade.comment = request.POST.get('comment')
-        grade.admin_comment = request.POST.get('admin_comment')
-        grade.grade_comment = request.POST.get('grade_comment')
 
-        # Optional term scores and average
+        # Grade-level comments
+        grade.comment = request.POST.get('comment') or ''
+        grade.admin_comment = request.POST.get('admin_comment') or ''
+        grade.grade_comment = request.POST.get('grade_comment') or ''
+
+        # Term scores
         grade.first_term_score = int(request.POST.get('first_term_score') or 0)
         grade.second_term_score = int(request.POST.get('second_term_score') or 0)
         grade.average_score = float(request.POST.get('average_score') or 0)
 
-        # Manual override (optional)
+        # Manual grading
         manual_total = request.POST.get('manual_total')
         manual_grade = request.POST.get('manual_grade')
 
@@ -959,22 +961,30 @@ def edit_grade(request, grade_id):
             'D' if grade.manual_total >= 40 else 'F'
         )
 
-        # Report-level fields (stored in SubjectGrade now)
+        # Report-level fields (now inside SubjectGrade model)
         grade.total_available_score = int(request.POST.get('total_available_score') or 0)
         grade.overall_score = int(request.POST.get('overall_score') or 0)
         grade.overall_average = float(request.POST.get('overall_average') or 0)
-        grade.overall_position = request.POST.get('overall_position')
-        grade.teacher_comment = request.POST.get('teacher_comment')
-        grade.admin_comment_report = request.POST.get('admin_comment_report')
-        grade.next_term_date = request.POST.get('next_term_date') or None
+        grade.overall_position = request.POST.get('overall_position') or ''
+        grade.teacher_comment = request.POST.get('teacher_comment') or ''
+        grade.admin_comment_report = request.POST.get('admin_comment_report') or ''
+
+        next_term_raw = request.POST.get('next_term_date')
+        if next_term_raw:
+            try:
+                grade.next_term_date = datetime.strptime(next_term_raw, "%Y-%m-%d").date()
+            except ValueError:
+                messages.error(request, "Invalid date format for next term.")
+                return redirect('edit_grade', grade_id=grade.id)
+        else:
+            grade.next_term_date = None
 
         grade.save()
         messages.success(request, 'Grade and report info updated successfully.')
         return redirect('teacher_upload_grades')
 
     return render(request, 'portal/edit_grade.html', {
-        'grade': grade,
-        'report': grade,  # since report fields are in SubjectGrade now
+        'grade': grade
     })
 
 @login_required

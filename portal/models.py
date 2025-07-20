@@ -181,6 +181,7 @@ class Teacher(models.Model):
         return self.user.get_full_name()
 
 class SubjectGrade(models.Model):
+    # Relations
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -199,27 +200,36 @@ class SubjectGrade(models.Model):
         blank=True
     )
 
+    # Core subject details
     subject = models.CharField(max_length=100)
     first_test = models.IntegerField(null=True, blank=True)
     second_test = models.IntegerField(null=True, blank=True)
     exam = models.IntegerField(null=True, blank=True)
 
+    # Session tracking
     term = models.CharField(max_length=20)
     session = models.CharField(max_length=20)
 
+    # Per-subject comments
     comment = models.TextField(blank=True, null=True)
-    date_uploaded = models.DateTimeField(auto_now_add=True)
+    grade_comment = models.CharField(max_length=255, blank=True, null=True)
 
+    # Optional overrides
     manual_total = models.PositiveIntegerField(blank=True, null=True)
     manual_grade = models.CharField(max_length=20, blank=True, null=True)
+
+    # Cumulative scoring (used in report section)
     first_term_score = models.IntegerField(null=True, blank=True)
     second_term_score = models.IntegerField(null=True, blank=True)
     average_score = models.FloatField(null=True, blank=True)
-    grade_comment = models.CharField(max_length=255, blank=True, null=True)
 
+    # Report-level comments
     teacher_comment = models.TextField(blank=True, null=True)
     admin_comment = models.TextField(blank=True, null=True)
     next_term_date = models.DateField(blank=True, null=True)
+
+    # Metadata
+    date_uploaded = models.DateTimeField(auto_now_add=True)
 
     @property
     def total_score(self):
