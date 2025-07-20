@@ -764,18 +764,17 @@ def teacher_upload_grades(request):
 
     all_grades = SubjectGrade.objects.filter(student__in=students)
     if selected_classroom:
-        all_grades = all_grades.filter(classroom__name=selected_classroom)
+        all_grades = all_grades.filter(student__classroom__name=selected_classroom)
 
     # Organize grades by student
     student_grades = {}
-    for grade in all_grades.select_related('student', 'teacher', 'classroom'):
+    for grade in all_grades.select_related('student'):
         student = grade.student
         if student not in student_grades:
             student_grades[student] = []
         student_grades[student].append(grade)
 
     if request.method == 'POST':
-        # Required basic fields
         student_username = request.POST.get('student_username')
         subject = request.POST.get('subject')
         term = request.POST.get('term')
@@ -786,11 +785,9 @@ def teacher_upload_grades(request):
             messages.error(request, "Please fill in all required fields.")
             return redirect('teacher_upload_grades')
 
-        # Retrieve related objects, 404 if missing
         student = get_object_or_404(User, username=student_username, role='student')
         classroom = get_object_or_404(Classroom, name=classroom_name)
 
-        # Extract and parse grade-related fields, fallback to None
         def to_int(val):
             try:
                 return int(val)
@@ -807,32 +804,25 @@ def teacher_upload_grades(request):
         second_test = to_int(request.POST.get('second_test'))
         exam = to_int(request.POST.get('exam'))
         manual_total = to_int(request.POST.get('manual_total'))
+        manual_grade = request.POST.get('manual_grade', '').strip()
+
         first_term_score = to_int(request.POST.get('first_term_score'))
         second_term_score = to_int(request.POST.get('second_term_score'))
-        overall_score = to_int(request.POST.get('overall_score'))
-        total_available_score = to_int(request.POST.get('total_available_score'))
-        overall_position = request.POST.get('overall_position')  # keep as string
-        manual_grade = request.POST.get('manual_grade')
+        average_score = to_float(request.POST.get('average_score'))
+
         grade_comment = request.POST.get('grade_comment')
         comment = request.POST.get('comment')
-        teacher_comment = request.POST.get('teacher_comment')
         admin_comment = request.POST.get('admin_comment')
-        average_score = to_float(request.POST.get('average_score'))
-        overall_average = to_float(request.POST.get('overall_average'))
+        teacher_comment = request.POST.get('teacher_comment')
         next_term_date = parse_date(request.POST.get('next_term_date')) if request.POST.get('next_term_date') else None
 
-        if manual_grade:
-            manual_grade = manual_grade.strip()
-
-        # Save or update SubjectGrade
+        # Create or update SubjectGrade
         grade, created = SubjectGrade.objects.get_or_create(
             student=student,
             subject=subject,
             term=term,
             session=session,
-            classroom=classroom,
             defaults={
-                'teacher': request.user,
                 'first_test': first_test,
                 'second_test': second_test,
                 'exam': exam,
@@ -843,11 +833,12 @@ def teacher_upload_grades(request):
                 'average_score': average_score,
                 'grade_comment': grade_comment,
                 'comment': comment,
+                'admin_comment': admin_comment,
+                'next_term_date': next_term_date,
             }
         )
 
         if not created:
-            # Update existing grade
             grade.first_test = first_test
             grade.second_test = second_test
             grade.exam = exam
@@ -858,36 +849,12 @@ def teacher_upload_grades(request):
             grade.average_score = average_score
             grade.grade_comment = grade_comment
             grade.comment = comment
+            grade.admin_comment = admin_comment
+            grade.next_term_date = next_term_date
             grade.save()
             messages.success(request, "Grade updated successfully.")
         else:
             messages.success(request, "Grade uploaded successfully.")
-
-        # Save or update StudentReport
-        report, _ = StudentReport.objects.get_or_create(
-            student=student,
-            term=term,
-            session=session,
-            defaults={
-                'total_available_score': total_available_score,
-                'overall_score': overall_score,
-                'overall_average': overall_average,
-                'overall_position': overall_position,
-                'teacher_comment': teacher_comment,
-                'admin_comment': admin_comment,
-                'next_term_date': next_term_date,
-            }
-        )
-
-        # Always update report fields even if existing
-        report.total_available_score = total_available_score
-        report.overall_score = overall_score
-        report.overall_average = overall_average
-        report.overall_position = overall_position
-        report.teacher_comment = teacher_comment
-        report.admin_comment = admin_comment
-        report.next_term_date = next_term_date
-        report.save()
 
         return redirect('teacher_upload_grades')
 
@@ -1037,40 +1004,33 @@ def download_grade_report_pdf(request):
     term = "First Term"
     session = "2024/2025"
 
-    # Get the student's classroom
     classroom = student.classroom
 
-    # Get subject grades for this term/session
+    # Get subject grades
     subject_grades = SubjectGrade.objects.filter(
         student=student,
         term=term,
         session=session
     )
 
-    # Try to get the full student report (if it exists)
-    report = StudentReport.objects.filter(
-        student=student,
-        term=term,
-        session=session
-    ).first()
+    # Pick one SubjectGrade entry to pull report-level data
+    report_grade = subject_grades.first()
 
-    # Provide data from report if it exists, or use defaults
     context = {
         'student': student,
         'classroom': classroom,
         'term': term,
         'session': session,
         'subject_grades': subject_grades,
-        'total_available_score': report.total_available_score if report else None,
-        'overall_score': report.overall_score if report else None,
-        'overall_average': report.overall_average if report else None,
-        'overall_position': report.overall_position if report else None,
-        'teacher_comment': report.teacher_comment if report else "No comment",
-        'admin_comment': report.admin_comment if report else "No comment",
-        'next_term_date': report.next_term_date if report else None,
+        'total_available_score': report_grade.manual_total if report_grade else None,
+        'overall_score': report_grade.manual_total if report_grade else None,
+        'overall_average': report_grade.average_score if report_grade else None,
+        'overall_position': report_grade.manual_grade if report_grade else None,
+        'teacher_comment': report_grade.teacher_comment if report_grade and hasattr(report_grade, 'teacher_comment') else "No comment",
+        'admin_comment': report_grade.admin_comment if report_grade else "No comment",
+        'next_term_date': report_grade.next_term_date if report_grade else None,
     }
 
-    # Render HTML template into PDF
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
