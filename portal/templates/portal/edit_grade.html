@@ -86,44 +86,43 @@
 
             <hr class="my-4">
 
-            <!-- Student Report Fields -->
+            <!-- Report Fields stored inside Grade model -->
             <h4>Student Report Details</h4>
 
             <div class="col-md-6">
                 <label class="form-label">Total Available Score</label>
-                <input type="number" name="total_available_score" class="form-control" value="{{ report.total_available_score|default:'' }}">
+                <input type="number" name="total_available_score" class="form-control" value="{{ grade.total_available_score|default:'' }}">
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Overall Score</label>
-                <input type="number" name="overall_score" class="form-control" value="{{ report.overall_score|default:'' }}">
+                <input type="number" name="overall_score" class="form-control" value="{{ grade.overall_score|default:'' }}">
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Overall Average</label>
-                <input type="number" step="0.01" name="overall_average" class="form-control" value="{{ report.overall_average|default:'' }}">
+                <input type="number" step="0.01" name="overall_average" class="form-control" value="{{ grade.overall_average|default:'' }}">
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Overall Position</label>
-                <input type="text" name="overall_position" class="form-control" value="{{ report.overall_position|default:'' }}">
+                <input type="text" name="overall_position" class="form-control" value="{{ grade.overall_position|default:'' }}">
             </div>
 
             <div class="col-md-12">
                 <label class="form-label">Teacher Comment (Report Level)</label>
-                <textarea name="teacher_comment" class="form-control" rows="2">{{ report.teacher_comment|default:'' }}</textarea>
+                <textarea name="teacher_comment" class="form-control" rows="2">{{ grade.teacher_comment|default:'' }}</textarea>
             </div>
 
             <div class="col-md-12">
                 <label class="form-label">Admin Comment (Report Level)</label>
-                <textarea name="admin_comment_report" class="form-control" rows="2">{{ report.admin_comment|default:'' }}</textarea>
+                <textarea name="admin_comment_report" class="form-control" rows="2">{{ grade.admin_comment_report|default:'' }}</textarea>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Next Term Date</label>
-                <input type="date" name="next_term_date" class="form-control" value="{{ report.next_term_date|date:'Y-m-d' }}">
+                <input type="date" name="next_term_date" class="form-control" value="{{ grade.next_term_date|date:'Y-m-d' }}">
             </div>
-
         </div>
 
         <div class="mt-4 d-grid">
