@@ -907,7 +907,7 @@ def student_grades_view(request):
         'overall_position': getattr(latest_grade, 'overall_position', ''),
         'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
         'report_date': latest_grade.date_uploaded if latest_grade else '',
-        'admin_comment': getattr(latest_grade, 'admin_comment', ''),
+        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),  # <-- Fixed here
         'next_term_date': getattr(latest_grade, 'next_term_date', ''),
     }
     return render(request, 'portal/student_test_examination_grades.html', context)
