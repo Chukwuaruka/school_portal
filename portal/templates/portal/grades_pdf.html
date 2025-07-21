@@ -1,129 +1,163 @@
-﻿{% load static %}
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student Report - {{ student.get_full_name }}</title>
+    <title>{{ student.get_full_name }} - Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
+            font-size: 12px;
+            margin: 20px;
         }
-        .header {
+        .center { text-align: center; }
+        .header img { width: 70px; }
+        .logo-line { display: flex; align-items: center; justify-content: space-between; }
+        .school-name { font-size: 20px; font-weight: bold; }
+        .school-address { font-size: 11px; }
+        .report-title {
             text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-        }
-        .header img {
-            width: 80px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-        .school-name {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0;
-        }
-        .school-motto {
             font-size: 16px;
-            margin: 5px 0;
-            font-style: italic;
+            color: green;
+            margin-top: 10px;
+            font-weight: bold;
         }
-        .govt-approved {
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        .contact-details {
-            font-size: 13px;
-        }
-        h2 {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 20px;
+        .section-title {
+            background: #ccc;
+            padding: 5px;
+            font-weight: bold;
         }
         table {
-            width: 100%;
             border-collapse: collapse;
-            margin-top: 25px;
-            font-size: 13px;
+            width: 100%;
+            font-size: 11px;
+            margin-top: 10px;
         }
         th, td {
-            border: 1px solid #333;
-            padding: 6px 10px;
-            text-align: left;
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
         }
-        th {
-            background-color: #f0f0f0;
+        .summary, .comments, .grading-scale, .behavioral {
+            margin-top: 15px;
         }
-        .summary, .comments {
-            margin-top: 30px;
-            font-size: 13px;
-        }
-        .summary p, .comments p {
-            margin: 5px 0;
+        .no-border td {
+            border: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <img src="{% static 'portal/images/logo.jpg' %}" alt="School Logo">
-        <p class="school-name">PEN ARK SCHOOLS</p>
-        <p class="school-motto">Building Excellence with Character</p>
-        <p class="govt-approved">(Government Approved)</p>
-        <p class="contact-details">
-            9/11 Edun Street, Ladipo, Oshodi, Lagos, Nigeria<br>
-            Tel: 09063550663, 08063616032
-        </p>
+<div class="header center">
+    <img src="{{ logo_url }}" alt="Logo">
+    <div class="school-name">PEN ARK SCHOOLS</div>
+    <div class="school-address">
+        9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
+        TEL: 09063550663, 08063616032
     </div>
+    <div><strong>MOTTO:</strong> TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)</div>
+</div>
 
-    <h2>Student Report</h2>
+<div class="report-title">
+    SECOND TERM ASSESSMENT REPORT (SESSION {{ session }})
+</div>
 
-    <p><strong>Name:</strong> {{ student.get_full_name }}</p>
-    <p><strong>Class:</strong> {{ classroom.name }}</p>
-    <p><strong>Term:</strong> {{ term }}</p>
-    <p><strong>Session:</strong> {{ session }}</p>
+<table class="student-profile">
+    <tr class="no-border">
+        <td><strong>Name:</strong> {{ student.get_full_name }}</td>
+        <td><strong>Sex:</strong> {{ student.gender|title }}</td>
+        <td><strong>Height:</strong> 1.55m</td>
+        <td><strong>Weight:</strong> 51kg</td>
+    </tr>
+    <tr class="no-border">
+        <td><strong>Dept:</strong> Junior School</td>
+        <td><strong>Class:</strong> {{ classroom.name }}</td>
+        <td><strong>Nationality:</strong> Nigeria</td>
+        <td><strong>Time Present/Absent:</strong> 101/05</td>
+    </tr>
+</table>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Subject</th>
-                <th>First Test</th>
-                <th>Second Test</th>
-                <th>Exam</th>
-                <th>Total Score</th>
-                <th>Grade</th>
-                <th>Comments</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for grade in subject_grades %}
-            <tr>
-                <td>{{ grade.subject }}</td>
-                <td>{{ grade.first_test|default:"N/A" }}</td>
-                <td>{{ grade.second_test|default:"N/A" }}</td>
-                <td>{{ grade.exam|default:"N/A" }}</td>
-                <td>{{ grade.total_score|default:"N/A" }}</td>
-                <td>{{ grade.manual_grade|default:"N/A" }}</td>
-                <td>{{ grade.grade_comment|default:"" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<table>
+    <thead>
+        <tr>
+            <th rowspan="2">Subject</th>
+            <th colspan="4">Marks Obtained</th>
+            <th rowspan="2">Position</th>
+            <th colspan="3">Termly Summary</th>
+            <th rowspan="2">Average</th>
+            <th rowspan="2">Grade</th>
+            <th rowspan="2">Teacher's Comment</th>
+            <th rowspan="2">Teacher</th>
+        </tr>
+        <tr>
+            <th>1st Test</th>
+            <th>2nd Test</th>
+            <th>Exam</th>
+            <th>Total</th>
+            <th>1st Term</th>
+            <th>2nd Term</th>
+            <th>3rd Term</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for grade in subject_grades %}
+        <tr>
+            <td>{{ grade.subject }}</td>
+            <td>{{ grade.first_test|default:"N/A" }}</td>
+            <td>{{ grade.second_test|default:"N/A" }}</td>
+            <td>{{ grade.exam|default:"N/A" }}</td>
+            <td>{{ grade.total_score }}</td>
+            <td>{{ grade.position_in_subject|default:"-" }}</td>
+            <td>{{ grade.first_term_score|default:"-" }}</td>
+            <td>{{ grade.second_term_score|default:"-" }}</td>
+            <td>-</td>
+            <td>{{ grade.average_score|default:"-" }}</td>
+            <td>{{ grade.manual_grade|default:"-" }}</td>
+            <td>{{ grade.grade_comment|default:"" }}</td>
+            <td>{{ grade.teacher.get_full_name|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-    <div class="summary">
-        <p><strong>Overall Score:</strong> {{ overall_score|default:"N/A" }}</p>
-        <p><strong>Total Available Score:</strong> {{ total_available_score|default:"N/A" }}</p>
-        <p><strong>Overall Average:</strong> {{ overall_average|default:"N/A" }}</p>
-        <p><strong>Overall Position:</strong> {{ overall_position|default:"N/A" }}</p>
-    </div>
+<div class="summary">
+    <p><strong>Total Available Score:</strong> {{ total_available_score|default:"N/A" }}</p>
+    <p><strong>Student Overall Score:</strong> {{ overall_score|default:"N/A" }}</p>
+    <p><strong>Student Overall Average:</strong> {{ overall_average|default:"N/A" }}</p>
+    <p><strong>Overall Position:</strong> {{ overall_position|default:"N/A" }}</p>
+</div>
 
-    <div class="comments">
-        <p><strong>Teacher's Comment:</strong> {{ teacher_comment|default:"No comment" }}</p>
-        <p><strong>Admin's Comment:</strong> {{ admin_comment|default:"No comment" }}</p>
-        <p><strong>Next Term Begins:</strong> {{ next_term_date|date:"F j, Y"|default:"TBD" }}</p>
-    </div>
+<div class="comments">
+    <p><strong>Teacher's Comment:</strong> {{ teacher_comment|default:"No comment" }}</p>
+    <p><strong>Admin's Comment:</strong> {{ admin_comment|default:"No comment" }}</p>
+    <p><strong>Next Term Begins:</strong> {{ next_term_date|date:"d/m/Y"|default:"TBD" }}</p>
+</div>
+
+<div class="grading-scale">
+    <p><strong>GRADE:</strong></p>
+    <p>
+        90% & Above (A**) Outstanding <br>
+        80 – 89% (A*) Excellent <br>
+        70 – 79% (B+) Very Good <br>
+        60 – 69% (B) Good <br>
+        50 – 59% (C) Fairly Good <br>
+        40 – 49% (D) Poor <br>
+        0 – 39% (F) Fail
+    </p>
+</div>
+
+<div class="behavioral">
+    <p><strong>Assessment Behavioural Skill (Key):</strong></p>
+    <p>
+        Excellent Level (5), High Level (5), Acceptable Level (5), Minimum Traits (5)<br>
+        Punctuality(5), Neatness(5), Assignment(5), Social Development(5), Attentiveness(5),<br>
+        Class Participation(5), Psychomotor(5), Perseverance(5), Responsibility(5),<br>
+        Club Participation(5), Politeness(5), Honesty(5), Sport & Games(5), Industry(5)
+    </p>
+</div>
+
+<div class="signatures" style="margin-top: 30px;">
+    <p><strong>Sign:</strong> __________________________</p>
+</div>
 
 </body>
 </html>

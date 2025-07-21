@@ -8,10 +8,10 @@
     {% if grades %}
     <div class="row">
         <!-- Grade Table -->
-        <div class="col-md-9">
+        <div class="col-lg-9">
             <div class="table-responsive">
                 <table class="table table-bordered table-striped align-middle">
-                    <thead class="table-dark">
+                    <thead class="table-dark text-center">
                         <tr>
                             <th>Subject</th>
                             <th>1st Test<br>(20)</th>
@@ -28,7 +28,7 @@
                     </thead>
                     <tbody>
                         {% for grade in grades %}
-                        <tr>
+                        <tr class="text-center">
                             <td>{{ grade.subject }}</td>
                             <td>{{ grade.first_test }}</td>
                             <td>{{ grade.second_test }}</td>
@@ -48,13 +48,13 @@
         </div>
 
         <!-- Grade Explanation -->
-        <div class="col-md-3">
+        <div class="col-lg-3">
             <div class="card border-secondary mb-4">
                 <div class="card-header bg-dark text-white text-center">
-                    <strong>Grade Explanation</strong>
+                    <strong>Grade Scale</strong>
                 </div>
-                <div class="card-body p-2">
-                    <ul class="list-unstyled small mb-0">
+                <div class="card-body p-2 small">
+                    <ul class="list-unstyled mb-0">
                         <li><strong>A++</strong> — 90% & Above: Outstanding</li>
                         <li><strong>A+</strong> — 80–89%: Excellent</li>
                         <li><strong>B++</strong> — 70–79%: Very Good</li>
@@ -68,17 +68,17 @@
         </div>
     </div>
 
-    <!-- Overall Performance Summary -->
-    <hr class="my-4">
-
-    <div class="row">
+    <!-- Summary Section -->
+    <div class="row my-4">
         <div class="col-md-6">
+            <h5 class="mb-3">📌 Performance Summary</h5>
             <p><strong>Total Available Score:</strong> {{ total_available_score }}</p>
             <p><strong>Student Overall Score:</strong> {{ overall_score }}</p>
             <p><strong>Student Overall Average:</strong> {{ overall_average }}%</p>
             <p><strong>Overall Position:</strong> {{ overall_position }}</p>
         </div>
         <div class="col-md-6">
+            <h5 class="mb-3">🗣️ Teacher/Admin Comments</h5>
             <p><strong>Teacher’s Comment:</strong> {{ teacher_comment }}</p>
             <p><strong>Date:</strong> {{ report_date }}</p>
             <p><strong>Administrator’s Comment:</strong> {{ admin_comment }}</p>
@@ -86,9 +86,44 @@
         </div>
     </div>
 
+    <!-- 🧠 Behavioral Assessment Section -->
+    <div class="card border-primary mb-4">
+        <div class="card-header bg-primary text-white">
+            <strong>🎯 Behavioural & Psychomotor Skills</strong>
+        </div>
+        <div class="card-body small">
+            <p><strong>Key:</strong> 5 = Excellent | 4 = Very Good | 3 = Good | 2 = Fair | 1 = Needs Improvement</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li>✔️ Punctuality</li>
+                        <li>✔️ Neatness</li>
+                        <li>✔️ Attentiveness</li>
+                        <li>✔️ Social Development</li>
+                        <li>✔️ Assignment</li>
+                        <li>✔️ Class Participation</li>
+                        <li>✔️ Perseverance</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li>✔️ Responsibility</li>
+                        <li>✔️ Politeness</li>
+                        <li>✔️ Honesty</li>
+                        <li>✔️ Sport & Games</li>
+                        <li>✔️ Industry</li>
+                        <li>✔️ Club Participation</li>
+                        <li>✔️ Psychomotor</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="mt-2 text-muted"><em>(Note: Behavioural scores are recorded internally and reflect character development over the term.)</em></p>
+        </div>
+    </div>
+
     <!-- Download PDF button -->
     <div class="text-center mt-4">
-        <a href="{% url 'download_grade_report_pdf' %}" class="btn btn-primary btn-lg" target="_blank">
+        <a href="{% url 'download_grade_report_pdf' %}" class="btn btn-outline-primary btn-lg" target="_blank">
             📄 Download PDF Report
         </a>
     </div>
