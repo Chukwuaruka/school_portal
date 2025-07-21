@@ -226,7 +226,14 @@ class SubjectGrade(models.Model):
     # Report-level comments
     teacher_comment = models.TextField(blank=True, null=True)
     admin_comment = models.TextField(blank=True, null=True)
+    admin_comment_report = models.TextField(blank=True, null=True)  # 🆕 Added
     next_term_date = models.DateField(blank=True, null=True)
+
+    # Overall reporting fields
+    total_available_score = models.IntegerField(null=True, blank=True)  # 🆕 Added
+    overall_score = models.IntegerField(null=True, blank=True)          # 🆕 Added
+    overall_average = models.FloatField(null=True, blank=True)          # 🆕 Added
+    overall_position = models.CharField(max_length=20, null=True, blank=True)  # 🆕 Added
 
     # Metadata
     date_uploaded = models.DateTimeField(auto_now_add=True)
@@ -239,4 +246,5 @@ class SubjectGrade(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
+
 
