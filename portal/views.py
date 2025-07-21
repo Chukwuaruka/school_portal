@@ -895,30 +895,23 @@ def admin_manage_grades(request):
 def student_grades_view(request):
     grades = SubjectGrade.objects.filter(student=request.user).order_by('subject')
 
-    # Fetch these from your database or set default if missing
-    # For example, assuming you store them in a Report model or in user profile
-    total_available_score = request.user.profile.total_available_score if hasattr(request.user, 'profile') else None
-    overall_score = request.user.profile.overall_score if hasattr(request.user, 'profile') else None
-    overall_average = request.user.profile.overall_average if hasattr(request.user, 'profile') else None
-    overall_position = request.user.profile.overall_position if hasattr(request.user, 'profile') else None
-    teacher_comment = request.user.profile.teacher_comment if hasattr(request.user, 'profile') else ''
-    report_date = request.user.profile.report_date if hasattr(request.user, 'profile') else ''
-    admin_comment = request.user.profile.admin_comment if hasattr(request.user, 'profile') else ''
-    next_term_date = request.user.profile.next_term_date if hasattr(request.user, 'profile') else ''
+    # Get the most recent grade upload for summary fields
+    latest_grade = grades.order_by('-date_uploaded').first()
 
     context = {
         'grades': grades,
         'student_name': request.user.get_full_name() or request.user.username,
-        'total_available_score': total_available_score,
-        'overall_score': overall_score,
-        'overall_average': overall_average,
-        'overall_position': overall_position,
-        'teacher_comment': teacher_comment,
-        'report_date': report_date,
-        'admin_comment': admin_comment,
-        'next_term_date': next_term_date,
+        'total_available_score': getattr(latest_grade, 'total_available_score', None),
+        'overall_score': getattr(latest_grade, 'overall_score', None),
+        'overall_average': getattr(latest_grade, 'average_score', None),
+        'overall_position': getattr(latest_grade, 'overall_position', ''),
+        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
+        'report_date': latest_grade.date_uploaded if latest_grade else '',
+        'admin_comment': getattr(latest_grade, 'admin_comment', ''),
+        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
     }
     return render(request, 'portal/student_test_examination_grades.html', context)
+
 
 
 @login_required
