@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿{% load static %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,19 +7,50 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 40px;
         }
-        h1, h2 {
+        .header {
             text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .header img {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .school-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .school-motto {
+            font-size: 16px;
+            margin: 5px 0;
+            font-style: italic;
+        }
+        .govt-approved {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .contact-details {
+            font-size: 13px;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 20px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 25px;
+            font-size: 13px;
         }
         th, td {
             border: 1px solid #333;
-            padding: 8px 12px;
+            padding: 6px 10px;
             text-align: left;
         }
         th {
@@ -26,15 +58,26 @@
         }
         .summary, .comments {
             margin-top: 30px;
+            font-size: 13px;
         }
         .summary p, .comments p {
-            font-weight: bold;
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
 
-    <h1>School Name</h1>
+    <div class="header">
+        <img src="{% static 'portal/images/logo.jpg' %}" alt="School Logo">
+        <p class="school-name">PEN ARK SCHOOLS</p>
+        <p class="school-motto">Building Excellence with Character</p>
+        <p class="govt-approved">(Government Approved)</p>
+        <p class="contact-details">
+            9/11 Edun Street, Ladipo, Oshodi, Lagos, Nigeria<br>
+            Tel: 09063550663, 08063616032
+        </p>
+    </div>
+
     <h2>Student Report</h2>
 
     <p><strong>Name:</strong> {{ student.get_full_name }}</p>

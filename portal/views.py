@@ -994,17 +994,21 @@ def download_grade_report_pdf(request):
     term = "First Term"
     session = "2024/2025"
 
-    classroom = student.classroom
+    # Get classroom
+    classroom = getattr(student, 'classroom', None)
 
-    # Get subject grades
+    # Get all subject grades
     subject_grades = SubjectGrade.objects.filter(
         student=student,
         term=term,
         session=session
-    )
+    ).order_by('subject')
 
-    # Pick one SubjectGrade entry to pull report-level data
-    report_grade = subject_grades.first()
+    # Pick the most recent grade (for summary fields)
+    report_grade = subject_grades.order_by('-date_uploaded').first()
+
+    # Full logo URL for PDF embedding
+    logo_url = request.build_absolute_uri(static('portal/images/logo.jpg'))
 
     context = {
         'student': student,
@@ -1012,13 +1016,14 @@ def download_grade_report_pdf(request):
         'term': term,
         'session': session,
         'subject_grades': subject_grades,
-        'total_available_score': report_grade.manual_total if report_grade else None,
-        'overall_score': report_grade.manual_total if report_grade else None,
-        'overall_average': report_grade.average_score if report_grade else None,
-        'overall_position': report_grade.manual_grade if report_grade else None,
-        'teacher_comment': report_grade.teacher_comment if report_grade and hasattr(report_grade, 'teacher_comment') else "No comment",
-        'admin_comment': report_grade.admin_comment if report_grade else "No comment",
-        'next_term_date': report_grade.next_term_date if report_grade else None,
+        'total_available_score': getattr(report_grade, 'manual_total', None),
+        'overall_score': getattr(report_grade, 'manual_total', None),
+        'overall_average': getattr(report_grade, 'average_score', None),
+        'overall_position': getattr(report_grade, 'manual_grade', None),
+        'teacher_comment': getattr(report_grade, 'teacher_comment', "No comment"),
+        'admin_comment': getattr(report_grade, 'admin_comment', "No comment"),
+        'next_term_date': getattr(report_grade, 'next_term_date', None),
+        'logo_url': logo_url,
     }
 
     template = get_template('portal/grades_pdf.html')
@@ -1030,4 +1035,5 @@ def download_grade_report_pdf(request):
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
         return HttpResponse('We had some errors generating the PDF <pre>' + html + '</pre>')
+
     return response
