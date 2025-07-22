@@ -1,6 +1,6 @@
-# Django core
+# Django core imports
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.template.loader import get_template
 from django.conf import settings
 from django.utils import timezone
@@ -9,34 +9,26 @@ from django.utils.dateparse import parse_date
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.template.loader import get_template
-from xhtml2pdf import pisa
-from .models import SubjectGrade, Classroom
 from django.templatetags.static import static
-import base64
+from django.db.models import Q
 
-# Models
+# Python standard library imports
+import os
+import base64
+from collections import defaultdict
+from datetime import datetime, time, timedelta
+
+# Third-party imports
+from xhtml2pdf import pisa
+
+# Local app imports
 from .models import (
     User, Assignment, Grade, SubjectGrade, Resource,
     Announcement, Timetable, Submission, Teacher, Classroom, RegistrationCode
 )
-
-# Forms
 from .forms import UserEditForm, ResourceForm, AnnouncementForm
-
-# Decorators
 from .decorators import student_required, teacher_required
 
-# Third-party
-from xhtml2pdf import pisa
-
-# Python standard
-from collections import defaultdict
-from datetime import datetime, time, timedelta
-import os
-from django.db.models import Q
 
 def welcome(request):
     return render(request, 'portal/welcome.html')
@@ -873,7 +865,6 @@ def teacher_upload_grades(request):
 @user_passes_test(is_admin)
 def admin_manage_grades(request):
     grades = SubjectGrade.objects.all().select_related('student', 'teacher')
-
     student_query = request.GET.get('student')
     term_query = request.GET.get('term')
     session_query = request.GET.get('session')
@@ -995,7 +986,7 @@ def delete_student_grade(request, grade_id):
 def download_grade_report_pdf(request):
     student = request.user
 
-    # Get all grades for this student (no term/session filter)
+    # Get all grades for this student (no term/session filter), ordered by subject
     grades = SubjectGrade.objects.filter(student=student).order_by('subject')
 
     # Get the most recent grade upload for summary fields
@@ -1010,18 +1001,19 @@ def download_grade_report_pdf(request):
             logo_data_uri = f"data:image/jpeg;base64,{encoded_logo}"
 
     context = {
-        'grades': grades,
-        'student_name': student.get_full_name() or student.username,
-        'total_available_score': getattr(latest_grade, 'total_available_score', None),
-        'overall_score': getattr(latest_grade, 'overall_score', None),
-        'overall_average': getattr(latest_grade, 'average_score', None),
-        'overall_position': getattr(latest_grade, 'overall_position', ''),
-        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
-        'report_date': latest_grade.date_uploaded if latest_grade else '',
-        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
-        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
-        'logo_url': logo_data_uri,
-    }
+    'subject_grades': grades,  # rename here to match the template's loop variable
+    'student': student,
+    'session': '2024/2025',  # or dynamically set this if you track sessions/terms
+    'total_available_score': getattr(latest_grade, 'total_available_score', None),
+    'overall_score': getattr(latest_grade, 'overall_score', None),
+    'overall_average': getattr(latest_grade, 'average_score', None),
+    'overall_position': getattr(latest_grade, 'overall_position', ''),
+    'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
+    'report_date': latest_grade.date_uploaded if latest_grade else '',
+    'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
+    'next_term_date': getattr(latest_grade, 'next_term_date', ''),
+    'logo_url': logo_data_uri,
+}
 
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
@@ -1034,3 +1026,4 @@ def download_grade_report_pdf(request):
         return HttpResponse('We had some errors generating the PDF <pre>' + html + '</pre>')
 
     return response
+
