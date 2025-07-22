@@ -991,25 +991,17 @@ def delete_student_grade(request, grade_id):
     return redirect('admin_manage_grades')
 
 @login_required
+@student_required
 def download_grade_report_pdf(request):
     student = request.user
-    term = "First Term"  # You can make this dynamic if needed
-    session = "2024/2025"  # Likewise, dynamic if needed
 
-    # Get classroom if assigned
-    classroom = getattr(student, 'classroom', None)
+    # Get all grades for this student (no term/session filter)
+    grades = SubjectGrade.objects.filter(student=student).order_by('subject')
 
-    # Get all subject grades for this student, term, and session
-    subject_grades = SubjectGrade.objects.filter(
-        student=student,
-        term=term,
-        session=session
-    ).order_by('subject')
+    # Get the most recent grade upload for summary fields
+    latest_grade = grades.order_by('-date_uploaded').first()
 
-    # Pick the most recent grade record for summary fields
-    report_grade = subject_grades.order_by('-date_uploaded').first()
-
-    # Encode logo image as base64 for embedding in HTML
+    # Encode the logo image as base64 for embedding
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
@@ -1017,28 +1009,23 @@ def download_grade_report_pdf(request):
             encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
             logo_data_uri = f"data:image/jpeg;base64,{encoded_logo}"
 
-    # Build context with fallbacks for missing data
     context = {
-        'student': student,
-        'classroom': classroom,
-        'term': term,
-        'session': session,
-        'subject_grades': subject_grades,
-        'total_available_score': getattr(report_grade, 'total_available_score', 100),
-        'overall_score': getattr(report_grade, 'overall_score', getattr(report_grade, 'total_score', 0)),
-        'overall_average': getattr(report_grade, 'overall_average', getattr(report_grade, 'average_score', 0)),
-        'overall_position': getattr(report_grade, 'overall_position', 'N/A'),
-        'teacher_comment': getattr(report_grade, 'teacher_comment', 'No comment'),
-        'admin_comment': getattr(report_grade, 'admin_comment_report', getattr(report_grade, 'admin_comment', 'No comment')),
-        'next_term_date': report_grade.next_term_date.strftime('%d/%m/%Y') if report_grade and report_grade.next_term_date else 'TBD',
+        'grades': grades,
+        'student_name': student.get_full_name() or student.username,
+        'total_available_score': getattr(latest_grade, 'total_available_score', None),
+        'overall_score': getattr(latest_grade, 'overall_score', None),
+        'overall_average': getattr(latest_grade, 'average_score', None),
+        'overall_position': getattr(latest_grade, 'overall_position', ''),
+        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
+        'report_date': latest_grade.date_uploaded if latest_grade else '',
+        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
+        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
         'logo_url': logo_data_uri,
     }
 
-    # Render HTML from template
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
-    # Create PDF response
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
 
