@@ -15,6 +15,7 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 from .models import SubjectGrade, Classroom
 from django.templatetags.static import static
+import base64
 
 # Models
 from .models import (
@@ -995,20 +996,26 @@ def download_grade_report_pdf(request):
     term = "First Term"
     session = "2024/2025"
 
+    # Get classroom
     classroom = getattr(student, 'classroom', None)
 
-    # Get all subject grades for this student in the specified term/session
+    # Get all subject grades
     subject_grades = SubjectGrade.objects.filter(
         student=student,
         term=term,
         session=session
     ).order_by('subject')
 
-    # Get the latest grade object for summary data
+    # Pick the most recent grade (for summary fields)
     report_grade = subject_grades.order_by('-date_uploaded').first()
 
-    # Logo for PDF
-    logo_url = request.build_absolute_uri(static('portal/images/logo.jpg'))
+    # Encode the logo image as base64 to embed directly in HTML
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
+    logo_data_uri = ''
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
+            logo_data_uri = f"data:image/jpeg;base64,{encoded_logo}"
 
     context = {
         'student': student,
@@ -1016,14 +1023,14 @@ def download_grade_report_pdf(request):
         'term': term,
         'session': session,
         'subject_grades': subject_grades,
-        'total_available_score': getattr(report_grade, 'total_available_score', None),
-        'overall_score': getattr(report_grade, 'overall_score', None),
+        'total_available_score': getattr(report_grade, 'manual_total', None),
+        'overall_score': getattr(report_grade, 'manual_total', None),
         'overall_average': getattr(report_grade, 'average_score', None),
-        'overall_position': getattr(report_grade, 'overall_position', None),
+        'overall_position': getattr(report_grade, 'manual_grade', None),
         'teacher_comment': getattr(report_grade, 'teacher_comment', "No comment"),
-        'admin_comment': getattr(report_grade, 'admin_comment_report', "No comment"),
+        'admin_comment': getattr(report_grade, 'admin_comment', "No comment"),
         'next_term_date': getattr(report_grade, 'next_term_date', None),
-        'logo_url': logo_url,
+        'logo_url': logo_data_uri,
     }
 
     template = get_template('portal/grades_pdf.html')
@@ -1034,6 +1041,6 @@ def download_grade_report_pdf(request):
 
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
-        return HttpResponse('Error generating PDF <pre>' + html + '</pre>')
+        return HttpResponse('We had some errors generating the PDF <pre>' + html + '</pre>')
 
     return response

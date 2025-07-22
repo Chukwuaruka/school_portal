@@ -86,11 +86,11 @@
     <tbody>
         {% for grade in subject_grades %}
         <tr>
-            <td>{{ grade.subject }}</td>
+            <td>{{ grade.subject.name }}</td>
             <td>{{ grade.first_test|default:"N/A" }}</td>
             <td>{{ grade.second_test|default:"N/A" }}</td>
-            <td>{{ grade.exam|default:"N/A" }}</td>
-            <td>{{ grade.total_score }}</td>
+            <td>{{ grade.exam_score|default:"N/A" }}</td>
+            <td>{{ grade.total_score|default:"N/A" }}</td>
             <td>{{ grade.position_in_subject|default:"-" }}</td>
             <td>{{ grade.first_term_score|default:"-" }}</td>
             <td>{{ grade.second_term_score|default:"-" }}</td>
@@ -98,8 +98,10 @@
             <td>{{ grade.average_score|default:"-" }}</td>
             <td>{{ grade.manual_grade|default:"-" }}</td>
             <td>{{ grade.grade_comment|default:"" }}</td>
-            <td>{{ grade.teacher.get_full_name|default:"-" }}</td>
+            <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}-{% endif %}</td>
         </tr>
+        {% empty %}
+        <tr><td colspan="13">No grades available</td></tr>
         {% endfor %}
     </tbody>
 </table>
