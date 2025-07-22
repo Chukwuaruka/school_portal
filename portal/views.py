@@ -995,20 +995,19 @@ def download_grade_report_pdf(request):
     term = "First Term"
     session = "2024/2025"
 
-    # Get classroom
     classroom = getattr(student, 'classroom', None)
 
-    # Get all subject grades
+    # Get all subject grades for this student in the specified term/session
     subject_grades = SubjectGrade.objects.filter(
         student=student,
         term=term,
         session=session
     ).order_by('subject')
 
-    # Pick the most recent grade (for summary fields)
+    # Get the latest grade object for summary data
     report_grade = subject_grades.order_by('-date_uploaded').first()
 
-    # Full logo URL for PDF embedding
+    # Logo for PDF
     logo_url = request.build_absolute_uri(static('portal/images/logo.jpg'))
 
     context = {
@@ -1017,12 +1016,12 @@ def download_grade_report_pdf(request):
         'term': term,
         'session': session,
         'subject_grades': subject_grades,
-        'total_available_score': getattr(report_grade, 'manual_total', None),
-        'overall_score': getattr(report_grade, 'manual_total', None),
+        'total_available_score': getattr(report_grade, 'total_available_score', None),
+        'overall_score': getattr(report_grade, 'overall_score', None),
         'overall_average': getattr(report_grade, 'average_score', None),
-        'overall_position': getattr(report_grade, 'manual_grade', None),
+        'overall_position': getattr(report_grade, 'overall_position', None),
         'teacher_comment': getattr(report_grade, 'teacher_comment', "No comment"),
-        'admin_comment': getattr(report_grade, 'admin_comment', "No comment"),
+        'admin_comment': getattr(report_grade, 'admin_comment_report', "No comment"),
         'next_term_date': getattr(report_grade, 'next_term_date', None),
         'logo_url': logo_url,
     }
@@ -1035,6 +1034,6 @@ def download_grade_report_pdf(request):
 
     pisa_status = pisa.CreatePDF(html, dest=response)
     if pisa_status.err:
-        return HttpResponse('We had some errors generating the PDF <pre>' + html + '</pre>')
+        return HttpResponse('Error generating PDF <pre>' + html + '</pre>')
 
     return response
