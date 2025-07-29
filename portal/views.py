@@ -972,7 +972,6 @@ def edit_grade(request, grade_id):
     })
 
 @login_required
-@teacher_required
 def delete_final_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)  # ✅ Use SubjectGrade model
 
