@@ -975,7 +975,7 @@ def edit_grade(request, grade_id):
 
 @login_required
 @teacher_required
-def delete_grade(request, grade_id):
+def delete_final_grade(request, grade_id):
     grade = get_object_or_404(Grade, id=grade_id)
 
     if grade.teacher != request.user:
@@ -987,7 +987,6 @@ def delete_grade(request, grade_id):
         messages.success(request, "Grade deleted successfully.")
         return redirect('teacher_upload_grades')
 
-    # If GET or other methods, just redirect (or optionally show a confirmation page)
     messages.error(request, "Invalid request method.")
     return redirect('teacher_upload_grades')
 
