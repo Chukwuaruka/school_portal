@@ -212,10 +212,10 @@
                     <td>{{ grade.comment|default:"–" }}</td>
                     <td class="d-flex gap-2">
                         <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-warning">Edit</a>
-                        <form action="{% url 'delete_final_grade' grade.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this grade?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
+                        <form method="post" action="{% url 'delete_final_grade' grade.id %}" onsubmit="return confirm('Are you sure you want to delete this grade?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
                     </td>
                 </tr>
                 {% endfor %}

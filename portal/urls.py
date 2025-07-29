@@ -41,7 +41,6 @@ urlpatterns = [
     path('teacher/grades/', views.teacher_grades, name='teacher_grades'),
     path('teacher/grades/delete/<int:grade_id>/', views.delete_final_grade, name='delete_final_grade'),
 
-
     # 🛠 Admin Dashboard & Management
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('dashboard-admin/registration-codes/', views.manage_registration_codes, name='manage_registration_codes'),
