@@ -972,12 +972,9 @@ def edit_grade(request, grade_id):
     })
 
 @login_required
+@teacher_required
 def delete_final_grade(request, grade_id):
-    grade = get_object_or_404(SubjectGrade, id=grade_id)  # ✅ Use SubjectGrade model
-
-    if grade.teacher != request.user:
-        messages.error(request, "You are not authorized to delete this grade.")
-        return redirect('teacher_upload_grades')
+    grade = get_object_or_404(SubjectGrade, id=grade_id)
 
     if request.method == 'POST':
         grade.delete()
@@ -986,7 +983,6 @@ def delete_final_grade(request, grade_id):
 
     messages.error(request, "Invalid request method.")
     return redirect('teacher_upload_grades')
-
 
 @login_required
 @user_passes_test(is_admin)
