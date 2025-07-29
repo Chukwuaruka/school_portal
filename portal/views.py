@@ -905,8 +905,6 @@ def student_grades_view(request):
     }
     return render(request, 'portal/student_test_examination_grades.html', context)
 
-
-
 @login_required
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
@@ -976,7 +974,7 @@ def edit_grade(request, grade_id):
 @login_required
 @teacher_required
 def delete_final_grade(request, grade_id):
-    grade = get_object_or_404(Grade, id=grade_id)
+    grade = get_object_or_404(SubjectGrade, id=grade_id)  # ✅ Use SubjectGrade model
 
     if grade.teacher != request.user:
         messages.error(request, "You are not authorized to delete this grade.")
@@ -994,7 +992,7 @@ def delete_final_grade(request, grade_id):
 @login_required
 @user_passes_test(is_admin)
 def delete_student_grade(request, grade_id):
-    grade = get_object_or_404(Grade, id=grade_id)
+    grade = get_object_or_404(SubjectGrade, id=grade_id)
     grade.delete()
     messages.success(request, "Grade deleted successfully.")
     return redirect('admin_manage_grades')
