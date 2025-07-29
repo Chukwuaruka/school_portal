@@ -974,6 +974,25 @@ def edit_grade(request, grade_id):
     })
 
 @login_required
+@teacher_required
+def delete_grade(request, grade_id):
+    grade = get_object_or_404(Grade, id=grade_id)
+
+    if grade.teacher != request.user:
+        messages.error(request, "You are not authorized to delete this grade.")
+        return redirect('teacher_upload_grades')
+
+    if request.method == 'POST':
+        grade.delete()
+        messages.success(request, "Grade deleted successfully.")
+        return redirect('teacher_upload_grades')
+
+    # If GET or other methods, just redirect (or optionally show a confirmation page)
+    messages.error(request, "Invalid request method.")
+    return redirect('teacher_upload_grades')
+
+
+@login_required
 @user_passes_test(is_admin)
 def delete_student_grade(request, grade_id):
     grade = get_object_or_404(Grade, id=grade_id)
