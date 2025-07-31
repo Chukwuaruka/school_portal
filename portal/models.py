@@ -246,5 +246,4 @@ class SubjectGrade(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
-
-
+    

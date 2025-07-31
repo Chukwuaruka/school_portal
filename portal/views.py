@@ -884,12 +884,28 @@ def admin_manage_grades(request):
     grades = grades.order_by('student__last_name', 'subject')
     return render(request, 'portal/admin_manage_grades.html', {'grades': grades})
 
+from django.db.models import Max, Q
+
 @login_required
 @student_required
 def student_grades_view(request):
-    grades = SubjectGrade.objects.filter(student=request.user).order_by('subject')
+    # Step 1: get latest upload date per subject for this student
+    latest_dates = (
+        SubjectGrade.objects
+        .filter(student=request.user)
+        .values('subject')
+        .annotate(latest_date=Max('date_uploaded'))
+    )
 
-    # Get the most recent grade upload for summary fields
+    # Build query to get latest grades per subject
+    query = Q()
+    for item in latest_dates:
+        query |= Q(subject=item['subject'], date_uploaded=item['latest_date'])
+
+    # Step 2: filter grades to only latest per subject
+    grades = SubjectGrade.objects.filter(student=request.user).filter(query).order_by('subject')
+
+    # Latest overall grade (for summary fields)
     latest_grade = grades.order_by('-date_uploaded').first()
 
     context = {
@@ -901,10 +917,11 @@ def student_grades_view(request):
         'overall_position': getattr(latest_grade, 'overall_position', ''),
         'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
         'report_date': latest_grade.date_uploaded if latest_grade else '',
-        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),  # <-- Fixed here
+        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
         'next_term_date': getattr(latest_grade, 'next_term_date', ''),
     }
     return render(request, 'portal/student_test_examination_grades.html', context)
+
 
 @login_required
 def edit_grade(request, grade_id):
