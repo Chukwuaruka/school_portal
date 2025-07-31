@@ -868,7 +868,7 @@ def teacher_upload_grades(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_manage_grades(request):
-    grades = SubjectGrade.objects.all().select_related('student', 'teacher')
+    grades = grades.order_by('report__student__last_name', 'subject')
     student_query = request.GET.get('student')
     term_query = request.GET.get('term')
     session_query = request.GET.get('session')
