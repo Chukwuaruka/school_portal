@@ -11,6 +11,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.templatetags.static import static
 from django.db.models import Q
+import mimetypes
 
 # Python standard library imports
 import os
