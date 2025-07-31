@@ -889,38 +889,34 @@ from django.db.models import Max, Q
 @login_required
 @student_required
 def student_grades_view(request):
-    # Step 1: get latest upload date per subject for this student
-    latest_dates = (
-        SubjectGrade.objects
-        .filter(student=request.user)
-        .values('subject')
-        .annotate(latest_date=Max('date_uploaded'))
-    )
-
-    # Build query to get latest grades per subject
-    query = Q()
-    for item in latest_dates:
-        query |= Q(subject=item['subject'], date_uploaded=item['latest_date'])
-
-    # Step 2: filter grades to only latest per subject
-    grades = SubjectGrade.objects.filter(student=request.user).filter(query).order_by('subject')
-
-    # Latest overall grade (for summary fields)
+    grades = SubjectGrade.objects.filter(student=request.user).order_by('subject')
     latest_grade = grades.order_by('-date_uploaded').first()
+
+    print("Grades count:", grades.count())
+    print("Latest grade:", latest_grade)
+    if latest_grade:
+        print("total_available_score:", latest_grade.total_available_score)
+        print("overall_score:", latest_grade.overall_score)
+        print("average_score:", latest_grade.average_score)
+        print("overall_position:", latest_grade.overall_position)
+        print("teacher_comment:", latest_grade.teacher_comment)
+        print("admin_comment_report:", latest_grade.admin_comment_report)
+        print("next_term_date:", latest_grade.next_term_date)
 
     context = {
         'grades': grades,
         'student_name': request.user.get_full_name() or request.user.username,
-        'total_available_score': getattr(latest_grade, 'total_available_score', None),
-        'overall_score': getattr(latest_grade, 'overall_score', None),
-        'overall_average': getattr(latest_grade, 'average_score', None),
-        'overall_position': getattr(latest_grade, 'overall_position', ''),
-        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
-        'report_date': latest_grade.date_uploaded if latest_grade else '',
-        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
-        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
+        'total_available_score': getattr(latest_grade, 'total_available_score', 0),
+        'overall_score': getattr(latest_grade, 'overall_score', 0),
+        'overall_average': getattr(latest_grade, 'average_score', 0.0),
+        'overall_position': getattr(latest_grade, 'overall_position', 'N/A'),
+        'teacher_comment': getattr(latest_grade, 'teacher_comment', 'No comments yet.'),
+        'report_date': latest_grade.date_uploaded if latest_grade else None,
+        'admin_comment': getattr(latest_grade, 'admin_comment_report', 'No admin comments yet.'),
+        'next_term_date': getattr(latest_grade, 'next_term_date', None),
     }
     return render(request, 'portal/student_test_examination_grades.html', context)
+
 
 
 @login_required
