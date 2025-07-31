@@ -25,7 +25,7 @@ from xhtml2pdf import pisa
 
 # Local app imports
 from .models import (
-    User, Assignment, Grade, SubjectGrade, Resource,
+    User, Assignment, Grade, SubjectGrade, GradeReport, Resource,
     Announcement, Timetable, Submission, Teacher, Classroom, RegistrationCode
 )
 from .forms import UserEditForm, ResourceForm, AnnouncementForm
@@ -758,17 +758,18 @@ def teacher_upload_grades(request):
     if selected_classroom:
         students = students.filter(classroom__name=selected_classroom)
 
-    all_grades = SubjectGrade.objects.filter(student__in=students)
+    # Fetch GradeReports for students
+    grade_reports = GradeReport.objects.filter(student__in=students)
     if selected_classroom:
-        all_grades = all_grades.filter(student__classroom__name=selected_classroom)
+        grade_reports = grade_reports.filter(classroom__name=selected_classroom)
 
-    # Organize grades by student
+    # Organize SubjectGrades by student via GradeReports
     student_grades = {}
-    for grade in all_grades.select_related('student'):
-        student = grade.student
+    for report in grade_reports.prefetch_related('subject_grades').select_related('student'):
+        student = report.student
         if student not in student_grades:
             student_grades[student] = []
-        student_grades[student].append(grade)
+        student_grades[student].extend(report.subject_grades.all())
 
     if request.method == 'POST':
         student_username = request.POST.get('student_username')
@@ -783,6 +784,17 @@ def teacher_upload_grades(request):
 
         student = get_object_or_404(User, username=student_username, role='student')
         classroom = get_object_or_404(Classroom, name=classroom_name)
+
+        # Find or create GradeReport for student, classroom, term, session
+        grade_report, created = GradeReport.objects.get_or_create(
+            student=student,
+            classroom=classroom,
+            term=term,
+            session=session,
+            defaults={
+                # Optionally set initial report-level fields here or empty
+            }
+        )
 
         def to_int(val):
             try:
@@ -808,16 +820,11 @@ def teacher_upload_grades(request):
 
         grade_comment = request.POST.get('grade_comment')
         comment = request.POST.get('comment')
-        admin_comment = request.POST.get('admin_comment')
-        teacher_comment = request.POST.get('teacher_comment')
-        next_term_date = parse_date(request.POST.get('next_term_date')) if request.POST.get('next_term_date') else None
 
-        # Create or update SubjectGrade
+        # Create or update SubjectGrade linked to GradeReport
         grade, created = SubjectGrade.objects.get_or_create(
-            student=student,
+            report=grade_report,
             subject=subject,
-            term=term,
-            session=session,
             defaults={
                 'first_test': first_test,
                 'second_test': second_test,
@@ -829,8 +836,6 @@ def teacher_upload_grades(request):
                 'average_score': average_score,
                 'grade_comment': grade_comment,
                 'comment': comment,
-                'admin_comment': admin_comment,
-                'next_term_date': next_term_date,
             }
         )
 
@@ -845,8 +850,6 @@ def teacher_upload_grades(request):
             grade.average_score = average_score
             grade.grade_comment = grade_comment
             grade.comment = comment
-            grade.admin_comment = admin_comment
-            grade.next_term_date = next_term_date
             grade.save()
             messages.success(request, "Grade updated successfully.")
         else:
@@ -861,7 +864,6 @@ def teacher_upload_grades(request):
         'selected_classroom': selected_classroom,
         'classrooms': classrooms,
     })
-
 
 @login_required
 @user_passes_test(is_admin)
@@ -888,45 +890,47 @@ def admin_manage_grades(request):
 @login_required
 @student_required
 def student_grades_view(request):
-    grades = SubjectGrade.objects.filter(student=request.user).order_by('subject')
+    # Get all GradeReports for the student (latest first)
+    reports = GradeReport.objects.filter(student=request.user).order_by('-date_uploaded')
 
-    # Get the most recent grade upload for summary fields
-    latest_grade = grades.order_by('-date_uploaded').first()
+    if not reports.exists():
+        context = {
+            'no_grades': True,
+            'student_name': request.user.get_full_name() or request.user.username,
+        }
+        return render(request, 'portal/student_test_examination_grades.html', context)
+
+    latest_report = reports.first()
+    subject_grades = latest_report.subject_grades.all().order_by('subject')
 
     context = {
-        'grades': grades,
+        'grades': subject_grades,
         'student_name': request.user.get_full_name() or request.user.username,
-        'total_available_score': getattr(latest_grade, 'total_available_score', None),
-        'overall_score': getattr(latest_grade, 'overall_score', None),
-        'overall_average': getattr(latest_grade, 'average_score', None),
-        'overall_position': getattr(latest_grade, 'overall_position', ''),
-        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
-        'report_date': latest_grade.date_uploaded if latest_grade else '',
-        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),  # <-- Fixed here
-        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
+        'total_available_score': latest_report.total_available_score,
+        'overall_score': latest_report.overall_score,
+        'overall_average': latest_report.overall_average,
+        'overall_position': latest_report.overall_position,
+        'teacher_comment': latest_report.teacher_comment,
+        'report_date': latest_report.date_uploaded,
+        'admin_comment': latest_report.admin_comment_report,
+        'next_term_date': latest_report.next_term_date,
     }
-    return render(request, 'portal/student_test_examination_grades.html', context)
 
+    return render(request, 'portal/student_test_examination_grades.html', context)
 
 @login_required
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
+    report = grade.report  # Linked GradeReport object
 
     if request.method == 'POST':
-        # Core subject/term/session
+        # Update SubjectGrade fields
         grade.subject = request.POST.get('subject')
         grade.first_test = int(request.POST.get('first_test') or 0)
         grade.second_test = int(request.POST.get('second_test') or 0)
         grade.exam = int(request.POST.get('exam') or 0)
-        grade.term = request.POST.get('term')
-        grade.session = request.POST.get('session')
-
-        # Grade-level comments
-        grade.comment = request.POST.get('comment') or ''
-        grade.admin_comment = request.POST.get('admin_comment') or ''
         grade.grade_comment = request.POST.get('grade_comment') or ''
-
-        # Term scores
+        grade.comment = request.POST.get('comment') or ''
         grade.first_term_score = int(request.POST.get('first_term_score') or 0)
         grade.second_term_score = int(request.POST.get('second_term_score') or 0)
         grade.average_score = float(request.POST.get('average_score') or 0)
@@ -938,7 +942,6 @@ def edit_grade(request, grade_id):
         grade.manual_total = int(manual_total) if manual_total else (
             grade.first_test + grade.second_test + grade.exam
         )
-
         grade.manual_grade = manual_grade if manual_grade else (
             'A++' if grade.manual_total >= 90 else
             'A+' if grade.manual_total >= 80 else
@@ -948,30 +951,34 @@ def edit_grade(request, grade_id):
             'D' if grade.manual_total >= 40 else 'F'
         )
 
-        # Report-level fields (now inside SubjectGrade model)
-        grade.total_available_score = int(request.POST.get('total_available_score') or 0)
-        grade.overall_score = int(request.POST.get('overall_score') or 0)
-        grade.overall_average = float(request.POST.get('overall_average') or 0)
-        grade.overall_position = request.POST.get('overall_position') or ''
-        grade.teacher_comment = request.POST.get('teacher_comment') or ''
-        grade.admin_comment_report = request.POST.get('admin_comment_report') or ''
+        grade.save()
+
+        # Update Report-level fields via GradeReport
+        report.total_available_score = int(request.POST.get('total_available_score') or 0)
+        report.overall_score = int(request.POST.get('overall_score') or 0)
+        report.overall_average = float(request.POST.get('overall_average') or 0)
+        report.overall_position = request.POST.get('overall_position') or ''
+        report.teacher_comment = request.POST.get('teacher_comment') or ''
+        report.admin_comment_report = request.POST.get('admin_comment_report') or ''
 
         next_term_raw = request.POST.get('next_term_date')
         if next_term_raw:
             try:
-                grade.next_term_date = datetime.strptime(next_term_raw, "%Y-%m-%d").date()
+                report.next_term_date = datetime.strptime(next_term_raw, "%Y-%m-%d").date()
             except ValueError:
                 messages.error(request, "Invalid date format for next term.")
                 return redirect('edit_grade', grade_id=grade.id)
         else:
-            grade.next_term_date = None
+            report.next_term_date = None
 
-        grade.save()
+        report.save()
+
         messages.success(request, 'Grade and report info updated successfully.')
         return redirect('teacher_upload_grades')
 
     return render(request, 'portal/edit_grade.html', {
-        'grade': grade
+        'grade': grade,
+        'report': grade.report
     })
 
 @login_required
@@ -1000,11 +1007,13 @@ def delete_student_grade(request, grade_id):
 def download_grade_report_pdf(request):
     student = request.user
 
-    # Fetch grades
+    # Fetch all subject grades
     grades = SubjectGrade.objects.filter(student=student).order_by('subject')
-    latest_grade = grades.order_by('-date_uploaded').first()
 
-    # Encode the logo image as base64 for PDF embedding
+    # Get the latest report for the student (assumes one report per term/session combo)
+    latest_report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+
+    # Encode logo
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
@@ -1016,28 +1025,25 @@ def download_grade_report_pdf(request):
     context = {
         'subject_grades': grades,
         'student': student,
-        'session': '2024/2025',  # Replace with dynamic session if available
-        'total_available_score': getattr(latest_grade, 'total_available_score', None),
-        'overall_score': getattr(latest_grade, 'overall_score', None),
-        'overall_average': getattr(latest_grade, 'average_score', None),
-        'overall_position': getattr(latest_grade, 'overall_position', ''),
-        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
-        'report_date': latest_grade.date_uploaded if latest_grade else '',
-        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
-        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
+        'session': latest_report.session if latest_report else 'N/A',
+        'total_available_score': getattr(latest_report, 'total_available_score', None),
+        'overall_score': getattr(latest_report, 'overall_score', None),
+        'overall_average': getattr(latest_report, 'overall_average', None),
+        'overall_position': getattr(latest_report, 'overall_position', ''),
+        'teacher_comment': getattr(latest_report, 'teacher_comment', ''),
+        'report_date': latest_report.date_uploaded if latest_report else '',
+        'admin_comment': getattr(latest_report, 'admin_comment_report', ''),
+        'next_term_date': getattr(latest_report, 'next_term_date', ''),
         'logo_url': logo_data_uri,
     }
 
-    # Render HTML template
+    # Render HTML to PDF
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
-    # Test render in browser first if needed
-    # return HttpResponse(html)
-
-    # Create PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
+
     pisa_status = pisa.CreatePDF(html, dest=response)
 
     if pisa_status.err:

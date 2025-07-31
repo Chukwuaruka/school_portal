@@ -180,70 +180,40 @@ class Teacher(models.Model):
     def __str__(self):
         return self.user.get_full_name()
 
-class SubjectGrade(models.Model):
-    # Relations
-    student = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='grades'
-    )
-    teacher = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='uploaded_grades'
-    )
-    classroom = models.ForeignKey(
-        'Classroom',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-
-    # Core subject details
-    subject = models.CharField(max_length=100)
-    first_test = models.IntegerField(null=True, blank=True)
-    second_test = models.IntegerField(null=True, blank=True)
-    exam = models.IntegerField(null=True, blank=True)
-
-    # Session tracking
-    term = models.CharField(max_length=20)
+class GradeReport(models.Model):
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True)
     session = models.CharField(max_length=20)
+    term = models.CharField(max_length=20)
+    date_uploaded = models.DateField(auto_now_add=True)
 
-    # Per-subject comments
-    comment = models.TextField(blank=True, null=True)
-    grade_comment = models.CharField(max_length=255, blank=True, null=True)
+    total_available_score = models.PositiveIntegerField(null=True, blank=True)
+    overall_score = models.PositiveIntegerField(null=True, blank=True)
+    overall_average = models.FloatField(null=True, blank=True)
+    overall_position = models.CharField(max_length=10, blank=True)
+    teacher_comment = models.TextField(blank=True)
+    admin_comment_report = models.TextField(blank=True)
+    next_term_date = models.DateField(null=True, blank=True)
 
-    # Optional overrides
-    manual_total = models.PositiveIntegerField(blank=True, null=True)
-    manual_grade = models.CharField(max_length=20, blank=True, null=True)
+    def __str__(self):
+        return f"{self.student} - {self.term} {self.session}"
 
-    # Cumulative scoring (used in report section)
+
+class SubjectGrade(models.Model):
+    report = models.ForeignKey(GradeReport, on_delete=models.CASCADE, related_name='subject_grades', null=True, blank=True)
+    subject = models.CharField(max_length=100)
+    first_test = models.IntegerField(default=0)
+    second_test = models.IntegerField(default=0)
+    exam = models.IntegerField(default=0)
+    manual_total = models.IntegerField(null=True, blank=True)
+    manual_grade = models.CharField(max_length=10, blank=True)
+    grade_comment = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
     first_term_score = models.IntegerField(null=True, blank=True)
     second_term_score = models.IntegerField(null=True, blank=True)
     average_score = models.FloatField(null=True, blank=True)
 
-    # Report-level comments
-    teacher_comment = models.TextField(blank=True, null=True)
-    admin_comment = models.TextField(blank=True, null=True)
-    admin_comment_report = models.TextField(blank=True, null=True)  # 🆕 Added
-    next_term_date = models.DateField(blank=True, null=True)
-
-    # Overall reporting fields
-    total_available_score = models.IntegerField(null=True, blank=True)  # 🆕 Added
-    overall_score = models.IntegerField(null=True, blank=True)          # 🆕 Added
-    overall_average = models.FloatField(null=True, blank=True)          # 🆕 Added
-    overall_position = models.CharField(max_length=20, null=True, blank=True)  # 🆕 Added
-
-    # Metadata
-    date_uploaded = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def total_score(self):
-        if self.manual_total is not None:
-            return self.manual_total
-        return (self.first_test or 0) + (self.second_test or 0) + (self.exam or 0)
-
     def __str__(self):
-        return f"{self.student.username} - {self.subject} ({self.term}, {self.session})"
+        return f"{self.report.student.username} - {self.subject}"
+
     
