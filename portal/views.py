@@ -868,23 +868,29 @@ def teacher_upload_grades(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_manage_grades(request):
-    grades = grades.order_by('report__student__last_name', 'subject')
+    # Start by querying all grades, joining related student info via report
+    grades = SubjectGrade.objects.select_related('report__student').all()
+
+    # Handle filter queries
     student_query = request.GET.get('student')
     term_query = request.GET.get('term')
     session_query = request.GET.get('session')
 
     if student_query:
         grades = grades.filter(
-            Q(student__first_name__icontains=student_query) |
-            Q(student__last_name__icontains=student_query) |
-            Q(student__username__icontains=student_query)
+            Q(report__student__first_name__icontains=student_query) |
+            Q(report__student__last_name__icontains=student_query) |
+            Q(report__student__username__icontains=student_query)
         )
     if term_query:
-        grades = grades.filter(term=term_query)
-    if session_query:
-        grades = grades.filter(session__icontains=session_query)
+        grades = grades.filter(report__term=term_query)
 
-    grades = grades.order_by('student__last_name', 'subject')
+    if session_query:
+        grades = grades.filter(report__session__icontains=session_query)
+
+    # Order by student last name and subject
+    grades = grades.order_by('report__student__last_name', 'subject')
+
     return render(request, 'portal/admin_manage_grades.html', {'grades': grades})
 
 @login_required
