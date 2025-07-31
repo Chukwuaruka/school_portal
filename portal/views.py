@@ -997,44 +997,47 @@ def delete_student_grade(request, grade_id):
 def download_grade_report_pdf(request):
     student = request.user
 
-    # Get all grades for this student (no term/session filter), ordered by subject
+    # Fetch grades
     grades = SubjectGrade.objects.filter(student=student).order_by('subject')
-
-    # Get the most recent grade upload for summary fields
     latest_grade = grades.order_by('-date_uploaded').first()
 
-    # Encode the logo image as base64 for embedding
+    # Encode the logo image as base64 for PDF embedding
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
+        mime_type, _ = mimetypes.guess_type(logo_path)
         with open(logo_path, "rb") as image_file:
             encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
-            logo_data_uri = f"data:image/jpeg;base64,{encoded_logo}"
+            logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
     context = {
-    'subject_grades': grades,  # rename here to match the template's loop variable
-    'student': student,
-    'session': '2024/2025',  # or dynamically set this if you track sessions/terms
-    'total_available_score': getattr(latest_grade, 'total_available_score', None),
-    'overall_score': getattr(latest_grade, 'overall_score', None),
-    'overall_average': getattr(latest_grade, 'average_score', None),
-    'overall_position': getattr(latest_grade, 'overall_position', ''),
-    'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
-    'report_date': latest_grade.date_uploaded if latest_grade else '',
-    'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
-    'next_term_date': getattr(latest_grade, 'next_term_date', ''),
-    'logo_url': logo_data_uri,
-}
+        'subject_grades': grades,
+        'student': student,
+        'session': '2024/2025',  # Replace with dynamic session if available
+        'total_available_score': getattr(latest_grade, 'total_available_score', None),
+        'overall_score': getattr(latest_grade, 'overall_score', None),
+        'overall_average': getattr(latest_grade, 'average_score', None),
+        'overall_position': getattr(latest_grade, 'overall_position', ''),
+        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
+        'report_date': latest_grade.date_uploaded if latest_grade else '',
+        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),
+        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
+        'logo_url': logo_data_uri,
+    }
 
+    # Render HTML template
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
+    # Test render in browser first if needed
+    # return HttpResponse(html)
+
+    # Create PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
-
     pisa_status = pisa.CreatePDF(html, dest=response)
+
     if pisa_status.err:
-        return HttpResponse('We had some errors generating the PDF <pre>' + html + '</pre>')
+        return HttpResponse('Error generating PDF. <pre>' + html + '</pre>')
 
     return response
-

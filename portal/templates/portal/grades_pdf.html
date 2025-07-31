@@ -10,9 +10,17 @@
             margin: 20px;
         }
         .center { text-align: center; }
-        .header img { width: 70px; }
-        .school-name { font-size: 20px; font-weight: bold; }
-        .school-address { font-size: 11px; }
+        .header img {
+            width: 70px;
+            margin-bottom: 5px;
+        }
+        .school-name {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .school-address {
+            font-size: 11px;
+        }
         .report-title {
             text-align: center;
             font-size: 16px;
@@ -42,7 +50,9 @@
 <body>
 
 <div class="header center">
+    {% if logo_url %}
     <img src="{{ logo_url }}" alt="Logo">
+    {% endif %}
     <div class="school-name">PEN ARK SCHOOLS</div>
     <div class="school-address">
         9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
@@ -52,7 +62,7 @@
 </div>
 
 <div class="report-title">
-    SECOND TERM ASSESSMENT REPORT (SESSION {{ session }})
+    THIRD TERM ASSESSMENT REPORT (SESSION {{ session }})
 </div>
 
 <table class="student-profile">
