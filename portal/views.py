@@ -12,6 +12,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.templatetags.static import static
 from django.db.models import Q
 import mimetypes
+from django.db.models import Max, Q
 
 # Python standard library imports
 import os
@@ -884,39 +885,27 @@ def admin_manage_grades(request):
     grades = grades.order_by('student__last_name', 'subject')
     return render(request, 'portal/admin_manage_grades.html', {'grades': grades})
 
-from django.db.models import Max, Q
-
 @login_required
 @student_required
 def student_grades_view(request):
     grades = SubjectGrade.objects.filter(student=request.user).order_by('subject')
-    latest_grade = grades.order_by('-date_uploaded').first()
 
-    print("Grades count:", grades.count())
-    print("Latest grade:", latest_grade)
-    if latest_grade:
-        print("total_available_score:", latest_grade.total_available_score)
-        print("overall_score:", latest_grade.overall_score)
-        print("average_score:", latest_grade.average_score)
-        print("overall_position:", latest_grade.overall_position)
-        print("teacher_comment:", latest_grade.teacher_comment)
-        print("admin_comment_report:", latest_grade.admin_comment_report)
-        print("next_term_date:", latest_grade.next_term_date)
+    # Get the most recent grade upload for summary fields
+    latest_grade = grades.order_by('-date_uploaded').first()
 
     context = {
         'grades': grades,
         'student_name': request.user.get_full_name() or request.user.username,
-        'total_available_score': getattr(latest_grade, 'total_available_score', 0),
-        'overall_score': getattr(latest_grade, 'overall_score', 0),
-        'overall_average': getattr(latest_grade, 'average_score', 0.0),
-        'overall_position': getattr(latest_grade, 'overall_position', 'N/A'),
-        'teacher_comment': getattr(latest_grade, 'teacher_comment', 'No comments yet.'),
-        'report_date': latest_grade.date_uploaded if latest_grade else None,
-        'admin_comment': getattr(latest_grade, 'admin_comment_report', 'No admin comments yet.'),
-        'next_term_date': getattr(latest_grade, 'next_term_date', None),
+        'total_available_score': getattr(latest_grade, 'total_available_score', None),
+        'overall_score': getattr(latest_grade, 'overall_score', None),
+        'overall_average': getattr(latest_grade, 'average_score', None),
+        'overall_position': getattr(latest_grade, 'overall_position', ''),
+        'teacher_comment': getattr(latest_grade, 'teacher_comment', ''),
+        'report_date': latest_grade.date_uploaded if latest_grade else '',
+        'admin_comment': getattr(latest_grade, 'admin_comment_report', ''),  # <-- Fixed here
+        'next_term_date': getattr(latest_grade, 'next_term_date', ''),
     }
     return render(request, 'portal/student_test_examination_grades.html', context)
-
 
 
 @login_required
