@@ -7,12 +7,12 @@
         body {
             font-family: Arial, sans-serif;
             font-size: 9px;
-            margin: 20px;
+            margin: 15px;
             color: #000;
         }
         .header {
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .header img {
             width: 45px;
@@ -31,11 +31,24 @@
             margin-top: 5px;
             text-align: center;
         }
+        .main-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .grades-table {
+            width: 78%;
+        }
+        .grade-scale {
+            width: 20%;
+            font-size: 8px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 8px;
-            margin-top: 10px;
+            margin-bottom: 10px;
         }
         th, td {
             border: 1px solid #000;
@@ -46,30 +59,26 @@
             background-color: #007bff;
             color: white;
         }
-        .row {
+        ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+        ul li {
+            margin-bottom: 3px;
+        }
+        .summary-comments {
             display: flex;
             justify-content: space-between;
-            margin-top: 10px;
+            gap: 10px;
         }
         .col {
             width: 48%;
-        }
-        .scale-box {
-            font-size: 8px;
-            margin-top: 10px;
-            padding-left: 10px;
-        }
-        .scale-box ul {
-            padding-left: 15px;
-            margin: 0;
-        }
-        .scale-box li {
-            margin-bottom: 2px;
+            font-size: 9px;
         }
         .footer {
             text-align: center;
             font-size: 8px;
-            margin-top: 12px;
+            margin-top: 10px;
             border-top: 1px dashed #aaa;
             padding-top: 4px;
         }
@@ -79,7 +88,7 @@
 
 <div class="header">
     {% if logo_url %}
-    <img src="{{ logo_url }}" alt="School Logo">
+        <img src="{{ logo_url }}" alt="School Logo">
     {% endif %}
     <div class="school-name">PEN ARK SCHOOLS</div>
     <div class="school-address">
@@ -94,8 +103,8 @@
 </div>
 
 {% if grades %}
-<div style="display: flex; justify-content: space-between;">
-    <div style="width: 78%;">
+<div class="main-row">
+    <div class="grades-table">
         <table>
             <thead>
                 <tr>
@@ -132,8 +141,8 @@
         </table>
     </div>
 
-    <!-- Grade Scale beside the table -->
-    <div style="width: 20%;" class="scale-box">
+    <!-- Grade Scale Box beside the grades -->
+    <div class="grade-scale">
         <strong>📏 Grade Scale</strong>
         <ul>
             <li><strong>A++</strong> — 90% & Above: Outstanding</li>
@@ -147,8 +156,8 @@
     </div>
 </div>
 
-<!-- Summary & Comments Side by Side -->
-<div class="row">
+<!-- Summary and Comments Side-by-Side -->
+<div class="summary-comments">
     <div class="col">
         <strong>📌 Performance Summary</strong><br>
         <strong>Total Available Score:</strong> {{ report.total_available_score|default:"N/A" }}<br>
@@ -166,7 +175,7 @@
 </div>
 
 {% else %}
-<p class="center">No grades available for this report.</p>
+<p style="text-align: center;">No grades available for this report.</p>
 {% endif %}
 
 <div class="footer">
