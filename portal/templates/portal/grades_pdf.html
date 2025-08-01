@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ student.get_full_name }} - Report</title>
+    <title>{{ student_name }} - Report</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
             margin: 20px;
+            color: #000;
         }
         .center { text-align: center; }
         .header img {
@@ -38,12 +39,20 @@
             border: 1px solid #000;
             padding: 4px;
             text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #343a40;
+            color: white;
         }
         .summary, .comments, .grading-scale, .behavioral {
             margin-top: 15px;
+            font-size: 12px;
         }
-        .no-border td {
-            border: none;
+        .no-grades {
+            text-align: center;
+            font-style: italic;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -51,7 +60,7 @@
 
 <div class="header center">
     {% if logo_url %}
-    <img src="{{ logo_url }}" alt="Logo">
+    <img src="{{ logo_url }}" alt="School Logo">
     {% endif %}
     <div class="school-name">PEN ARK SCHOOLS</div>
     <div class="school-address">
@@ -62,99 +71,83 @@
 </div>
 
 <div class="report-title">
-    THIRD TERM ASSESSMENT REPORT (SESSION {{ session }})
+    THIRD TERM ASSESSMENT REPORT (SESSION {{ report.session|default:"2024/2025" }})
 </div>
 
-<table class="student-profile">
-    <tr class="no-border">
-        <td><strong>Name:</strong> {{ student.get_full_name }}</td>
-    </tr>
-</table>
-
+{% if grades %}
 <table>
     <thead>
         <tr>
-            <th rowspan="2">Subject</th>
-            <th colspan="4">Marks Obtained</th>
-            <th rowspan="2">Position</th>
-            <th colspan="3">Termly Summary</th>
-            <th rowspan="2">Average</th>
-            <th rowspan="2">Grade</th>
-            <th rowspan="2">Teacher's Comment</th>
-            <th rowspan="2">Teacher</th>
-        </tr>
-        <tr>
-            <th>1st Test</th>
-            <th>2nd Test</th>
-            <th>Exam</th>
-            <th>Total</th>
-            <th>1st Term</th>
-            <th>2nd Term</th>
-            <th>3rd Term</th>
+            <th>Subject</th>
+            <th>1st Test<br>(20)</th>
+            <th>2nd Test<br>(20)</th>
+            <th>Exam<br>(60)</th>
+            <th>Total<br>(100)</th>
+            <th>1st Term<br>Score</th>
+            <th>2nd Term<br>Score</th>
+            <th>Average</th>
+            <th>Grade</th>
+            <th>Grade Comment</th>
+            <th>Teacher</th>
         </tr>
     </thead>
     <tbody>
-        {% for grade in subject_grades %}
+        {% for grade in grades %}
         <tr>
-            <td>{{ grade.subject.name }}</td>
-            <td>{{ grade.first_test|default:"N/A" }}</td>
-            <td>{{ grade.second_test|default:"N/A" }}</td>
-            <td>{{ grade.exam_score|default:"N/A" }}</td>
-            <td>{{ grade.total_score|default:"N/A" }}</td>
-            <td>{{ grade.position_in_subject|default:"-" }}</td>
-            <td>{{ grade.first_term_score|default:"-" }}</td>
-            <td>{{ grade.second_term_score|default:"-" }}</td>
-            <td>-</td>
-            <td>{{ grade.average_score|default:"-" }}</td>
-            <td>{{ grade.manual_grade|default:"-" }}</td>
-            <td>{{ grade.grade_comment|default:"" }}</td>
-            <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}-{% endif %}</td>
+            <td>{{ grade.subject }}</td>
+            <td>{{ grade.first_test|default:"–" }}</td>
+            <td>{{ grade.second_test|default:"–" }}</td>
+            <td>{{ grade.exam|default:"–" }}</td>
+            <td>{{ grade.total_score|default:"–" }}</td>
+            <td>{{ grade.first_term_score|default:"–" }}</td>
+            <td>{{ grade.second_term_score|default:"–" }}</td>
+            <td>{{ grade.average_score|default:"–" }}</td>
+            <td>{{ grade.manual_grade|default:"–" }}</td>
+            <td>{{ grade.grade_comment|default:"–" }}</td>
+            <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}–{% endif %}</td>
         </tr>
-        {% empty %}
-        <tr><td colspan="13">No grades available</td></tr>
         {% endfor %}
     </tbody>
 </table>
 
 <div class="summary">
-    <p><strong>Total Available Score:</strong> {{ total_available_score|default:"N/A" }}</p>
-    <p><strong>Student Overall Score:</strong> {{ overall_score|default:"N/A" }}</p>
-    <p><strong>Student Overall Average:</strong> {{ overall_average|default:"N/A" }}</p>
-    <p><strong>Overall Position:</strong> {{ overall_position|default:"N/A" }}</p>
+    <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"N/A" }}</p>
+    <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"N/A" }}</p>
+    <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"N/A" }}%</p>
+    <p><strong>Overall Position:</strong> {{ report.overall_position|default:"N/A" }}</p>
 </div>
 
 <div class="comments">
-    <p><strong>Teacher's Comment:</strong> {{ teacher_comment|default:"No comment" }}</p>
-    <p><strong>Admin's Comment:</strong> {{ admin_comment|default:"No comment" }}</p>
-    <p><strong>Next Term Begins:</strong> {{ next_term_date|date:"d/m/Y"|default:"TBD" }}</p>
+    <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}</p>
+    <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}</p>
+    <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}</p>
+    <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}</p>
 </div>
 
 <div class="grading-scale">
-    <p><strong>GRADE:</strong></p>
-    <p>
-        90% & Above (A**) Outstanding <br>
-        80 – 89% (A*) Excellent <br>
-        70 – 79% (B+) Very Good <br>
-        60 – 69% (B) Good <br>
-        50 – 59% (C) Fairly Good <br>
-        40 – 49% (D) Poor <br>
-        0 – 39% (F) Fail
-    </p>
+    <strong>Grade Scale:</strong>
+    <ul style="list-style:none; padding-left: 0; font-size: 12px;">
+        <li><strong>A++</strong> — 90% & Above: Outstanding</li>
+        <li><strong>A+</strong> — 80–89%: Excellent</li>
+        <li><strong>B++</strong> — 70–79%: Very Good</li>
+        <li><strong>B+</strong> — 60–69%: Good</li>
+        <li><strong>C</strong> — 50–59%: Fairly Good</li>
+        <li><strong>D</strong> — 40–49%: Fair</li>
+        <li><strong>F</strong> — 0–39%: Fail</li>
+    </ul>
 </div>
 
 <div class="behavioral">
-    <p><strong>Assessment Behavioural Skill (Key):</strong></p>
+    <strong>Behavioural & Psychomotor Skills:</strong>
     <p>
-        Excellent Level (5), High Level (5), Acceptable Level (5), Minimum Traits (5)<br>
-        Punctuality(5), Neatness(5), Assignment(5), Social Development(5), Attentiveness(5),<br>
-        Class Participation(5), Psychomotor(5), Perseverance(5), Responsibility(5),<br>
-        Club Participation(5), Politeness(5), Honesty(5), Sport & Games(5), Industry(5)
+        Punctuality, Neatness, Attentiveness, Social Development, Assignment, Class Participation, Perseverance, Responsibility, Politeness, Honesty, Sport & Games, Industry, Club Participation, Psychomotor
     </p>
+    <p style="font-size: 11px; font-style: italic;">(Note: Behavioural scores are recorded internally and reflect character development over the term.)</p>
 </div>
 
-<div class="signatures" style="margin-top: 30px;">
-    <p><strong>Sign:</strong> __________________________</p>
-</div>
+{% else %}
+<p class="no-grades">No grades available for this report.</p>
+{% endif %}
 
 </body>
 </html>

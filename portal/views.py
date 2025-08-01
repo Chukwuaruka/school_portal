@@ -843,8 +843,11 @@ def teacher_upload_grades(request):
             grade_report.overall_position = overall_position
         if teacher_comment:
             grade_report.teacher_comment = teacher_comment
-        if admin_comment_report:
-            grade_report.admin_comment_report = admin_comment_report
+
+        # Always update admin_comment_report and date_uploaded
+        grade_report.admin_comment_report = admin_comment_report
+        grade_report.date_uploaded = timezone.now()
+
         if next_term_date:
             grade_report.next_term_date = next_term_date
 
@@ -1022,10 +1025,16 @@ def delete_student_grade(request, grade_id):
 def download_grade_report_pdf(request):
     student = request.user
 
-    grades = SubjectGrade.objects.filter(student=student).order_by('subject')
+    # Get the latest report
     latest_report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
 
-    # Encode logo as base64 for inline embedding
+    if not latest_report:
+        return HttpResponse("No report found.", status=404)
+
+    # Get subject grades related to this report
+    subject_grades = latest_report.subject_grades.all().order_by('subject')
+
+    # Encode logo for PDF header
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
@@ -1035,17 +1044,9 @@ def download_grade_report_pdf(request):
             logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
     context = {
-        'subject_grades': grades,
-        'student': student,
-        'session': latest_report.session if latest_report else 'N/A',
-        'total_available_score': getattr(latest_report, 'total_available_score', None),
-        'overall_score': getattr(latest_report, 'overall_score', None),
-        'overall_average': getattr(latest_report, 'overall_average', None),
-        'overall_position': getattr(latest_report, 'overall_position', ''),
-        'teacher_comment': getattr(latest_report, 'teacher_comment', ''),
-        'report_date': latest_report.date_uploaded if latest_report else '',
-        'admin_comment': getattr(latest_report, 'admin_comment_report', ''),
-        'next_term_date': getattr(latest_report, 'next_term_date', ''),
+        'grades': subject_grades,
+        'report': latest_report,
+        'student_name': student.get_full_name() or student.username,
         'logo_url': logo_data_uri,
     }
 
