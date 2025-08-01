@@ -201,7 +201,7 @@ class GradeReport(models.Model):
     classroom = models.ForeignKey('Classroom', on_delete=models.SET_NULL, null=True, blank=True)
     session = models.CharField(max_length=20, choices=SESSION_CHOICES, null=True, blank=True)
     term = models.CharField(max_length=20, choices=TERM_CHOICES, null=True, blank=True)
-    date_uploaded = models.DateField(auto_now_add=True)
+    date_uploaded = models.DateField(null=True, blank=True)
 
     total_available_score = models.PositiveIntegerField(null=True, blank=True)
     overall_score = models.PositiveIntegerField(null=True, blank=True)

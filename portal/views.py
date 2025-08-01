@@ -749,19 +749,17 @@ def edit_student_grade(request, grade_id):
 
     return render(request, 'portal/edit_student_grades.html', {'submission': submission})
 
-def teacher_upload_grades(request):
+def teacher_upload_grades(request): 
     students = User.objects.filter(role='student')
     selected_classroom = request.GET.get('classroom')
 
     if selected_classroom:
         students = students.filter(classroom__name=selected_classroom)
 
-    # Fetch GradeReports for students in the classroom (if selected)
     grade_reports = GradeReport.objects.filter(student__in=students)
     if selected_classroom:
         grade_reports = grade_reports.filter(classroom__name=selected_classroom)
 
-    # Organize SubjectGrades by student via GradeReports
     student_grades = {}
     for report in grade_reports.prefetch_related('subject_grades').select_related('student'):
         student = report.student
@@ -776,7 +774,6 @@ def teacher_upload_grades(request):
         session = request.POST.get('session')
         classroom_name = request.POST.get('classroom')
 
-        # Validate required fields
         if not all([student_username, subject, term, session, classroom_name]):
             messages.error(request, "Please fill in all required fields.")
             return redirect('teacher_upload_grades')
@@ -784,7 +781,6 @@ def teacher_upload_grades(request):
         student = get_object_or_404(User, username=student_username, role='student')
         classroom = get_object_or_404(Classroom, name=classroom_name)
 
-        # Find or create GradeReport for student, classroom, term, session
         grade_report, created = GradeReport.objects.get_or_create(
             student=student,
             classroom=classroom,
@@ -812,10 +808,15 @@ def teacher_upload_grades(request):
         manual_grade = request.POST.get('manual_grade', '').strip()
         comment = request.POST.get('comment', '').strip()
 
+        # Term scores
+        first_term_score = to_int(request.POST.get('first_term_score'))
+        second_term_score = to_int(request.POST.get('second_term_score'))
+        average_score = to_float(request.POST.get('average_score'))
+
         # GradeReport (overall) fields from form
         total_available_score = to_int(request.POST.get('total_available_score'))
         overall_score = to_int(request.POST.get('overall_score'))
-        average_score = to_float(request.POST.get('average_score'))
+        overall_average = to_float(request.POST.get('overall_average'))
         overall_position = request.POST.get('overall_position', '').strip()
         teacher_comment = request.POST.get('teacher_comment', '').strip()
         admin_comment_report = request.POST.get('admin_comment_report', '').strip()
@@ -829,17 +830,17 @@ def teacher_upload_grades(request):
                 messages.error(request, "Invalid date format for Next Term Begins.")
                 return redirect('teacher_upload_grades')
 
-        # Update GradeReport overall fields
+        # Update GradeReport
         grade_report.total_available_score = total_available_score
         grade_report.overall_score = overall_score
-        grade_report.average_score = average_score
+        grade_report.overall_average = overall_average
         grade_report.overall_position = overall_position
         grade_report.teacher_comment = teacher_comment
         grade_report.admin_comment_report = admin_comment_report
         grade_report.next_term_date = next_term_date
         grade_report.save()
 
-        # Create or update SubjectGrade linked to GradeReport
+        # Create or update SubjectGrade
         grade, created = SubjectGrade.objects.get_or_create(
             report=grade_report,
             subject=subject,
@@ -850,6 +851,9 @@ def teacher_upload_grades(request):
                 'manual_total': manual_total,
                 'manual_grade': manual_grade,
                 'grade_comment': comment,
+                'first_term_score': first_term_score,
+                'second_term_score': second_term_score,
+                'average_score': average_score,
             }
         )
 
@@ -859,7 +863,10 @@ def teacher_upload_grades(request):
             grade.exam = exam
             grade.manual_total = manual_total
             grade.manual_grade = manual_grade
-            grade.comment = comment
+            grade.grade_comment = comment
+            grade.first_term_score = first_term_score
+            grade.second_term_score = second_term_score
+            grade.average_score = average_score
             grade.save()
             messages.success(request, "Grade updated successfully.")
         else:
@@ -927,51 +934,61 @@ def student_grades_view(request):
 
     return render(request, 'portal/student_test_examination_grades.html', context)
 
+from datetime import datetime
+from django.utils import timezone
+
 @login_required
 @teacher_required
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
-    report = grade.report  # Access linked GradeReport
+    report = grade.report  # Linked GradeReport
 
     if request.method == 'POST':
-        # Update SubjectGrade fields
+        # SUBJECT GRADE updates
         grade.subject = request.POST.get('subject', grade.subject)
         grade.first_test = request.POST.get('first_test') or None
         grade.second_test = request.POST.get('second_test') or None
         grade.exam = request.POST.get('exam') or None
         grade.manual_total = request.POST.get('manual_total') or None
-        grade.manual_grade = request.POST.get('manual_grade') or ''
-        grade.grade_comment = request.POST.get('grade_comment') or ''
+        grade.manual_grade = request.POST.get('manual_grade', '').strip()
+        grade.grade_comment = request.POST.get('grade_comment', '').strip()
         grade.first_term_score = request.POST.get('first_term_score') or None
         grade.second_term_score = request.POST.get('second_term_score') or None
         grade.average_score = request.POST.get('average_score') or None
-        grade.term = request.POST.get('term')
-        grade.session = request.POST.get('session')
-        grade.comment = request.POST.get('comment') or ''
-        grade.admin_comment = request.POST.get('admin_comment') or ''
+        grade.term = request.POST.get('term') or grade.term
+        grade.session = request.POST.get('session') or grade.session
+        grade.comment = request.POST.get('comment', '').strip()
+        grade.admin_comment = request.POST.get('admin_comment', '').strip()
         grade.save()
 
-        # Update GradeReport fields
+        # REPORT updates - only update if values are provided
         report.total_available_score = request.POST.get('total_available_score') or report.total_available_score
         report.overall_score = request.POST.get('overall_score') or report.overall_score
         report.overall_average = request.POST.get('overall_average') or report.overall_average
-        report.overall_position = request.POST.get('overall_position') or ''
-        report.teacher_comment = request.POST.get('teacher_comment') or ''
-        report.admin_comment_report = request.POST.get('admin_comment_report') or ''
-        report.next_term_date = request.POST.get('next_term_date') or None
+        report.overall_position = request.POST.get('overall_position', report.overall_position)
+        report.teacher_comment = request.POST.get('teacher_comment', report.teacher_comment)
+        report.admin_comment_report = request.POST.get('admin_comment_report', report.admin_comment_report)
 
-        # Optional: update date_uploaded
+        # Parse and update next_term_date
+        next_term_date_str = request.POST.get('next_term_date')
+        if next_term_date_str:
+            try:
+                report.next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass  # Ignore invalid date input
+
+        # Optional: update upload date
         report.date_uploaded = timezone.now()
-
         report.save()
 
-        return redirect('teacher_upload_grades')  # Or wherever you redirect
+        return redirect('teacher_upload_grades')
 
     context = {
         'grade': grade,
         'report': report,
     }
     return render(request, 'portal/edit_grade.html', context)
+
 
 
 @login_required
