@@ -127,58 +127,79 @@
     </tbody>
 </table>
 
-<div class="grade-scale">
-    <strong>Grade Scale</strong>
-    <ul>
-        <li>A++ — 90% & Above: Outstanding</li>
-        <li>A+ — 80–89%: Excellent</li>
-        <li>B++ — 70–79%: Very Good</li>
-        <li>B+ — 60–69%: Good</li>
-        <li>C — 50–59%: Fairly Good</li>
-        <li>D — 40–49%: Fair</li>
-        <li>F — 0–39%: Fail</li>
-    </ul>
+<div class="col-lg-3">
+        <div class="card border-secondary mb-4">
+            <div class="card-header bg-dark text-white text-center">
+                <strong>Grade Scale</strong>
+            </div>
+            <div class="card-body p-2 small">
+                <ul class="list-unstyled mb-0">
+                    <li><strong>A++</strong> — 90% & Above: Outstanding</li>
+                    <li><strong>A+</strong> — 80–89%: Excellent</li>
+                    <li><strong>B++</strong> — 70–79%: Very Good</li>
+                    <li><strong>B+</strong> — 60–69%: Good</li>
+                    <li><strong>C</strong> — 50–59%: Fairly Good</li>
+                    <li><strong>D</strong> — 40–49%: Fair</li>
+                    <li><strong>F</strong> — 0–39%: Fail</li>
+                </ul>
+        </div>
+    </div>
 </div>
+    <!-- Only show Performance Summary and Comments if report exists -->
+    {% if report %}
+    <div class="row my-4">
+        <div class="col-md-6">
+            <h5 class="mb-3">📌 Performance Summary</h5>
+            <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"None" }}</p>
+            <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"None" }}</p>
+            <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"None" }}%</p>
+            <p><strong>Overall Position:</strong> {{ report.overall_position|default:"" }}</p>
+        </div>
+        <div class="col-md-6">
+            <h5 class="mb-3">🗣️ Teacher/Admin Comments</h5>
+            <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"" }}</p>
+            <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y"|default:"" }}</p>
+            <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"" }}</p>
+            <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"None" }}</p>
+        </div>
+    </div>
+    {% endif %}
 
-{% if report %}
-<div class="summary-section">
-    <div class="section-title">📌 Performance Summary</div>
-    <p><strong>Total Available Score:</strong> {{ report.total_available_score }}</p>
-    <p><strong>Student Overall Score:</strong> {{ report.overall_score }}</p>
-    <p><strong>Student Overall Average:</strong> {{ report.overall_average }}%</p>
-    <p><strong>Overall Position:</strong> {{ report.overall_position }}</p>
-</div>
 
-<div class="comments-section">
-    <div class="section-title">🗣️ Teacher/Admin Comments</div>
-    <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment }}</p>
-    <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}</p>
-    <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report }}</p>
-    <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y" }}</p>
-</div>
-{% endif %}
-
-<div class="behavioral-box">🎯 Behavioural & Psychomotor Skills</div>
-<div class="behavioral-content">
-    <p><strong>Key:</strong> 5 = Excellent | 4 = Very Good | 3 = Good | 2 = Fair | 1 = Needs Improvement</p>
-    <ul>
-        <li>✔️ Punctuality</li>
-        <li>✔️ Neatness</li>
-        <li>✔️ Attentiveness</li>
-        <li>✔️ Social Development</li>
-        <li>✔️ Assignment</li>
-        <li>✔️ Class Participation</li>
-        <li>✔️ Perseverance</li>
-        <li>✔️ Responsibility</li>
-        <li>✔️ Politeness</li>
-        <li>✔️ Honesty</li>
-        <li>✔️ Sport & Games</li>
-        <li>✔️ Industry</li>
-        <li>✔️ Club Participation</li>
-        <li>✔️ Psychomotor</li>
-    </ul>
-    <p><em>(Note: Behavioural scores are recorded internally and reflect character development over the term.)</em></p>
-</div>
+    <!-- 🧠 Behavioral Assessment Section -->
+    <div class="card border-primary mb-4">
+        <div class="card-header bg-primary text-white">
+            <strong>🎯 Behavioural & Psychomotor Skills</strong>
+        </div>
+        <div class="card-body small">
+            <p><strong>Key:</strong> 5 = Excellent | 4 = Very Good | 3 = Good | 2 = Fair | 1 = Needs Improvement</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li>✔️ Punctuality</li>
+                        <li>✔️ Neatness</li>
+                        <li>✔️ Attentiveness</li>
+                        <li>✔️ Social Development</li>
+                        <li>✔️ Assignment</li>
+                        <li>✔️ Class Participation</li>
+                        <li>✔️ Perseverance</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li>✔️ Responsibility</li>
+                        <li>✔️ Politeness</li>
+                        <li>✔️ Honesty</li>
+                        <li>✔️ Sport & Games</li>
+                        <li>✔️ Industry</li>
+                        <li>✔️ Club Participation</li>
+                        <li>✔️ Psychomotor</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="mt-2 text-muted"><em>(Note: Behavioural scores are recorded internally and reflect character development over the term.)</em></p>
+        </div>
+    </div>
 
 <div class="footer">
     &copy; {{ school_name }} — All rights reserved.
