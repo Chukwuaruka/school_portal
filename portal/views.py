@@ -849,7 +849,7 @@ def teacher_upload_grades(request):
                 'exam': exam,
                 'manual_total': manual_total,
                 'manual_grade': manual_grade,
-                'comment': comment,
+                'grade_comment': comment,
             }
         )
 
@@ -928,29 +928,32 @@ def student_grades_view(request):
     return render(request, 'portal/student_test_examination_grades.html', context)
 
 @login_required
+# @teacher_required  # Add if you have this decorator
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
-    report = grade.report  # Linked GradeReport object
+    report = grade.report
 
     if request.method == 'POST':
-        # Update SubjectGrade fields
-        grade.subject = request.POST.get('subject')
-        grade.first_test = int(request.POST.get('first_test') or 0)
-        grade.second_test = int(request.POST.get('second_test') or 0)
-        grade.exam = int(request.POST.get('exam') or 0)
+        # Update SubjectGrade fields with validation
+        try:
+            grade.first_test = int(request.POST.get('first_test') or 0)
+            grade.second_test = int(request.POST.get('second_test') or 0)
+            grade.exam = int(request.POST.get('exam') or 0)
+            grade.first_term_score = int(request.POST.get('first_term_score') or 0)
+            grade.second_term_score = int(request.POST.get('second_term_score') or 0)
+            grade.average_score = float(request.POST.get('average_score') or 0)
+        except ValueError:
+            messages.error(request, "Invalid number input.")
+            return redirect('edit_grade', grade_id=grade.id)
+
+        grade.subject = request.POST.get('subject') or grade.subject
         grade.grade_comment = request.POST.get('grade_comment') or ''
         grade.comment = request.POST.get('comment') or ''
-        grade.first_term_score = int(request.POST.get('first_term_score') or 0)
-        grade.second_term_score = int(request.POST.get('second_term_score') or 0)
-        grade.average_score = float(request.POST.get('average_score') or 0)
 
-        # Manual grading
         manual_total = request.POST.get('manual_total')
         manual_grade = request.POST.get('manual_grade')
 
-        grade.manual_total = int(manual_total) if manual_total else (
-            grade.first_test + grade.second_test + grade.exam
-        )
+        grade.manual_total = int(manual_total) if manual_total else (grade.first_test + grade.second_test + grade.exam)
         grade.manual_grade = manual_grade if manual_grade else (
             'A++' if grade.manual_total >= 90 else
             'A+' if grade.manual_total >= 80 else
@@ -962,15 +965,21 @@ def edit_grade(request, grade_id):
 
         grade.save()
 
-        # Update Report-level fields via GradeReport
+        # Update report
         report.term = request.POST.get('term') or report.term
         report.session = request.POST.get('session') or report.session
-        report.total_available_score = int(request.POST.get('total_available_score') or 0)
-        report.overall_score = int(request.POST.get('overall_score') or 0)
-        report.overall_average = float(request.POST.get('overall_average') or 0)
-        report.overall_position = request.POST.get('overall_position') or ''
-        report.teacher_comment = request.POST.get('teacher_comment') or ''
-        report.admin_comment_report = request.POST.get('admin_comment_report') or ''
+
+        try:
+            report.total_available_score = int(request.POST.get('total_available_score') or report.total_available_score or 0)
+            report.overall_score = int(request.POST.get('overall_score') or report.overall_score or 0)
+            report.overall_average = float(request.POST.get('overall_average') or report.overall_average or 0)
+        except ValueError:
+            messages.error(request, "Invalid number input in report fields.")
+            return redirect('edit_grade', grade_id=grade.id)
+
+        report.overall_position = request.POST.get('overall_position') or report.overall_position or ''
+        report.teacher_comment = request.POST.get('teacher_comment') or report.teacher_comment or ''
+        report.admin_comment_report = request.POST.get('admin_comment_report') or report.admin_comment_report or ''
 
         next_term_raw = request.POST.get('next_term_date')
         if next_term_raw:
