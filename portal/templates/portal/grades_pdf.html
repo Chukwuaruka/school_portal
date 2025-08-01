@@ -1,139 +1,143 @@
-﻿{% load static %}
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>Student Grade Report</title>
+    <title>Grade Report</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            font-size: 12px;
+            font-size: 10px;
+            line-height: 1.3;
+            margin: 5px;
+            padding: 5px;
             color: #000;
-            line-height: 1.5;
-        }
-        h2, h5 {
-            color: #003366;
-            margin-bottom: 8px;
         }
         .container {
-            padding: 20px;
             width: 100%;
+            padding: 10px;
         }
         .school-header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .school-logo {
-            height: 70px;
+            height: 60px;
         }
-        .blue-header {
-            background-color: #003366;
-            color: #fff;
-            padding: 5px 10px;
-            font-weight: bold;
-        }
-        .summary-block {
-            margin-top: 20px;
-        }
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .col-6 {
-            width: 48%;
+        h2, h5 {
+            font-size: 13px;
+            color: #003366;
+            margin: 5px 0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 11px;
+            font-size: 9px;
         }
         th, td {
-            border: 1px solid #555;
-            padding: 4px;
+            border: 1px solid #444;
+            padding: 3px 4px;
             text-align: center;
+            white-space: nowrap;
         }
         th {
             background-color: #003366;
             color: white;
         }
-        .grade-scale, .behavioral {
-            margin-top: 20px;
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .col-6 {
+            width: 49%;
+        }
+        .grade-scale p, .behavioral p {
+            font-size: 9px;
+            margin: 2px 0;
+        }
+        .blue-header {
+            background-color: #003366;
+            color: #fff;
+            padding: 2px 6px;
+            font-size: 10px;
+            margin-top: 10px;
         }
         .footer {
             text-align: center;
-            font-size: 11px;
-            margin-top: 40px;
+            font-size: 9px;
+            margin-top: 10px;
             color: #555;
         }
     </style>
 </head>
 <body>
 <div class="container">
-
     <!-- School Header -->
     <div class="school-header">
         {% if logo_url %}
-        <img src="{{ logo_url }}" class="school-logo"><br>
+            <img src="{{ logo_url }}" class="school-logo" alt="School Logo"><br>
         {% endif %}
-        <strong style="font-size: 16px;">{{ school_name }}</strong><br>
-        <span>{{ school_address }}</span><br>
-        <span>{{ school_phone }}</span><br>
-        <em>{{ school_motto }}</em>
+        <h2><strong>PEN ARK SCHOOLS</strong></h2>
+        <p>9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
+           TEL: 09063550663, 08063616032<br>
+           <strong>MOTTO:</strong> TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)</p>
+        <hr>
+        <h3 style="color:#003366;">📊 Test & Examination Grades</h3>
+        <p><strong>Student:</strong> {{ student_name }}</p>
     </div>
 
-    <!-- Report Title -->
-    <h2>📊 Test & Examination Grades</h2>
-    <p><strong>Student:</strong> {{ student_name }}</p>
-
-    <!-- Grades Table -->
-    <table>
-        <thead>
-        <tr>
-            <th>Subject</th>
-            <th>1st Test<br>(20)</th>
-            <th>2nd Test<br>(20)</th>
-            <th>Exam<br>(60)</th>
-            <th>Total<br>(100)</th>
-            <th>1st Term<br>Score</th>
-            <th>2nd Term<br>Score</th>
-            <th>Average</th>
-            <th>Grade</th>
-            <th>Grade Comment</th>
-            <th>Teacher</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for grade in grades %}
-        <tr>
-            <td>{{ grade.subject }}</td>
-            <td>{{ grade.first_test }}</td>
-            <td>{{ grade.second_test }}</td>
-            <td>{{ grade.exam }}</td>
-            <td>{{ grade.total_score }}</td>
-            <td>{{ grade.first_term_score }}</td>
-            <td>{{ grade.second_term_score }}</td>
-            <td>{{ grade.average_score }}</td>
-            <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-            <td>{{ grade.grade_comment|default:"–" }}</td>
-            <td>{{ grade.teacher.get_full_name|default:"–" }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <!-- Grade Table -->
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>1st Test<br>(20)</th>
+                    <th>2nd Test<br>(20)</th>
+                    <th>Exam<br>(60)</th>
+                    <th>Total<br>(100)</th>
+                    <th>1st Term<br>Score</th>
+                    <th>2nd Term<br>Score</th>
+                    <th>Average</th>
+                    <th>Grade</th>
+                    <th>Grade Comment</th>
+                    <th>Teacher</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grade in grades %}
+                <tr>
+                    <td>{{ grade.subject }}</td>
+                    <td>{{ grade.first_test }}</td>
+                    <td>{{ grade.second_test }}</td>
+                    <td>{{ grade.exam }}</td>
+                    <td>{{ grade.total_score }}</td>
+                    <td>{{ grade.first_term_score }}</td>
+                    <td>{{ grade.second_term_score }}</td>
+                    <td>{{ grade.average_score }}</td>
+                    <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+                    <td>{{ grade.grade_comment|default:"–" }}</td>
+                    <td>{{ grade.teacher.get_full_name|default:"–" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     {% if report %}
-    <div class="summary-block row">
+    <div class="row" style="margin-top:10px;">
+        <!-- Performance Summary -->
         <div class="col-6">
-            <h5>📌 Performance Summary</h5>
+            <div class="blue-header">📌 Performance Summary</div>
             <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"None" }}</p>
             <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"None" }}</p>
             <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"None" }}%</p>
             <p><strong>Overall Position:</strong> {{ report.overall_position|default:"" }}</p>
         </div>
+
+        <!-- Comments -->
         <div class="col-6">
-            <h5>🗣️ Teacher/Admin Comments</h5>
+            <div class="blue-header">🗣️ Teacher/Admin Comments</div>
             <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"" }}</p>
             <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y"|default:"" }}</p>
             <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"" }}</p>
@@ -142,50 +146,35 @@
     </div>
     {% endif %}
 
-    <!-- Grade Scale -->
-    <div class="grade-scale">
-        <div class="blue-header">🎯 Grade Scale</div>
-        <p>
-            <strong>A++</strong>: 90% & Above (Outstanding) |
-            <strong>A+</strong>: 80–89% (Excellent) |
-            <strong>B++</strong>: 70–79% (Very Good) |
-            <strong>B+</strong>: 60–69% (Good) |
-            <strong>C</strong>: 50–59% (Fairly Good) |
-            <strong>D</strong>: 40–49% (Fair) |
-            <strong>F</strong>: 0–39% (Fail)
-        </p>
-    </div>
-
-    <!-- Behavioral Assessment -->
-    <div class="behavioral">
-        <div class="blue-header">🎯 Behavioural & Psychomotor Skills</div>
-        <p><strong>Key:</strong> 5 = Excellent | 4 = Very Good | 3 = Good | 2 = Fair | 1 = Needs Improvement</p>
-        <div class="row">
-            <div class="col-6">
-                ✔️ Punctuality<br>
-                ✔️ Neatness<br>
-                ✔️ Attentiveness<br>
-                ✔️ Social Development<br>
-                ✔️ Assignment<br>
-                ✔️ Class Participation<br>
-                ✔️ Perseverance
-            </div>
-            <div class="col-6">
-                ✔️ Responsibility<br>
-                ✔️ Politeness<br>
-                ✔️ Honesty<br>
-                ✔️ Sport & Games<br>
-                ✔️ Industry<br>
-                ✔️ Club Participation<br>
-                ✔️ Psychomotor
+    <!-- Behavioural & Grade Scale -->
+    <div class="row" style="margin-top:10px;">
+        <div class="col-6">
+            <div class="blue-header">🎯 Behavioural & Psychomotor Skills</div>
+            <p><strong>Key:</strong> 5 = Excellent | 4 = Very Good | 3 = Good | 2 = Fair | 1 = Needs Improvement</p>
+            <div class="behavioral">
+                <p>✔️ Punctuality, Neatness, Attentiveness, Social Dev., Assignment</p>
+                <p>✔️ Class Participation, Perseverance, Responsibility, Politeness</p>
+                <p>✔️ Honesty, Sport & Games, Industry, Club Participation, Psychomotor</p>
             </div>
         </div>
-        <p><em>(Note: Behavioural scores are recorded internally and reflect character development over the term.)</em></p>
+
+        <div class="col-6">
+            <div class="blue-header">📘 Grade Scale</div>
+            <div class="grade-scale">
+                <p><strong>A++</strong> — 90% & Above: Outstanding</p>
+                <p><strong>A+</strong> — 80–89%: Excellent</p>
+                <p><strong>B++</strong> — 70–79%: Very Good</p>
+                <p><strong>B+</strong> — 60–69%: Good</p>
+                <p><strong>C</strong> — 50–59%: Fairly Good</p>
+                <p><strong>D</strong> — 40–49%: Fair</p>
+                <p><strong>F</strong> — 0–39%: Fail</p>
+            </div>
+        </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-        &copy; {{ school_name }} — {{ school_motto }}
+        PEN ARK SCHOOLS — Trained for Duty & for Thee
     </div>
 </div>
 </body>
