@@ -45,14 +45,28 @@
             background-color: #343a40;
             color: white;
         }
-        .summary, .comments, .grading-scale, .behavioral {
+        .section {
             margin-top: 15px;
-            font-size: 12px;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        .section-title {
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 6px;
         }
         .no-grades {
             text-align: center;
             font-style: italic;
             margin-top: 20px;
+        }
+        .footer {
+            font-size: 10px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        hr {
+            margin-top: 30px;
         }
     </style>
 </head>
@@ -110,44 +124,87 @@
     </tbody>
 </table>
 
-<div class="summary">
+<!-- Summary Section -->
+<div class="section">
+    <div class="section-title">Performance Summary</div>
     <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"N/A" }}</p>
     <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"N/A" }}</p>
     <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"N/A" }}%</p>
     <p><strong>Overall Position:</strong> {{ report.overall_position|default:"N/A" }}</p>
 </div>
 
-<div class="comments">
+<!-- Comments Section -->
+<div class="section">
+    <div class="section-title">Comments</div>
     <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}</p>
     <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}</p>
     <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}</p>
     <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}</p>
 </div>
 
-<div class="grading-scale">
-    <strong>Grade Scale:</strong>
-    <ul style="list-style:none; padding-left: 0; font-size: 12px;">
-        <li><strong>A++</strong> — 90% & Above: Outstanding</li>
-        <li><strong>A+</strong> — 80–89%: Excellent</li>
-        <li><strong>B++</strong> — 70–79%: Very Good</li>
-        <li><strong>B+</strong> — 60–69%: Good</li>
-        <li><strong>C</strong> — 50–59%: Fairly Good</li>
-        <li><strong>D</strong> — 40–49%: Fair</li>
-        <li><strong>F</strong> — 0–39%: Fail</li>
-    </ul>
+<!-- Grade Scale Table -->
+<div class="section">
+    <div class="section-title">Grade Scale</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Grade</th>
+                <th>Score Range</th>
+                <th>Interpretation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>A++</td><td>90% and Above</td><td>Outstanding</td></tr>
+            <tr><td>A+</td><td>80–89%</td><td>Excellent</td></tr>
+            <tr><td>B++</td><td>70–79%</td><td>Very Good</td></tr>
+            <tr><td>B+</td><td>60–69%</td><td>Good</td></tr>
+            <tr><td>C</td><td>50–59%</td><td>Fairly Good</td></tr>
+            <tr><td>D</td><td>40–49%</td><td>Fair</td></tr>
+            <tr><td>F</td><td>0–39%</td><td>Fail</td></tr>
+        </tbody>
+    </table>
 </div>
 
-<div class="behavioral">
-    <strong>Behavioural & Psychomotor Skills:</strong>
-    <p>
-        Punctuality, Neatness, Attentiveness, Social Development, Assignment, Class Participation, Perseverance, Responsibility, Politeness, Honesty, Sport & Games, Industry, Club Participation, Psychomotor
+<!-- Behavioural Table -->
+<div class="section">
+    <div class="section-title">Behavioural & Psychomotor Skills</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Skill</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>Punctuality</td><td>Arriving on time consistently</td></tr>
+            <tr><td>Neatness</td><td>Maintaining personal and work area cleanliness</td></tr>
+            <tr><td>Attentiveness</td><td>Staying focused and following instructions</td></tr>
+            <tr><td>Social Development</td><td>Interacts well with peers and staff</td></tr>
+            <tr><td>Assignment</td><td>Completes homework/classwork on time</td></tr>
+            <tr><td>Class Participation</td><td>Engages actively in lessons</td></tr>
+            <tr><td>Perseverance</td><td>Demonstrates effort and persistence</td></tr>
+            <tr><td>Responsibility</td><td>Shows accountability and maturity</td></tr>
+            <tr><td>Politeness</td><td>Demonstrates good manners</td></tr>
+            <tr><td>Honesty</td><td>Acts truthfully and with integrity</td></tr>
+            <tr><td>Sport & Games</td><td>Participates actively in physical activities</td></tr>
+            <tr><td>Industry</td><td>Displays diligence and hard work</td></tr>
+            <tr><td>Club Participation</td><td>Engages in extracurricular clubs</td></tr>
+            <tr><td>Psychomotor</td><td>Shows fine and gross motor coordination</td></tr>
+        </tbody>
+    </table>
+    <p style="font-size: 11px; font-style: italic; margin-top: 5px;">
+        (Note: Scores are internally recorded by staff for developmental tracking.)
     </p>
-    <p style="font-size: 11px; font-style: italic;">(Note: Behavioural scores are recorded internally and reflect character development over the term.)</p>
 </div>
 
 {% else %}
 <p class="no-grades">No grades available for this report.</p>
 {% endif %}
+
+<hr>
+<div class="footer">
+    &copy; PEN ARK SCHOOLS – 9/11 Edun Street, Ladipo, Oshodi, Lagos. All Rights Reserved.
+</div>
 
 </body>
 </html>
