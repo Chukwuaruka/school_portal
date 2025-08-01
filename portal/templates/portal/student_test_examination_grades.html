@@ -81,8 +81,8 @@
         <div class="col-md-6">
             <h5 class="mb-3">🗣️ Teacher/Admin Comments</h5>
             <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"" }}</p>
-            <p><strong>Date:</strong> {{ report.report_date|date:"F j, Y"|default:"" }}</p>
-            <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment|default:"" }}</p>
+            <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y"|default:"" }}</p>
+            <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"" }}</p>
             <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"None" }}</p>
         </div>
     </div>
