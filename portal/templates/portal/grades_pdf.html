@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>{{ student_name }} - Report</title>
@@ -13,7 +13,6 @@
         .center { text-align: center; }
         .header img {
             width: 60px;
-            margin-bottom: 5px;
         }
         .school-name {
             font-size: 18px;
@@ -23,15 +22,15 @@
             font-size: 10px;
         }
         .report-title {
-            text-align: center;
-            font-size: 15px;
-            color: green;
+            font-size: 14px;
+            color: #007bff;
             font-weight: bold;
-            margin-top: 5px;
+            text-align: center;
+            margin-top: 8px;
         }
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
             font-size: 10px;
             margin-top: 10px;
         }
@@ -41,30 +40,28 @@
             text-align: center;
         }
         th {
-            background-color: #343a40;
+            background-color: #007bff;
             color: white;
         }
         .section {
-            border: 1px solid #ccc;
+            border: 1px solid #007bff;
             padding: 8px;
-            margin-top: 12px;
+            margin-top: 14px;
         }
         .section-title {
-            background: #f0f0f0;
-            padding: 4px 8px;
+            background-color: #dbeeff;
+            padding: 4px 6px;
             font-weight: bold;
-            border-bottom: 1px solid #ccc;
-        }
-        .small-text {
-            font-size: 9px;
+            border: 1px solid #007bff;
+            font-size: 10px;
         }
         .two-col {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
+            width: 100%;
         }
         .col {
             width: 48%;
+            display: inline-block;
+            vertical-align: top;
         }
         .footer {
             text-align: center;
@@ -72,6 +69,9 @@
             margin-top: 20px;
             border-top: 1px dashed #aaa;
             padding-top: 5px;
+        }
+        .small-text {
+            font-size: 9px;
         }
     </style>
 </head>
@@ -94,7 +94,6 @@
 </div>
 
 {% if grades %}
-<!-- Grade Table -->
 <table>
     <thead>
         <tr>
@@ -130,7 +129,7 @@
     </tbody>
 </table>
 
-<!-- Performance & Comment Section -->
+<!-- Summary & Comments Section -->
 <div class="section">
     <div class="two-col">
         <div class="col">
@@ -150,30 +149,39 @@
     </div>
 </div>
 
-<!-- Grade Scale & Behavioural Section -->
+<!-- Grade Scale & Behaviour Table -->
 <div class="section">
     <div class="two-col">
         <div class="col">
             <div class="section-title">📏 Grade Scale</div>
-            <ul class="small-text">
-                <li><strong>A++</strong> — 90% & Above: Outstanding</li>
-                <li><strong>A+</strong> — 80–89%: Excellent</li>
-                <li><strong>B++</strong> — 70–79%: Very Good</li>
-                <li><strong>B+</strong> — 60–69%: Good</li>
-                <li><strong>C</strong> — 50–59%: Fairly Good</li>
-                <li><strong>D</strong> — 40–49%: Fair</li>
-                <li><strong>F</strong> — 0–39%: Fail</li>
-            </ul>
+            <table>
+                <tr><th>Grade</th><th>Range</th><th>Remark</th></tr>
+                <tr><td>A++</td><td>90% & Above</td><td>Outstanding</td></tr>
+                <tr><td>A+</td><td>80–89%</td><td>Excellent</td></tr>
+                <tr><td>B++</td><td>70–79%</td><td>Very Good</td></tr>
+                <tr><td>B+</td><td>60–69%</td><td>Good</td></tr>
+                <tr><td>C</td><td>50–59%</td><td>Fairly Good</td></tr>
+                <tr><td>D</td><td>40–49%</td><td>Fair</td></tr>
+                <tr><td>F</td><td>0–39%</td><td>Fail</td></tr>
+            </table>
         </div>
         <div class="col">
             <div class="section-title">🎯 Behavioural & Psychomotor Skills</div>
-            <p class="small-text">
-                ✔️ Punctuality, Neatness, Attentiveness, Social Development,<br>
-                ✔️ Assignment, Class Participation, Perseverance, Responsibility,<br>
-                ✔️ Politeness, Honesty, Sport & Games, Industry,<br>
-                ✔️ Club Participation, Psychomotor
-            </p>
-            <p class="small-text"><em>Note: Behavioural scores are recorded internally and reflect character development over the term.</em></p>
+            <table>
+                <tr><td>Punctuality</td><td>✔️</td></tr>
+                <tr><td>Neatness</td><td>✔️</td></tr>
+                <tr><td>Attentiveness</td><td>✔️</td></tr>
+                <tr><td>Social Development</td><td>✔️</td></tr>
+                <tr><td>Assignment</td><td>✔️</td></tr>
+                <tr><td>Class Participation</td><td>✔️</td></tr>
+                <tr><td>Responsibility</td><td>✔️</td></tr>
+                <tr><td>Politeness</td><td>✔️</td></tr>
+                <tr><td>Honesty</td><td>✔️</td></tr>
+                <tr><td>Sport & Games</td><td>✔️</td></tr>
+                <tr><td>Club Participation</td><td>✔️</td></tr>
+                <tr><td>Psychomotor</td><td>✔️</td></tr>
+            </table>
+            <p class="small-text"><em>Note: Behavioural scores reflect character development over the term.</em></p>
         </div>
     </div>
 </div>
@@ -182,7 +190,6 @@
 <p class="center">No grades available for this report.</p>
 {% endif %}
 
-<!-- Footer -->
 <div class="footer">
     PEN ARK SCHOOLS — Raising future leaders with excellence.
 </div>
