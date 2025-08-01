@@ -749,6 +749,8 @@ def edit_student_grade(request, grade_id):
 
     return render(request, 'portal/edit_student_grades.html', {'submission': submission})
 
+@login_required
+@teacher_required
 def teacher_upload_grades(request): 
     students = User.objects.filter(role='student')
     selected_classroom = request.GET.get('classroom')
@@ -806,7 +808,7 @@ def teacher_upload_grades(request):
         exam = to_int(request.POST.get('exam'))
         manual_total = to_int(request.POST.get('manual_total'))
         manual_grade = request.POST.get('manual_grade', '').strip()
-        comment = request.POST.get('comment', '').strip()
+        grade_comment = request.POST.get('grade_comment', '').strip()
 
         # Term scores
         first_term_score = to_int(request.POST.get('first_term_score'))
@@ -830,14 +832,22 @@ def teacher_upload_grades(request):
                 messages.error(request, "Invalid date format for Next Term Begins.")
                 return redirect('teacher_upload_grades')
 
-        # Update GradeReport
-        grade_report.total_available_score = total_available_score
-        grade_report.overall_score = overall_score
-        grade_report.overall_average = overall_average
-        grade_report.overall_position = overall_position
-        grade_report.teacher_comment = teacher_comment
-        grade_report.admin_comment_report = admin_comment_report
-        grade_report.next_term_date = next_term_date
+        # Safely update GradeReport fields (only if provided)
+        if total_available_score is not None:
+            grade_report.total_available_score = total_available_score
+        if overall_score is not None:
+            grade_report.overall_score = overall_score
+        if overall_average is not None:
+            grade_report.overall_average = overall_average
+        if overall_position:
+            grade_report.overall_position = overall_position
+        if teacher_comment:
+            grade_report.teacher_comment = teacher_comment
+        if admin_comment_report:
+            grade_report.admin_comment_report = admin_comment_report
+        if next_term_date:
+            grade_report.next_term_date = next_term_date
+
         grade_report.save()
 
         # Create or update SubjectGrade
@@ -850,7 +860,7 @@ def teacher_upload_grades(request):
                 'exam': exam,
                 'manual_total': manual_total,
                 'manual_grade': manual_grade,
-                'grade_comment': comment,
+                'grade_comment': grade_comment,
                 'first_term_score': first_term_score,
                 'second_term_score': second_term_score,
                 'average_score': average_score,
@@ -863,7 +873,7 @@ def teacher_upload_grades(request):
             grade.exam = exam
             grade.manual_total = manual_total
             grade.manual_grade = manual_grade
-            grade.grade_comment = comment
+            grade.grade_comment = grade_comment
             grade.first_term_score = first_term_score
             grade.second_term_score = second_term_score
             grade.average_score = average_score
@@ -934,9 +944,6 @@ def student_grades_view(request):
 
     return render(request, 'portal/student_test_examination_grades.html', context)
 
-from datetime import datetime
-from django.utils import timezone
-
 @login_required
 @teacher_required
 def edit_grade(request, grade_id):
@@ -988,8 +995,6 @@ def edit_grade(request, grade_id):
         'report': report,
     }
     return render(request, 'portal/edit_grade.html', context)
-
-
 
 @login_required
 @teacher_required
