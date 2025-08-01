@@ -906,7 +906,7 @@ def admin_manage_grades(request):
 @login_required
 @student_required
 def student_grades_view(request):
-    # Get all GradeReports for the student (latest first)
+    # Get all GradeReports for the logged-in student, latest first
     reports = GradeReport.objects.filter(student=request.user).order_by('-date_uploaded')
 
     if not reports.exists():
@@ -922,14 +922,7 @@ def student_grades_view(request):
     context = {
         'grades': subject_grades,
         'student_name': request.user.get_full_name() or request.user.username,
-        'total_available_score': latest_report.total_available_score,
-        'overall_score': latest_report.overall_score,
-        'overall_average': latest_report.overall_average,
-        'overall_position': latest_report.overall_position,
-        'teacher_comment': latest_report.teacher_comment,
-        'report_date': latest_report.date_uploaded,
-        'admin_comment': latest_report.admin_comment_report,
-        'next_term_date': latest_report.next_term_date,
+        'report': latest_report,  # pass the whole GradeReport object
     }
 
     return render(request, 'portal/student_test_examination_grades.html', context)
