@@ -6,67 +6,72 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             margin: 20px;
             color: #000;
         }
         .center { text-align: center; }
         .header img {
-            width: 70px;
+            width: 60px;
             margin-bottom: 5px;
         }
         .school-name {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
         }
         .school-address {
-            font-size: 11px;
+            font-size: 10px;
         }
         .report-title {
             text-align: center;
-            font-size: 16px;
+            font-size: 15px;
             color: green;
-            margin-top: 10px;
             font-weight: bold;
+            margin-top: 5px;
         }
         table {
             border-collapse: collapse;
             width: 100%;
-            font-size: 11px;
+            font-size: 10px;
             margin-top: 10px;
         }
         th, td {
             border: 1px solid #000;
             padding: 4px;
             text-align: center;
-            vertical-align: middle;
         }
         th {
             background-color: #343a40;
             color: white;
         }
         .section {
-            margin-top: 15px;
-            border: 1px solid #000;
-            padding: 10px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            margin-top: 12px;
         }
         .section-title {
+            background: #f0f0f0;
+            padding: 4px 8px;
             font-weight: bold;
-            text-decoration: underline;
-            margin-bottom: 6px;
+            border-bottom: 1px solid #ccc;
         }
-        .no-grades {
-            text-align: center;
-            font-style: italic;
-            margin-top: 20px;
+        .small-text {
+            font-size: 9px;
+        }
+        .two-col {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .col {
+            width: 48%;
         }
         .footer {
-            font-size: 10px;
-            margin-top: 30px;
             text-align: center;
-        }
-        hr {
-            margin-top: 30px;
+            font-size: 10px;
+            margin-top: 20px;
+            border-top: 1px dashed #aaa;
+            padding-top: 5px;
         }
     </style>
 </head>
@@ -89,6 +94,7 @@
 </div>
 
 {% if grades %}
+<!-- Grade Table -->
 <table>
     <thead>
         <tr>
@@ -97,8 +103,8 @@
             <th>2nd Test<br>(20)</th>
             <th>Exam<br>(60)</th>
             <th>Total<br>(100)</th>
-            <th>1st Term<br>Score</th>
-            <th>2nd Term<br>Score</th>
+            <th>1st Term</th>
+            <th>2nd Term</th>
             <th>Average</th>
             <th>Grade</th>
             <th>Grade Comment</th>
@@ -116,7 +122,7 @@
             <td>{{ grade.first_term_score|default:"–" }}</td>
             <td>{{ grade.second_term_score|default:"–" }}</td>
             <td>{{ grade.average_score|default:"–" }}</td>
-            <td>{{ grade.manual_grade|default:"–" }}</td>
+            <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
             <td>{{ grade.grade_comment|default:"–" }}</td>
             <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}–{% endif %}</td>
         </tr>
@@ -124,86 +130,61 @@
     </tbody>
 </table>
 
-<!-- Summary Section -->
+<!-- Performance & Comment Section -->
 <div class="section">
-    <div class="section-title">Performance Summary</div>
-    <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"N/A" }}</p>
-    <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"N/A" }}</p>
-    <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"N/A" }}%</p>
-    <p><strong>Overall Position:</strong> {{ report.overall_position|default:"N/A" }}</p>
+    <div class="two-col">
+        <div class="col">
+            <div class="section-title">📌 Performance Summary</div>
+            <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"N/A" }}</p>
+            <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"N/A" }}</p>
+            <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"N/A" }}%</p>
+            <p><strong>Overall Position:</strong> {{ report.overall_position|default:"N/A" }}</p>
+        </div>
+        <div class="col">
+            <div class="section-title">🗣️ Teacher/Admin Comments</div>
+            <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}</p>
+            <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}</p>
+            <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}</p>
+            <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}</p>
+        </div>
+    </div>
 </div>
 
-<!-- Comments Section -->
+<!-- Grade Scale & Behavioural Section -->
 <div class="section">
-    <div class="section-title">Comments</div>
-    <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}</p>
-    <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}</p>
-    <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}</p>
-    <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}</p>
-</div>
-
-<!-- Grade Scale Table -->
-<div class="section">
-    <div class="section-title">Grade Scale</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Grade</th>
-                <th>Score Range</th>
-                <th>Interpretation</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>A++</td><td>90% and Above</td><td>Outstanding</td></tr>
-            <tr><td>A+</td><td>80–89%</td><td>Excellent</td></tr>
-            <tr><td>B++</td><td>70–79%</td><td>Very Good</td></tr>
-            <tr><td>B+</td><td>60–69%</td><td>Good</td></tr>
-            <tr><td>C</td><td>50–59%</td><td>Fairly Good</td></tr>
-            <tr><td>D</td><td>40–49%</td><td>Fair</td></tr>
-            <tr><td>F</td><td>0–39%</td><td>Fail</td></tr>
-        </tbody>
-    </table>
-</div>
-
-<!-- Behavioural Table -->
-<div class="section">
-    <div class="section-title">Behavioural & Psychomotor Skills</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Skill</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>Punctuality</td><td>Arriving on time consistently</td></tr>
-            <tr><td>Neatness</td><td>Maintaining personal and work area cleanliness</td></tr>
-            <tr><td>Attentiveness</td><td>Staying focused and following instructions</td></tr>
-            <tr><td>Social Development</td><td>Interacts well with peers and staff</td></tr>
-            <tr><td>Assignment</td><td>Completes homework/classwork on time</td></tr>
-            <tr><td>Class Participation</td><td>Engages actively in lessons</td></tr>
-            <tr><td>Perseverance</td><td>Demonstrates effort and persistence</td></tr>
-            <tr><td>Responsibility</td><td>Shows accountability and maturity</td></tr>
-            <tr><td>Politeness</td><td>Demonstrates good manners</td></tr>
-            <tr><td>Honesty</td><td>Acts truthfully and with integrity</td></tr>
-            <tr><td>Sport & Games</td><td>Participates actively in physical activities</td></tr>
-            <tr><td>Industry</td><td>Displays diligence and hard work</td></tr>
-            <tr><td>Club Participation</td><td>Engages in extracurricular clubs</td></tr>
-            <tr><td>Psychomotor</td><td>Shows fine and gross motor coordination</td></tr>
-        </tbody>
-    </table>
-    <p style="font-size: 11px; font-style: italic; margin-top: 5px;">
-        (Note: Scores are internally recorded by staff for developmental tracking.)
-    </p>
+    <div class="two-col">
+        <div class="col">
+            <div class="section-title">📏 Grade Scale</div>
+            <ul class="small-text">
+                <li><strong>A++</strong> — 90% & Above: Outstanding</li>
+                <li><strong>A+</strong> — 80–89%: Excellent</li>
+                <li><strong>B++</strong> — 70–79%: Very Good</li>
+                <li><strong>B+</strong> — 60–69%: Good</li>
+                <li><strong>C</strong> — 50–59%: Fairly Good</li>
+                <li><strong>D</strong> — 40–49%: Fair</li>
+                <li><strong>F</strong> — 0–39%: Fail</li>
+            </ul>
+        </div>
+        <div class="col">
+            <div class="section-title">🎯 Behavioural & Psychomotor Skills</div>
+            <p class="small-text">
+                ✔️ Punctuality, Neatness, Attentiveness, Social Development,<br>
+                ✔️ Assignment, Class Participation, Perseverance, Responsibility,<br>
+                ✔️ Politeness, Honesty, Sport & Games, Industry,<br>
+                ✔️ Club Participation, Psychomotor
+            </p>
+            <p class="small-text"><em>Note: Behavioural scores are recorded internally and reflect character development over the term.</em></p>
+        </div>
+    </div>
 </div>
 
 {% else %}
-<p class="no-grades">No grades available for this report.</p>
+<p class="center">No grades available for this report.</p>
 {% endif %}
 
-<hr>
+<!-- Footer -->
 <div class="footer">
-    &copy; PEN ARK SCHOOLS – 9/11 Edun Street, Ladipo, Oshodi, Lagos. All Rights Reserved.
+    PEN ARK SCHOOLS — Raising future leaders with excellence.
 </div>
 
 </body>
