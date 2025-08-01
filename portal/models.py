@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-
+from django.core.exceptions import ValidationError
 
 # 🏫 Classroom Model
 class Classroom(models.Model):
@@ -181,39 +181,117 @@ class Teacher(models.Model):
         return self.user.get_full_name()
 
 class GradeReport(models.Model):
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True)
-    session = models.CharField(max_length=20)
-    term = models.CharField(max_length=20)
+    SESSION_CHOICES = [
+        ('2023/2024', '2023/2024'),
+        ('2024/2025', '2024/2025'),
+        # Add more sessions as needed
+    ]
+    TERM_CHOICES = [
+        ('1st Term', '1st Term'),
+        ('2nd Term', '2nd Term'),
+        ('3rd Term', '3rd Term'),
+    ]
+
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,  # allow null for existing data or if student unknown
+        blank=True
+    )
+    classroom = models.ForeignKey('Classroom', on_delete=models.SET_NULL, null=True, blank=True)
+    session = models.CharField(max_length=20, choices=SESSION_CHOICES, null=True, blank=True)
+    term = models.CharField(max_length=20, choices=TERM_CHOICES, null=True, blank=True)
     date_uploaded = models.DateField(auto_now_add=True)
 
     total_available_score = models.PositiveIntegerField(null=True, blank=True)
     overall_score = models.PositiveIntegerField(null=True, blank=True)
     overall_average = models.FloatField(null=True, blank=True)
     overall_position = models.CharField(max_length=10, blank=True)
+
     teacher_comment = models.TextField(blank=True)
     admin_comment_report = models.TextField(blank=True)
     next_term_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.student} - {self.term} {self.session}"
+        return f"{self.student.username if self.student else 'Unknown Student'} - {self.term} {self.session}"
 
 
 class SubjectGrade(models.Model):
-    report = models.ForeignKey(GradeReport, on_delete=models.CASCADE, related_name='subject_grades', null=True, blank=True)
-    subject = models.CharField(max_length=100)
-    first_test = models.IntegerField(default=0)
-    second_test = models.IntegerField(default=0)
-    exam = models.IntegerField(default=0)
-    manual_total = models.IntegerField(null=True, blank=True)
+    MAX_FIRST_TEST = 20
+    MAX_SECOND_TEST = 20
+    MAX_EXAM = 60
+
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    report = models.ForeignKey(
+        GradeReport,
+        on_delete=models.CASCADE,
+        related_name='subject_grades',
+        null=True,
+        blank=True
+    )
+    subject = models.CharField(max_length=100, null=False, blank=True)
+
+    first_test = models.PositiveIntegerField(default=0)
+    second_test = models.PositiveIntegerField(default=0)
+    exam = models.PositiveIntegerField(default=0)
+
+    manual_total = models.PositiveIntegerField(null=True, blank=True)
     manual_grade = models.CharField(max_length=10, blank=True)
+
     grade_comment = models.TextField(blank=True)
-    comment = models.TextField(blank=True)
-    first_term_score = models.IntegerField(null=True, blank=True)
-    second_term_score = models.IntegerField(null=True, blank=True)
+
+    first_term_score = models.PositiveIntegerField(null=True, blank=True)
+    second_term_score = models.PositiveIntegerField(null=True, blank=True)
     average_score = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.report.student.username} - {self.subject}"
+        return f"{self.student.username if self.student else 'Unknown Student'} - {self.subject or 'Unknown Subject'}"
 
-    
+    @property
+    def total_score(self):
+        if self.manual_total is not None:
+            return self.manual_total
+        return self.first_test + self.second_test + self.exam
+
+    @property
+    def grade(self):
+        if self.manual_grade:
+            return self.manual_grade.upper()
+        total = self.total_score
+        if total >= 70:
+            return 'A'
+        elif total >= 60:
+            return 'B'
+        elif total >= 50:
+            return 'C'
+        elif total >= 45:
+            return 'D'
+        else:
+            return 'F'
+
+    def clean(self):
+        # Validate that test scores are within max limits
+        if not (0 <= self.first_test <= self.MAX_FIRST_TEST):
+            raise ValidationError({'first_test': f'First Test score must be between 0 and {self.MAX_FIRST_TEST}'})
+        if not (0 <= self.second_test <= self.MAX_SECOND_TEST):
+            raise ValidationError({'second_test': f'Second Test score must be between 0 and {self.MAX_SECOND_TEST}'})
+        if not (0 <= self.exam <= self.MAX_EXAM):
+            raise ValidationError({'exam': f'Exam score must be between 0 and {self.MAX_EXAM}'})
+
+        # If manual_total is set, it must not exceed 100
+        if self.manual_total is not None and not (0 <= self.manual_total <= 100):
+            raise ValidationError({'manual_total': 'Manual total must be between 0 and 100'})
+
+        # Scores cannot be negative
+        for field in ['first_term_score', 'second_term_score', 'average_score']:
+            val = getattr(self, field)
+            if val is not None and val < 0:
+                raise ValidationError({field: f'{field.replace("_", " ").capitalize()} cannot be negative.'})
+
+    class Meta:
+        ordering = ['subject']

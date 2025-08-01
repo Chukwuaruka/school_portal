@@ -68,23 +68,25 @@
         </div>
     </div>
 
-    <!-- Summary Section -->
+    <!-- Only show Performance Summary and Comments if report exists -->
+    {% if report %}
     <div class="row my-4">
         <div class="col-md-6">
             <h5 class="mb-3">📌 Performance Summary</h5>
-            <p><strong>Total Available Score:</strong> {{ total_available_score }}</p>
-            <p><strong>Student Overall Score:</strong> {{ overall_score }}</p>
-            <p><strong>Student Overall Average:</strong> {{ overall_average }}%</p>
-            <p><strong>Overall Position:</strong> {{ overall_position }}</p>
+            <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"None" }}</p>
+            <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"None" }}</p>
+            <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"None" }}%</p>
+            <p><strong>Overall Position:</strong> {{ report.overall_position|default:"" }}</p>
         </div>
         <div class="col-md-6">
             <h5 class="mb-3">🗣️ Teacher/Admin Comments</h5>
-            <p><strong>Teacher’s Comment:</strong> {{ teacher_comment }}</p>
-            <p><strong>Date:</strong> {{ report_date }}</p>
-            <p><strong>Administrator’s Comment:</strong> {{ admin_comment }}</p>
-            <p><strong>Next Term Begins:</strong> {{ next_term_date }}</p>
+            <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"" }}</p>
+            <p><strong>Date:</strong> {{ report.report_date|date:"F j, Y"|default:"" }}</p>
+            <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment|default:"" }}</p>
+            <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"None" }}</p>
         </div>
     </div>
+    {% endif %}
 
     <!-- 🧠 Behavioral Assessment Section -->
     <div class="card border-primary mb-4">

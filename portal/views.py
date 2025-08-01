@@ -749,8 +749,6 @@ def edit_student_grade(request, grade_id):
 
     return render(request, 'portal/edit_student_grades.html', {'submission': submission})
 
-@login_required
-@teacher_required
 def teacher_upload_grades(request):
     students = User.objects.filter(role='student')
     selected_classroom = request.GET.get('classroom')
@@ -758,7 +756,7 @@ def teacher_upload_grades(request):
     if selected_classroom:
         students = students.filter(classroom__name=selected_classroom)
 
-    # Fetch GradeReports for students
+    # Fetch GradeReports for students in the classroom (if selected)
     grade_reports = GradeReport.objects.filter(student__in=students)
     if selected_classroom:
         grade_reports = grade_reports.filter(classroom__name=selected_classroom)
@@ -778,6 +776,7 @@ def teacher_upload_grades(request):
         session = request.POST.get('session')
         classroom_name = request.POST.get('classroom')
 
+        # Validate required fields
         if not all([student_username, subject, term, session, classroom_name]):
             messages.error(request, "Please fill in all required fields.")
             return redirect('teacher_upload_grades')
@@ -791,9 +790,6 @@ def teacher_upload_grades(request):
             classroom=classroom,
             term=term,
             session=session,
-            defaults={
-                # Optionally set initial report-level fields here or empty
-            }
         )
 
         def to_int(val):
@@ -808,18 +804,40 @@ def teacher_upload_grades(request):
             except (TypeError, ValueError):
                 return None
 
+        # SubjectGrade fields from form
         first_test = to_int(request.POST.get('first_test'))
         second_test = to_int(request.POST.get('second_test'))
         exam = to_int(request.POST.get('exam'))
         manual_total = to_int(request.POST.get('manual_total'))
         manual_grade = request.POST.get('manual_grade', '').strip()
+        comment = request.POST.get('comment', '').strip()
 
-        first_term_score = to_int(request.POST.get('first_term_score'))
-        second_term_score = to_int(request.POST.get('second_term_score'))
+        # GradeReport (overall) fields from form
+        total_available_score = to_int(request.POST.get('total_available_score'))
+        overall_score = to_int(request.POST.get('overall_score'))
         average_score = to_float(request.POST.get('average_score'))
+        overall_position = request.POST.get('overall_position', '').strip()
+        teacher_comment = request.POST.get('teacher_comment', '').strip()
+        admin_comment_report = request.POST.get('admin_comment_report', '').strip()
+        next_term_date_str = request.POST.get('next_term_date')
 
-        grade_comment = request.POST.get('grade_comment')
-        comment = request.POST.get('comment')
+        next_term_date = None
+        if next_term_date_str:
+            try:
+                next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, "Invalid date format for Next Term Begins.")
+                return redirect('teacher_upload_grades')
+
+        # Update GradeReport overall fields
+        grade_report.total_available_score = total_available_score
+        grade_report.overall_score = overall_score
+        grade_report.average_score = average_score
+        grade_report.overall_position = overall_position
+        grade_report.teacher_comment = teacher_comment
+        grade_report.admin_comment_report = admin_comment_report
+        grade_report.next_term_date = next_term_date
+        grade_report.save()
 
         # Create or update SubjectGrade linked to GradeReport
         grade, created = SubjectGrade.objects.get_or_create(
@@ -831,10 +849,6 @@ def teacher_upload_grades(request):
                 'exam': exam,
                 'manual_total': manual_total,
                 'manual_grade': manual_grade,
-                'first_term_score': first_term_score,
-                'second_term_score': second_term_score,
-                'average_score': average_score,
-                'grade_comment': grade_comment,
                 'comment': comment,
             }
         )
@@ -845,10 +859,6 @@ def teacher_upload_grades(request):
             grade.exam = exam
             grade.manual_total = manual_total
             grade.manual_grade = manual_grade
-            grade.first_term_score = first_term_score
-            grade.second_term_score = second_term_score
-            grade.average_score = average_score
-            grade.grade_comment = grade_comment
             grade.comment = comment
             grade.save()
             messages.success(request, "Grade updated successfully.")
@@ -960,6 +970,8 @@ def edit_grade(request, grade_id):
         grade.save()
 
         # Update Report-level fields via GradeReport
+        report.term = request.POST.get('term') or report.term
+        report.session = request.POST.get('session') or report.session
         report.total_available_score = int(request.POST.get('total_available_score') or 0)
         report.overall_score = int(request.POST.get('overall_score') or 0)
         report.overall_average = float(request.POST.get('overall_average') or 0)
@@ -984,7 +996,7 @@ def edit_grade(request, grade_id):
 
     return render(request, 'portal/edit_grade.html', {
         'grade': grade,
-        'report': grade.report
+        'report': report
     })
 
 @login_required
@@ -1013,13 +1025,10 @@ def delete_student_grade(request, grade_id):
 def download_grade_report_pdf(request):
     student = request.user
 
-    # Fetch all subject grades
     grades = SubjectGrade.objects.filter(student=student).order_by('subject')
-
-    # Get the latest report for the student (assumes one report per term/session combo)
     latest_report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
 
-    # Encode logo
+    # Encode logo as base64 for inline embedding
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
@@ -1043,16 +1052,18 @@ def download_grade_report_pdf(request):
         'logo_url': logo_data_uri,
     }
 
-    # Render HTML to PDF
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
 
-    pisa_status = pisa.CreatePDF(html, dest=response)
+    from io import BytesIO
+    result = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=result)
 
     if pisa_status.err:
         return HttpResponse('Error generating PDF. <pre>' + html + '</pre>')
 
+    response.write(result.getvalue())
     return response
