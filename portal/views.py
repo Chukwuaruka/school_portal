@@ -1025,15 +1025,16 @@ def delete_student_grade(request, grade_id):
 def download_grade_report_pdf(request):
     student = request.user
 
-    # Get the latest grade report for the student
+    # Get the latest report
     latest_report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+
     if not latest_report:
         return HttpResponse("No report found.", status=404)
 
-    # Get related subject grades
+    # Get subject grades related to this report
     subject_grades = latest_report.subject_grades.all().order_by('subject')
 
-    # Prepare logo for embedding as base64
+    # Encode logo for PDF header
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
@@ -1042,25 +1043,16 @@ def download_grade_report_pdf(request):
             encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
             logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
-    # Full context for the PDF
     context = {
         'grades': subject_grades,
         'report': latest_report,
         'student_name': student.get_full_name() or student.username,
         'logo_url': logo_data_uri,
-
-        # School Info
-        'school_name': "PEN ARK SCHOOLS",
-        'school_address': "9/11 EDUN STREET, LADIPO, OSHODI, LAGOS",
-        'school_phone': "TEL: 09063550663, 08063616032",
-        'school_motto': "MOTTO: TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)",
     }
 
-    # Render HTML template
     template = get_template('portal/grades_pdf.html')
     html = template.render(context)
 
-    # Generate PDF
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
 
