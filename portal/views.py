@@ -928,78 +928,51 @@ def student_grades_view(request):
     return render(request, 'portal/student_test_examination_grades.html', context)
 
 @login_required
-# @teacher_required  # Add if you have this decorator
+@teacher_required
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
-    report = grade.report
+    report = grade.report  # Access linked GradeReport
 
     if request.method == 'POST':
-        # Update SubjectGrade fields with validation
-        try:
-            grade.first_test = int(request.POST.get('first_test') or 0)
-            grade.second_test = int(request.POST.get('second_test') or 0)
-            grade.exam = int(request.POST.get('exam') or 0)
-            grade.first_term_score = int(request.POST.get('first_term_score') or 0)
-            grade.second_term_score = int(request.POST.get('second_term_score') or 0)
-            grade.average_score = float(request.POST.get('average_score') or 0)
-        except ValueError:
-            messages.error(request, "Invalid number input.")
-            return redirect('edit_grade', grade_id=grade.id)
-
-        grade.subject = request.POST.get('subject') or grade.subject
+        # Update SubjectGrade fields
+        grade.subject = request.POST.get('subject', grade.subject)
+        grade.first_test = request.POST.get('first_test') or None
+        grade.second_test = request.POST.get('second_test') or None
+        grade.exam = request.POST.get('exam') or None
+        grade.manual_total = request.POST.get('manual_total') or None
+        grade.manual_grade = request.POST.get('manual_grade') or ''
         grade.grade_comment = request.POST.get('grade_comment') or ''
+        grade.first_term_score = request.POST.get('first_term_score') or None
+        grade.second_term_score = request.POST.get('second_term_score') or None
+        grade.average_score = request.POST.get('average_score') or None
+        grade.term = request.POST.get('term')
+        grade.session = request.POST.get('session')
         grade.comment = request.POST.get('comment') or ''
-
-        manual_total = request.POST.get('manual_total')
-        manual_grade = request.POST.get('manual_grade')
-
-        grade.manual_total = int(manual_total) if manual_total else (grade.first_test + grade.second_test + grade.exam)
-        grade.manual_grade = manual_grade if manual_grade else (
-            'A++' if grade.manual_total >= 90 else
-            'A+' if grade.manual_total >= 80 else
-            'B++' if grade.manual_total >= 70 else
-            'B+' if grade.manual_total >= 60 else
-            'C' if grade.manual_total >= 50 else
-            'D' if grade.manual_total >= 40 else 'F'
-        )
-
+        grade.admin_comment = request.POST.get('admin_comment') or ''
         grade.save()
 
-        # Update report
-        report.term = request.POST.get('term') or report.term
-        report.session = request.POST.get('session') or report.session
+        # Update GradeReport fields
+        report.total_available_score = request.POST.get('total_available_score') or report.total_available_score
+        report.overall_score = request.POST.get('overall_score') or report.overall_score
+        report.overall_average = request.POST.get('overall_average') or report.overall_average
+        report.overall_position = request.POST.get('overall_position') or ''
+        report.teacher_comment = request.POST.get('teacher_comment') or ''
+        report.admin_comment_report = request.POST.get('admin_comment_report') or ''
+        report.next_term_date = request.POST.get('next_term_date') or None
 
-        try:
-            report.total_available_score = int(request.POST.get('total_available_score') or report.total_available_score or 0)
-            report.overall_score = int(request.POST.get('overall_score') or report.overall_score or 0)
-            report.overall_average = float(request.POST.get('overall_average') or report.overall_average or 0)
-        except ValueError:
-            messages.error(request, "Invalid number input in report fields.")
-            return redirect('edit_grade', grade_id=grade.id)
-
-        report.overall_position = request.POST.get('overall_position') or report.overall_position or ''
-        report.teacher_comment = request.POST.get('teacher_comment') or report.teacher_comment or ''
-        report.admin_comment_report = request.POST.get('admin_comment_report') or report.admin_comment_report or ''
-
-        next_term_raw = request.POST.get('next_term_date')
-        if next_term_raw:
-            try:
-                report.next_term_date = datetime.strptime(next_term_raw, "%Y-%m-%d").date()
-            except ValueError:
-                messages.error(request, "Invalid date format for next term.")
-                return redirect('edit_grade', grade_id=grade.id)
-        else:
-            report.next_term_date = None
+        # Optional: update date_uploaded
+        report.date_uploaded = timezone.now()
 
         report.save()
 
-        messages.success(request, 'Grade and report info updated successfully.')
-        return redirect('teacher_upload_grades')
+        return redirect('teacher_upload_grades')  # Or wherever you redirect
 
-    return render(request, 'portal/edit_grade.html', {
+    context = {
         'grade': grade,
-        'report': report
-    })
+        'report': report,
+    }
+    return render(request, 'portal/edit_grade.html', context)
+
 
 @login_required
 @teacher_required
