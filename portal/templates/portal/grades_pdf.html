@@ -1,78 +1,125 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>{{ student_name }} - Report</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       font-size: 10px;
       margin: 20px;
-      color: #000;
+      color: #222;
+      background-color: #f9fbfd; /* subtle light blue background */
     }
 
     .header {
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      color: #0d47a1; /* dark blue */
     }
 
     .header img {
       width: 50px;
+      margin-bottom: 6px;
     }
 
     .school-name {
-      font-size: 15px;
+      font-size: 17px;
       font-weight: bold;
+      color: #0d47a1;
+      text-shadow: 0 0 3px rgba(13, 71, 161, 0.3);
     }
 
     .school-address {
       font-size: 9px;
+      color: #555;
+      font-style: italic;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      background-color: #ffffff;
+      box-shadow: 0 0 5px rgba(13, 71, 161, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
     }
 
     th, td {
-      border: 1px solid #000;
-      padding: 2px 3px;
+      border: 1px solid #0d47a1;
+      padding: 4px 6px;
       text-align: center;
       font-size: 10px;
+      vertical-align: middle;
     }
 
     th {
-      background-color: transparent;
-      color: #000;
+      background-color: #0d47a1;
+      color: #fff;
       font-weight: bold;
+      user-select: none;
     }
 
+    /* Make grade scale box bigger and more colorful */
+    .grade-scale {
+      text-align: left;
+      font-size: 10px;
+      line-height: 1.5;
+      background: #e3f2fd;
+      border-left: 6px solid #0d47a1;
+      padding: 10px 12px;
+      font-weight: 600;
+      color: #0d47a1;
+      width: 160px;
+      /* to ensure bigger width than before */
+    }
+
+    .grade-scale strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 8px;
+      color: #094a8f;
+    }
+
+    /* Color code grade scale lines */
+    .grade-scale br + * {
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    /* Summary Section Side-by-Side */
     .summary-table {
       width: 100%;
-      margin-top: 8px;
+      margin-top: 12px;
+      background: #fff;
+      box-shadow: 0 0 5px rgba(13, 71, 161, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
     }
 
     .summary-table td {
       border: none;
       text-align: left;
       font-size: 10px;
-      padding: 4px;
+      padding: 8px 12px;
       vertical-align: top;
+      color: #0d47a1;
+    }
+
+    .summary-table strong {
+      color: #0d47a1;
+      font-weight: 600;
     }
 
     .footer {
       text-align: center;
       font-size: 9px;
-      margin-top: 10px;
-      border-top: 1px dashed #aaa;
-      padding-top: 4px;
-    }
-
-    .grade-scale {
-      text-align: left;
-      font-size: 9px;
-      line-height: 1.4;
+      margin-top: 15px;
+      border-top: 1px dashed #0d47a1;
+      padding-top: 6px;
+      color: #0d47a1;
+      font-style: italic;
     }
   </style>
 </head>
@@ -80,13 +127,13 @@
 
 <div class="header">
   {% if logo_url %}
-    <img src="{{ logo_url }}" alt="Logo">
+    <img src="{{ logo_url }}" alt="Logo" />
   {% endif %}
   <div class="school-name">PEN ARK SCHOOLS</div>
   <div class="school-address">
-    9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
-    TEL: 09063550663, 08063616032<br>
-    <strong>MOTTO:</strong> TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)
+    9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br />
+    TEL: 09063550663, 08063616032<br />
+    <strong>MOTTO:</strong> TRAINED FOR DUTY &amp; FOR THEE (GOVERNMENT APPROVED)
   </div>
 </div>
 
@@ -95,10 +142,10 @@
   <thead>
     <tr>
       <th>Subject</th>
-      <th>1st Test<br>(20)</th>
-      <th>2nd Test<br>(20)</th>
-      <th>Exam<br>(60)</th>
-      <th>Total<br>(100)</th>
+      <th>1st Test<br />(20)</th>
+      <th>2nd Test<br />(20)</th>
+      <th>Exam<br />(60)</th>
+      <th>Total<br />(100)</th>
       <th>1st Term</th>
       <th>2nd Term</th>
       <th>Average</th>
@@ -106,14 +153,14 @@
       <th>Comment</th>
       <th>Teacher</th>
       <th rowspan="{{ grades|length|add:1 }}" class="grade-scale">
-        <strong>📏 Grade Scale</strong><br><br>
-        A++ — 90% & Above:<br> Outstanding<br>
-        A+ — 80–89%:<br> Excellent<br>
-        B++ — 70–79%:<br> Very Good<br>
-        B+ — 60–69%:<br> Good<br>
-        C — 50–59%:<br> Fairly Good<br>
-        D — 40–49%:<br> Fair<br>
-        F — 0–39%:<br> Fail
+        <strong>📏 Grade Scale</strong><br />
+        A++ — 90% &amp; Above:<br />Outstanding<br />
+        A+ — 80–89%:<br />Excellent<br />
+        B++ — 70–79%:<br />Very Good<br />
+        B+ — 60–69%:<br />Good<br />
+        C — 50–59%:<br />Fairly Good<br />
+        D — 40–49%:<br />Fair<br />
+        F — 0–39%:<br />Fail
       </th>
     </tr>
   </thead>
@@ -140,17 +187,17 @@
 <table class="summary-table">
   <tr>
     <td width="50%">
-      <strong>📌 Performance Summary</strong><br>
-      <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br>
-      <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br>
-      <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br>
+      <strong>📌 Performance Summary</strong><br />
+      <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br />
+      <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br />
+      <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br />
       <strong>Position:</strong> {{ report.overall_position|default:"N/A" }}
     </td>
     <td width="50%">
-      <strong>🗣️ Teacher/Admin Comments</strong><br>
-      <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br>
-      <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br>
-      <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br>
+      <strong>🗣️ Teacher/Admin Comments</strong><br />
+      <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br />
+      <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br />
+      <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br />
       <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
     </td>
   </tr>
