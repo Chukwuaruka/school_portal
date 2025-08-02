@@ -70,17 +70,12 @@
       border-top: 1px dashed #000;
     }
 
-    .grade-scale-box {
-      width: 160px;
-      float: right;
-      margin-left: 10px;
-      margin-top: 0;
-      border: 1px solid #000;
-      background-color: #f0f8ff;
-      padding: 6px;
+    .grade-scale-inline {
       font-size: 8px;
-      line-height: 1.3;
-      color: #000;
+      text-align: center;
+      margin: 8px 0 6px 0;
+      padding: 4px 6px;
+      border-top: 1px solid #000;
     }
 
     .clearfix::after {
@@ -106,54 +101,48 @@
 
 {% if grades %}
 <div class="clearfix">
-  <div style="width: 78%; float: left;">
-    <table>
-      <thead>
-        <tr>
-          <th>Subject</th>
-          <th>1st Test<br>(20)</th>
-          <th>2nd Test<br>(20)</th>
-          <th>Exam<br>(60)</th>
-          <th>Total<br>(100)</th>
-          <th>1st Term</th>
-          <th>2nd Term</th>
-          <th>Average</th>
-          <th>Grade</th>
-          <th>Comment</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for grade in grades %}
-        <tr>
-          <td>{{ grade.subject }}</td>
-          <td>{{ grade.first_test|default:"–" }}</td>
-          <td>{{ grade.second_test|default:"–" }}</td>
-          <td>{{ grade.exam|default:"–" }}</td>
-          <td>{{ grade.total_score|default:"–" }}</td>
-          <td>{{ grade.first_term_score|default:"–" }}</td>
-          <td>{{ grade.second_term_score|default:"–" }}</td>
-          <td>{{ grade.average_score|default:"–" }}</td>
-          <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-          <td>{{ grade.grade_comment|default:"–" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <div class="grade-scale-box">
-    <strong>📏 Grade Scale</strong><br><br>
-    A++ = 90% & Above<br>
-    A+ = 80–89%<br>
-    B++ = 70–79%<br>
-    B+ = 60–69%<br>
-    C = 50–59%<br>
-    D = 40–49%<br>
-    F = 0–39%
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>1st Test<br>(20)</th>
+        <th>2nd Test<br>(20)</th>
+        <th>Exam<br>(60)</th>
+        <th>Total<br>(100)</th>
+        <th>1st Term</th>
+        <th>2nd Term</th>
+        <th>Average</th>
+        <th>Grade</th>
+        <th>Comment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for grade in grades %}
+      <tr>
+        <td>{{ grade.subject }}</td>
+        <td>{{ grade.first_test|default:"–" }}</td>
+        <td>{{ grade.second_test|default:"–" }}</td>
+        <td>{{ grade.exam|default:"–" }}</td>
+        <td>{{ grade.total_score|default:"–" }}</td>
+        <td>{{ grade.first_term_score|default:"–" }}</td>
+        <td>{{ grade.second_term_score|default:"–" }}</td>
+        <td>{{ grade.average_score|default:"–" }}</td>
+        <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+        <td>{{ grade.grade_comment|default:"–" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
-<!-- Summary Section Side-by-Side -->
+<!-- Grade Scale as one line -->
+<p class="grade-scale-inline">
+  📏 <strong>Grade Scale:</strong>
+  A++ = 90%+ (Outstanding), A+ = 80–89%, B++ = 70–79%, B+ = 60–69%,
+  C = 50–59%, D = 40–49%, F = 0–39%
+</p>
+
+<!-- Summary Section -->
 <table class="summary-table">
   <tr>
     <td width="50%">
