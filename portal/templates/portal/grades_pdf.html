@@ -8,123 +8,94 @@
       font-family: Arial, sans-serif;
       font-size: 10px;
       margin: 20px;
-      color: #222;
-      background-color: #f9fbfd;
+      color: #000;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 15px;
-      color: #0d47a1;
+      margin-bottom: 8px;
     }
 
     .header img {
       width: 50px;
-      margin-bottom: 6px;
     }
 
     .school-name {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: bold;
-      color: #0d47a1;
-      text-shadow: 0 0 3px rgba(13, 71, 161, 0.3);
     }
 
     .school-address {
       font-size: 9px;
-      color: #555;
-      font-style: italic;
     }
 
-    table {
-      width: 100%;
+    /* Simplified width, no calc() */
+    .grade-table {
+      width: 78%;
+      float: left;
       border-collapse: collapse;
-      margin-bottom: 12px;
-      background-color: #fff;
-      border-radius: 4px;
-      border: 1px solid #000;
+      margin-bottom: 6px;
     }
 
-    th, td {
+    .grade-table th, .grade-table td {
       border: 1px solid #000;
-      padding: 6px 8px;
+      padding: 2px 3px;
       text-align: center;
       font-size: 10px;
-      vertical-align: middle;
     }
 
-    th {
-      background-color: #0d47a1;
-      color: #fff;
+    .grade-table th {
+      background-color: #cce5ff; /* subtle blue */
+      color: #003366;
       font-weight: bold;
-      user-select: none;
     }
 
-    /* Grade scale styling */
-    .grade-scale {
+    /* Grade Scale box next to table */
+    .grade-scale-box {
+      width: 20%;
+      float: left;
+      margin-left: 2%;
+      border: 1px solid #003366;
+      background-color: #e6f0ff;
+      padding: 8px;
+      font-size: 9px;
+      line-height: 1.4;
+      color: #003366;
+      font-weight: bold;
+      height: fit-content;
+    }
+
+    /* Clear floats after tables */
+    .clearfix::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    .summary-table {
+      width: 100%;
+      margin-top: 8px;
+      border-collapse: collapse;
+    }
+
+    .summary-table td {
+      border: none;
       text-align: left;
       font-size: 10px;
-      line-height: 1.5;
-      background: #e3f2fd;
-      border-left: 3px solid #0d47a1;
-      border-bottom: 1px solid #000;
-      padding: 12px 12px;
-      font-weight: 600;
-      color: #0d47a1;
-      width: 160px;
-      margin-left: 10px;
+      padding: 4px;
       vertical-align: top;
-      white-space: normal;
-      float: right;
-      box-sizing: border-box;
-      border-radius: 4px;
-    }
-
-    .grade-scale strong {
-      display: block;
-      font-size: 12px;
-      margin-bottom: 10px;
-      color: #094a8f;
-    }
-
-    /* Add spacing between grade scale lines */
-    .grade-scale br + * {
-      margin-bottom: 7px;
-      display: block;
-    }
-
-    /* Summary Section */
-    .summary-container {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 15px;
-      margin-bottom: 20px;
-    }
-
-    .summary-box {
-      flex: 1;
-      background: #fff;
-      border: 1px solid #000;
-      border-radius: 4px;
-      padding: 10px 15px;
-      font-size: 10px;
-      color: #000;
       font-weight: bold;
-      min-width: 0; /* prevent overflow */
+      color: #000;
     }
 
     .footer {
       text-align: center;
       font-size: 9px;
-      margin-top: 30px;
-      border-top: 1px dashed #000;
-      padding-top: 8px;
-      color: #000;
-      font-style: italic;
+      margin-top: 10px;
+      border-top: 1px solid #000;
+      padding-top: 4px;
       clear: both;
     }
-
   </style>
 </head>
 <body>
@@ -142,8 +113,8 @@
 </div>
 
 {% if grades %}
-<div style="overflow: hidden;">
-  <table style="width: calc(100% - 180px); float: left;">
+<div class="clearfix">
+  <table class="grade-table">
     <thead>
       <tr>
         <th>Subject</th>
@@ -176,35 +147,50 @@
     </tbody>
   </table>
 
-  <div class="grade-scale">
-    <strong>📏 Grade Scale</strong><br />
-    A++ — 90% &amp; Above:<br />Outstanding<br />
-    A+ — 80–89%:<br />Excellent<br />
-    B++ — 70–79%:<br />Very Good<br />
-    B+ — 60–69%:<br />Good<br />
-    C — 50–59%:<br />Fairly Good<br />
-    D — 40–49%:<br />Fair<br />
-    F — 0–39%:<br />Fail
+  <div class="grade-scale-box">
+    <div>📏 Grade Scale</div>
+    <br />
+    A++ — 90% &amp; Above:<br />
+    Outstanding<br />
+    <br />
+    A+ — 80–89%:<br />
+    Excellent<br />
+    <br />
+    B++ — 70–79%:<br />
+    Very Good<br />
+    <br />
+    B+ — 60–69%:<br />
+    Good<br />
+    <br />
+    C — 50–59%:<br />
+    Fairly Good<br />
+    <br />
+    D — 40–49%:<br />
+    Fair<br />
+    <br />
+    F — 0–39%:<br />
+    Fail
   </div>
 </div>
 
-<div class="summary-container">
-  <div class="summary-box">
-    <strong>📌 Performance Summary</strong><br />
-    <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br />
-    <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br />
-    <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br />
-    <strong>Position:</strong> {{ report.overall_position|default:"N/A" }}
-  </div>
-
-  <div class="summary-box">
-    <strong>🗣️ Teacher/Admin Comments</strong><br />
-    <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br />
-    <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br />
-    <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br />
-    <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
-  </div>
-</div>
+<table class="summary-table">
+  <tr>
+    <td width="50%">
+      <strong>📌 Performance Summary</strong><br />
+      <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br />
+      <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br />
+      <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br />
+      <strong>Position:</strong> {{ report.overall_position|default:"N/A" }}
+    </td>
+    <td width="50%">
+      <strong>🗣️ Teacher/Admin Comments</strong><br />
+      <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br />
+      <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br />
+      <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br />
+      <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
+    </td>
+  </tr>
+</table>
 
 {% else %}
 <p style="text-align:center;">No grades available for this report.</p>
