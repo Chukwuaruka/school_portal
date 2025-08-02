@@ -1,148 +1,164 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{{ student_name }} - Report</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 10px;
-            margin: 20px;
-            color: #000;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .header img {
-            width: 50px;
-        }
-        .school-name {
-            font-size: 15px;
-            font-weight: bold;
-        }
-        .school-address {
-            font-size: 9px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 9.5px;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 3px 3px;
-            text-align: center;
-        }
-        th {
-            background-color: #007bff;
-            color: white;
-            font-size: 10px;
-        }
-        .noborder td {
-            border: none;
-            text-align: left;
-            padding: 3px;
-            vertical-align: top;
-            font-size: 10px;
-        }
-        .footer {
-            text-align: center;
-            font-size: 9px;
-            margin-top: 12px;
-            border-top: 1px dashed #aaa;
-            padding-top: 4px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>{{ student_name }} - Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      margin: 20px;
+      color: #000;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .header img { width: 50px; }
+    .school-name { font-size: 15px; font-weight: bold; }
+    .school-address { font-size: 9px; }
+
+    .flex {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .grades-table {
+      width: 74%;
+      font-size: 9.5px;
+    }
+    .grade-scale {
+      width: 25%;
+      font-size: 9.5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 3px 4px;
+      text-align: center;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    .noborder td {
+      border: none;
+      padding: 3px;
+      vertical-align: top;
+    }
+    .footer {
+      text-align: center;
+      font-size: 9px;
+      margin-top: 12px;
+      border-top: 1px dashed #aaa;
+      padding-top: 4px;
+    }
+  </style>
 </head>
 <body>
 
 <div class="header">
-    {% if logo_url %}
-        <img src="{{ logo_url }}" alt="School Logo">
-    {% endif %}
-    <div class="school-name">PEN ARK SCHOOLS</div>
-    <div class="school-address">
-        9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
-        TEL: 09063550663, 08063616032<br>
-        <strong>MOTTO:</strong> TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)
-    </div>
+  {% if logo_url %}
+    <img src="{{ logo_url }}" alt="Logo">
+  {% endif %}
+  <div class="school-name">PEN ARK SCHOOLS</div>
+  <div class="school-address">
+    9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
+    TEL: 09063550663, 08063616032<br>
+    <strong>MOTTO:</strong> TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)
+  </div>
 </div>
 
 {% if grades %}
-<!-- Grade Table -->
-<table>
-    <thead>
+<div class="flex">
+  <!-- Left: Grade Table -->
+  <div class="grades-table">
+    <table>
+      <thead>
         <tr>
-            <th>Subject</th>
-            <th>1st Test<br>(20)</th>
-            <th>2nd Test<br>(20)</th>
-            <th>Exam<br>(60)</th>
-            <th>Total<br>(100)</th>
-            <th>1st Term</th>
-            <th>2nd Term</th>
-            <th>Average</th>
-            <th>Grade</th>
-            <th>Grade Comment</th>
-            <th>Teacher</th>
+          <th>Subject</th>
+          <th>1st Test<br>(20)</th>
+          <th>2nd Test<br>(20)</th>
+          <th>Exam<br>(60)</th>
+          <th>Total<br>(100)</th>
+          <th>1st Term</th>
+          <th>2nd Term</th>
+          <th>Average</th>
+          <th>Grade</th>
+          <th>Comment</th>
+          <th>Teacher</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for grade in grades %}
         <tr>
-            <td>{{ grade.subject }}</td>
-            <td>{{ grade.first_test|default:"–" }}</td>
-            <td>{{ grade.second_test|default:"–" }}</td>
-            <td>{{ grade.exam|default:"–" }}</td>
-            <td>{{ grade.total_score|default:"–" }}</td>
-            <td>{{ grade.first_term_score|default:"–" }}</td>
-            <td>{{ grade.second_term_score|default:"–" }}</td>
-            <td>{{ grade.average_score|default:"–" }}</td>
-            <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-            <td>{{ grade.grade_comment|default:"–" }}</td>
-            <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}–{% endif %}</td>
+          <td>{{ grade.subject }}</td>
+          <td>{{ grade.first_test|default:"–" }}</td>
+          <td>{{ grade.second_test|default:"–" }}</td>
+          <td>{{ grade.exam|default:"–" }}</td>
+          <td>{{ grade.total_score|default:"–" }}</td>
+          <td>{{ grade.first_term_score|default:"–" }}</td>
+          <td>{{ grade.second_term_score|default:"–" }}</td>
+          <td>{{ grade.average_score|default:"–" }}</td>
+          <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+          <td>{{ grade.grade_comment|default:"–" }}</td>
+          <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}–{% endif %}</td>
         </tr>
         {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-        <!-- Grade Scale Rows as Extra Table Rows -->
-        <tr><td colspan="11" style="background:#f0f0f0; font-weight:bold; text-align:left;">📏 Grade Scale</td></tr>
-        <tr><td colspan="4">A++ — 90% & Above</td><td colspan="7">Outstanding</td></tr>
-        <tr><td colspan="4">A+ — 80–89%</td><td colspan="7">Excellent</td></tr>
-        <tr><td colspan="4">B++ — 70–79%</td><td colspan="7">Very Good</td></tr>
-        <tr><td colspan="4">B+ — 60–69%</td><td colspan="7">Good</td></tr>
-        <tr><td colspan="4">C — 50–59%</td><td colspan="7">Fairly Good</td></tr>
-        <tr><td colspan="4">D — 40–49%</td><td colspan="7">Fair</td></tr>
-        <tr><td colspan="4">F — 0–39%</td><td colspan="7">Fail</td></tr>
-    </tbody>
-</table>
+  <!-- Right: Grade Scale -->
+  <div class="grade-scale">
+    <table>
+      <thead>
+        <tr><th colspan="3">📏 Grade Scale</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>A++</strong></td><td>90+</td><td>Outstanding</td></tr>
+        <tr><td><strong>A+</strong></td><td>80–89</td><td>Excellent</td></tr>
+        <tr><td><strong>B++</strong></td><td>70–79</td><td>Very Good</td></tr>
+        <tr><td><strong>B+</strong></td><td>60–69</td><td>Good</td></tr>
+        <tr><td><strong>C</strong></td><td>50–59</td><td>Fairly Good</td></tr>
+        <tr><td><strong>D</strong></td><td>40–49</td><td>Fair</td></tr>
+        <tr><td><strong>F</strong></td><td>0–39</td><td>Fail</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-<!-- Performance Summary & Comments Side by Side -->
-<table class="noborder" style="margin-top: 8px;">
-    <tr valign="top">
-        <td width="50%">
-            <strong>📌 Performance Summary</strong><br>
-            <strong>Total Available Score:</strong> {{ report.total_available_score|default:"N/A" }}<br>
-            <strong>Student Overall Score:</strong> {{ report.overall_score|default:"N/A" }}<br>
-            <strong>Student Overall Average:</strong> {{ report.overall_average|default:"N/A" }}%<br>
-            <strong>Overall Position:</strong> {{ report.overall_position|default:"N/A" }}
-        </td>
-        <td width="50%">
-            <strong>🗣️ Teacher/Admin Comments</strong><br>
-            <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br>
-            <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br>
-            <strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br>
-            <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
-        </td>
-    </tr>
+<!-- Summary + Comments (Full Width) -->
+<table class="noborder">
+  <tr>
+    <td width="50%">
+      <strong>📌 Performance Summary</strong><br>
+      <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br>
+      <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br>
+      <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br>
+      <strong>Position:</strong> {{ report.overall_position|default:"N/A" }}
+    </td>
+    <td width="50%">
+      <strong>🗣️ Teacher/Admin Comments</strong><br>
+      <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br>
+      <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br>
+      <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br>
+      <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
+    </td>
+  </tr>
 </table>
 
 {% else %}
-<p style="text-align: center;">No grades available for this report.</p>
+<p style="text-align:center;">No grades available for this report.</p>
 {% endif %}
 
 <div class="footer">
-    PEN ARK SCHOOLS — Raising future leaders with excellence.
+  PEN ARK SCHOOLS — Raising future leaders with excellence.
 </div>
 
 </body>
