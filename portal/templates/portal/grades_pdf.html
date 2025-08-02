@@ -9,13 +9,13 @@
       font-size: 10px;
       margin: 20px;
       color: #222;
-      background-color: #f9fbfd; /* subtle light blue background */
+      background-color: #f9fbfd;
     }
 
     .header {
       text-align: center;
-      margin-bottom: 10px;
-      color: #0d47a1; /* dark blue */
+      margin-bottom: 15px;
+      color: #0d47a1;
     }
 
     .header img {
@@ -38,18 +38,18 @@
 
     table {
       width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 8px;
-      background-color: #ffffff;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-bottom: 10px;
+      background-color: #fff;
       box-shadow: 0 0 5px rgba(13, 71, 161, 0.1);
       border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #000; /* black border around entire table */
+      border: 1px solid #000;
     }
 
     th, td {
-      border: 1px solid #000; /* black borders for cells */
-      padding: 4px 6px;
+      border: 1px solid #000;
+      padding: 6px 8px;
       text-align: center;
       font-size: 10px;
       vertical-align: middle;
@@ -62,60 +62,66 @@
       user-select: none;
     }
 
-    /* Grade scale box smaller and thinner left border */
+    /* Grade scale styling */
     .grade-scale {
       text-align: left;
       font-size: 10px;
       line-height: 1.5;
       background: #e3f2fd;
-      border-left: 3px solid #0d47a1; /* thinner blue line */
-      padding: 10px 10px;
+      border-left: 3px solid #0d47a1;
+      border-bottom: 1px solid #000;  /* add bottom border */
+      padding: 12px 12px;
       font-weight: 600;
       color: #0d47a1;
-      width: 130px; /* reduced width */
+      width: 140px; /* Slightly bigger than before */
+      margin-left: 10px; /* add space from table */
+      vertical-align: top;
+      /* Make this cell behave like block with spacing */
+      white-space: normal;
     }
 
     .grade-scale strong {
       display: block;
       font-size: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       color: #094a8f;
     }
 
+    /* Add spacing between grade scale lines */
     .grade-scale br + * {
-      margin-bottom: 6px;
+      margin-bottom: 7px;
       display: block;
     }
 
-    /* Summary Section Side-by-Side */
+    /* Summary Section */
     .summary-table {
       width: 100%;
-      margin-top: 12px;
+      margin-top: 15px;
       background: #fff;
       box-shadow: 0 0 5px rgba(13, 71, 161, 0.1);
       border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #000; /* black border */
+      border: 1px solid #000;
     }
 
     .summary-table td {
       border: none;
       text-align: left;
       font-size: 10px;
-      padding: 8px 12px;
+      padding: 10px 15px;
       vertical-align: top;
-      color: #000; /* black text */
-      font-weight: bold; /* bold text */
+      color: #000;
+      font-weight: bold;
     }
 
     .footer {
       text-align: center;
       font-size: 9px;
-      margin-top: 15px;
-      border-top: 1px dashed #000; /* black dashed line */
-      padding-top: 6px;
-      color: #000; /* black text */
+      margin-top: 25px;
+      border-top: 1px dashed #000;
+      padding-top: 8px;
+      color: #000;
       font-style: italic;
+      clear: both;
     }
   </style>
 </head>
