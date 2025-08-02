@@ -27,12 +27,12 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 9.5px;
             margin-top: 10px;
         }
         th, td {
             border: 1px solid #000;
-            padding: 3px 4px;
+            padding: 3px 3px;
             text-align: center;
         }
         th {
@@ -50,7 +50,7 @@
         .footer {
             text-align: center;
             font-size: 9px;
-            margin-top: 15px;
+            margin-top: 12px;
             border-top: 1px dashed #aaa;
             padding-top: 4px;
         }
@@ -71,63 +71,54 @@
 </div>
 
 {% if grades %}
-<!-- Grade Table and Grade Scale Side by Side -->
-<table width="100%" cellspacing="0" cellpadding="0">
-    <tr valign="top">
-        <td width="78%">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Subject</th>
-                        <th>1st Test<br>(20)</th>
-                        <th>2nd Test<br>(20)</th>
-                        <th>Exam<br>(60)</th>
-                        <th>Total<br>(100)</th>
-                        <th>1st Term</th>
-                        <th>2nd Term</th>
-                        <th>Average</th>
-                        <th>Grade</th>
-                        <th>Grade Comment</th>
-                        <th>Teacher</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for grade in grades %}
-                    <tr>
-                        <td>{{ grade.subject }}</td>
-                        <td>{{ grade.first_test|default:"–" }}</td>
-                        <td>{{ grade.second_test|default:"–" }}</td>
-                        <td>{{ grade.exam|default:"–" }}</td>
-                        <td>{{ grade.total_score|default:"–" }}</td>
-                        <td>{{ grade.first_term_score|default:"–" }}</td>
-                        <td>{{ grade.second_term_score|default:"–" }}</td>
-                        <td>{{ grade.average_score|default:"–" }}</td>
-                        <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-                        <td>{{ grade.grade_comment|default:"–" }}</td>
-                        <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}–{% endif %}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </td>
-        <td width="2%"></td>
-        <td width="20%">
-            <strong style="font-size: 11px;">📏 Grade Scale</strong><br>
-            <ul style="padding-left: 10px; list-style: none; font-size: 10px;">
-                <li><strong>A++</strong>: 90% & Above – Outstanding</li>
-                <li><strong>A+</strong>: 80–89% – Excellent</li>
-                <li><strong>B++</strong>: 70–79% – Very Good</li>
-                <li><strong>B+</strong>: 60–69% – Good</li>
-                <li><strong>C</strong>: 50–59% – Fairly Good</li>
-                <li><strong>D</strong>: 40–49% – Fair</li>
-                <li><strong>F</strong>: 0–39% – Fail</li>
-            </ul>
-        </td>
-    </tr>
+<!-- Grade Table -->
+<table>
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>1st Test<br>(20)</th>
+            <th>2nd Test<br>(20)</th>
+            <th>Exam<br>(60)</th>
+            <th>Total<br>(100)</th>
+            <th>1st Term</th>
+            <th>2nd Term</th>
+            <th>Average</th>
+            <th>Grade</th>
+            <th>Grade Comment</th>
+            <th>Teacher</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for grade in grades %}
+        <tr>
+            <td>{{ grade.subject }}</td>
+            <td>{{ grade.first_test|default:"–" }}</td>
+            <td>{{ grade.second_test|default:"–" }}</td>
+            <td>{{ grade.exam|default:"–" }}</td>
+            <td>{{ grade.total_score|default:"–" }}</td>
+            <td>{{ grade.first_term_score|default:"–" }}</td>
+            <td>{{ grade.second_term_score|default:"–" }}</td>
+            <td>{{ grade.average_score|default:"–" }}</td>
+            <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+            <td>{{ grade.grade_comment|default:"–" }}</td>
+            <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}–{% endif %}</td>
+        </tr>
+        {% endfor %}
+
+        <!-- Grade Scale Rows as Extra Table Rows -->
+        <tr><td colspan="11" style="background:#f0f0f0; font-weight:bold; text-align:left;">📏 Grade Scale</td></tr>
+        <tr><td colspan="4">A++ — 90% & Above</td><td colspan="7">Outstanding</td></tr>
+        <tr><td colspan="4">A+ — 80–89%</td><td colspan="7">Excellent</td></tr>
+        <tr><td colspan="4">B++ — 70–79%</td><td colspan="7">Very Good</td></tr>
+        <tr><td colspan="4">B+ — 60–69%</td><td colspan="7">Good</td></tr>
+        <tr><td colspan="4">C — 50–59%</td><td colspan="7">Fairly Good</td></tr>
+        <tr><td colspan="4">D — 40–49%</td><td colspan="7">Fair</td></tr>
+        <tr><td colspan="4">F — 0–39%</td><td colspan="7">Fail</td></tr>
+    </tbody>
 </table>
 
-<!-- Performance Summary & Teacher/Admin Comments -->
-<table class="noborder" style="margin-top: 10px;">
+<!-- Performance Summary & Comments Side by Side -->
+<table class="noborder" style="margin-top: 8px;">
     <tr valign="top">
         <td width="50%">
             <strong>📌 Performance Summary</strong><br>
