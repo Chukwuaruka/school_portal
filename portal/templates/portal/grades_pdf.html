@@ -38,11 +38,9 @@
 
     table {
       width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-bottom: 10px;
+      border-collapse: collapse;
+      margin-bottom: 12px;
       background-color: #fff;
-      box-shadow: 0 0 5px rgba(13, 71, 161, 0.1);
       border-radius: 4px;
       border: 1px solid #000;
     }
@@ -69,15 +67,17 @@
       line-height: 1.5;
       background: #e3f2fd;
       border-left: 3px solid #0d47a1;
-      border-bottom: 1px solid #000;  /* add bottom border */
+      border-bottom: 1px solid #000;
       padding: 12px 12px;
       font-weight: 600;
       color: #0d47a1;
-      width: 140px; /* Slightly bigger than before */
-      margin-left: 10px; /* add space from table */
+      width: 160px;
+      margin-left: 10px;
       vertical-align: top;
-      /* Make this cell behave like block with spacing */
       white-space: normal;
+      float: right;
+      box-sizing: border-box;
+      border-radius: 4px;
     }
 
     .grade-scale strong {
@@ -94,35 +94,37 @@
     }
 
     /* Summary Section */
-    .summary-table {
-      width: 100%;
+    .summary-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
       margin-top: 15px;
-      background: #fff;
-      box-shadow: 0 0 5px rgba(13, 71, 161, 0.1);
-      border-radius: 4px;
-      border: 1px solid #000;
+      margin-bottom: 20px;
     }
 
-    .summary-table td {
-      border: none;
-      text-align: left;
-      font-size: 10px;
+    .summary-box {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #000;
+      border-radius: 4px;
       padding: 10px 15px;
-      vertical-align: top;
+      font-size: 10px;
       color: #000;
       font-weight: bold;
+      min-width: 0; /* prevent overflow */
     }
 
     .footer {
       text-align: center;
       font-size: 9px;
-      margin-top: 25px;
+      margin-top: 30px;
       border-top: 1px dashed #000;
       padding-top: 8px;
       color: #000;
       font-style: italic;
       clear: both;
     }
+
   </style>
 </head>
 <body>
@@ -140,70 +142,69 @@
 </div>
 
 {% if grades %}
-<table>
-  <thead>
-    <tr>
-      <th>Subject</th>
-      <th>1st Test<br />(20)</th>
-      <th>2nd Test<br />(20)</th>
-      <th>Exam<br />(60)</th>
-      <th>Total<br />(100)</th>
-      <th>1st Term</th>
-      <th>2nd Term</th>
-      <th>Average</th>
-      <th>Grade</th>
-      <th>Comment</th>
-      <th>Teacher</th>
-      <th rowspan="{{ grades|length|add:1 }}" class="grade-scale">
-        <strong>📏 Grade Scale</strong><br />
-        A++ — 90% &amp; Above:<br />Outstanding<br />
-        A+ — 80–89%:<br />Excellent<br />
-        B++ — 70–79%:<br />Very Good<br />
-        B+ — 60–69%:<br />Good<br />
-        C — 50–59%:<br />Fairly Good<br />
-        D — 40–49%:<br />Fair<br />
-        F — 0–39%:<br />Fail
-      </th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for grade in grades %}
-    <tr>
-      <td>{{ grade.subject }}</td>
-      <td>{{ grade.first_test|default:"–" }}</td>
-      <td>{{ grade.second_test|default:"–" }}</td>
-      <td>{{ grade.exam|default:"–" }}</td>
-      <td>{{ grade.total_score|default:"–" }}</td>
-      <td>{{ grade.first_term_score|default:"–" }}</td>
-      <td>{{ grade.second_term_score|default:"–" }}</td>
-      <td>{{ grade.average_score|default:"–" }}</td>
-      <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-      <td>{{ grade.grade_comment|default:"–" }}</td>
-      <td>{% if grade.teacher %}{{ grade.teacher.get_full_name }}{% else %}–{% endif %}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div style="overflow: hidden;">
+  <table style="width: calc(100% - 180px); float: left;">
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>1st Test<br />(20)</th>
+        <th>2nd Test<br />(20)</th>
+        <th>Exam<br />(60)</th>
+        <th>Total<br />(100)</th>
+        <th>1st Term</th>
+        <th>2nd Term</th>
+        <th>Average</th>
+        <th>Grade</th>
+        <th>Comment</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for grade in grades %}
+      <tr>
+        <td>{{ grade.subject }}</td>
+        <td>{{ grade.first_test|default:"–" }}</td>
+        <td>{{ grade.second_test|default:"–" }}</td>
+        <td>{{ grade.exam|default:"–" }}</td>
+        <td>{{ grade.total_score|default:"–" }}</td>
+        <td>{{ grade.first_term_score|default:"–" }}</td>
+        <td>{{ grade.second_term_score|default:"–" }}</td>
+        <td>{{ grade.average_score|default:"–" }}</td>
+        <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+        <td>{{ grade.grade_comment|default:"–" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-<!-- Summary Section Side-by-Side -->
-<table class="summary-table">
-  <tr>
-    <td width="50%">
-      <strong>📌 Performance Summary</strong><br />
-      <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br />
-      <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br />
-      <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br />
-      <strong>Position:</strong> {{ report.overall_position|default:"N/A" }}
-    </td>
-    <td width="50%">
-      <strong>🗣️ Teacher/Admin Comments</strong><br />
-      <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br />
-      <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br />
-      <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br />
-      <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
-    </td>
-  </tr>
-</table>
+  <div class="grade-scale">
+    <strong>📏 Grade Scale</strong><br />
+    A++ — 90% &amp; Above:<br />Outstanding<br />
+    A+ — 80–89%:<br />Excellent<br />
+    B++ — 70–79%:<br />Very Good<br />
+    B+ — 60–69%:<br />Good<br />
+    C — 50–59%:<br />Fairly Good<br />
+    D — 40–49%:<br />Fair<br />
+    F — 0–39%:<br />Fail
+  </div>
+</div>
+
+<div class="summary-container">
+  <div class="summary-box">
+    <strong>📌 Performance Summary</strong><br />
+    <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br />
+    <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br />
+    <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br />
+    <strong>Position:</strong> {{ report.overall_position|default:"N/A" }}
+  </div>
+
+  <div class="summary-box">
+    <strong>🗣️ Teacher/Admin Comments</strong><br />
+    <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br />
+    <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br />
+    <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br />
+    <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
+  </div>
+</div>
 
 {% else %}
 <p style="text-align:center;">No grades available for this report.</p>
