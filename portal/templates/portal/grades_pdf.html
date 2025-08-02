@@ -6,7 +6,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            font-size: 9px;
+            font-size: 10px;
             margin: 20px;
             color: #000;
         }
@@ -15,44 +15,41 @@
             margin-bottom: 10px;
         }
         .header img {
-            width: 45px;
+            width: 50px;
         }
         .school-name {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: bold;
         }
         .school-address {
-            font-size: 8px;
-        }
-        .report-title {
-            font-size: 11px;
-            color: #007bff;
-            font-weight: bold;
-            margin: 6px 0;
+            font-size: 9px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8px;
+            font-size: 10px;
+            margin-top: 10px;
         }
         th, td {
             border: 1px solid #000;
-            padding: 2px 3px;
+            padding: 3px 4px;
             text-align: center;
         }
         th {
             background-color: #007bff;
             color: white;
+            font-size: 10px;
         }
         .noborder td {
             border: none;
             text-align: left;
-            padding: 2px;
+            padding: 3px;
             vertical-align: top;
+            font-size: 10px;
         }
         .footer {
             text-align: center;
-            font-size: 8px;
+            font-size: 9px;
             margin-top: 15px;
             border-top: 1px dashed #aaa;
             padding-top: 4px;
@@ -73,12 +70,8 @@
     </div>
 </div>
 
-<div class="report-title">
-    THIRD TERM ASSESSMENT REPORT (SESSION {{ report.session|default:"2024/2025" }})
-</div>
-
 {% if grades %}
-<!-- Grade Table and Grade Scale -->
+<!-- Grade Table and Grade Scale Side by Side -->
 <table width="100%" cellspacing="0" cellpadding="0">
     <tr valign="top">
         <td width="78%">
@@ -119,24 +112,22 @@
         </td>
         <td width="2%"></td>
         <td width="20%">
-            <strong>📏 Grade Scale</strong><br>
-            <small>
-                <ul style="padding-left: 10px; list-style: none;">
-                    <li><strong>A++</strong>: 90% & Above – Outstanding</li>
-                    <li><strong>A+</strong>: 80–89% – Excellent</li>
-                    <li><strong>B++</strong>: 70–79% – Very Good</li>
-                    <li><strong>B+</strong>: 60–69% – Good</li>
-                    <li><strong>C</strong>: 50–59% – Fairly Good</li>
-                    <li><strong>D</strong>: 40–49% – Fair</li>
-                    <li><strong>F</strong>: 0–39% – Fail</li>
-                </ul>
-            </small>
+            <strong style="font-size: 11px;">📏 Grade Scale</strong><br>
+            <ul style="padding-left: 10px; list-style: none; font-size: 10px;">
+                <li><strong>A++</strong>: 90% & Above – Outstanding</li>
+                <li><strong>A+</strong>: 80–89% – Excellent</li>
+                <li><strong>B++</strong>: 70–79% – Very Good</li>
+                <li><strong>B+</strong>: 60–69% – Good</li>
+                <li><strong>C</strong>: 50–59% – Fairly Good</li>
+                <li><strong>D</strong>: 40–49% – Fair</li>
+                <li><strong>F</strong>: 0–39% – Fail</li>
+            </ul>
         </td>
     </tr>
 </table>
 
-<!-- Performance & Comment Table -->
-<table class="noborder" style="margin-top: 12px;">
+<!-- Performance Summary & Teacher/Admin Comments -->
+<table class="noborder" style="margin-top: 10px;">
     <tr valign="top">
         <td width="50%">
             <strong>📌 Performance Summary</strong><br>
