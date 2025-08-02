@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>{{ student_name }} - Report</title>
   <style>
     body {
@@ -13,7 +13,7 @@
 
     .header {
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .header img {
@@ -29,53 +29,27 @@
       font-size: 9px;
     }
 
-    /* Simplified width, no calc() */
-    .grade-table {
-      width: 78%;
-      float: left;
+    table {
+      width: 100%;
       border-collapse: collapse;
       margin-bottom: 6px;
     }
 
-    .grade-table th, .grade-table td {
+    th, td {
       border: 1px solid #000;
-      padding: 2px 3px;
+      padding: 3px;
       text-align: center;
       font-size: 10px;
     }
 
-    .grade-table th {
-      background-color: #cce5ff; /* subtle blue */
-      color: #003366;
+    th {
+      background-color: #e7f1ff;
       font-weight: bold;
-    }
-
-    /* Grade Scale box next to table */
-    .grade-scale-box {
-      width: 20%;
-      float: left;
-      margin-left: 2%;
-      border: 1px solid #003366;
-      background-color: #e6f0ff;
-      padding: 8px;
-      font-size: 9px;
-      line-height: 1.4;
-      color: #003366;
-      font-weight: bold;
-      height: fit-content;
-    }
-
-    /* Clear floats after tables */
-    .clearfix::after {
-      content: "";
-      display: table;
-      clear: both;
     }
 
     .summary-table {
       width: 100%;
       margin-top: 8px;
-      border-collapse: collapse;
     }
 
     .summary-table td {
@@ -92,8 +66,26 @@
       text-align: center;
       font-size: 9px;
       margin-top: 10px;
-      border-top: 1px solid #000;
       padding-top: 4px;
+      border-top: 1px dashed #000;
+    }
+
+    .grade-scale-box {
+      width: 160px;
+      float: right;
+      margin-left: 10px;
+      margin-top: 0;
+      border: 1px solid #000;
+      background-color: #f0f8ff;
+      padding: 6px;
+      font-size: 8px;
+      line-height: 1.3;
+      color: #000;
+    }
+
+    .clearfix::after {
+      content: "";
+      display: table;
       clear: both;
     }
   </style>
@@ -102,92 +94,81 @@
 
 <div class="header">
   {% if logo_url %}
-    <img src="{{ logo_url }}" alt="Logo" />
+    <img src="{{ logo_url }}" alt="Logo">
   {% endif %}
   <div class="school-name">PEN ARK SCHOOLS</div>
   <div class="school-address">
-    9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br />
-    TEL: 09063550663, 08063616032<br />
-    <strong>MOTTO:</strong> TRAINED FOR DUTY &amp; FOR THEE (GOVERNMENT APPROVED)
+    9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
+    TEL: 09063550663, 08063616032<br>
+    <strong>MOTTO:</strong> TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)
   </div>
 </div>
 
 {% if grades %}
 <div class="clearfix">
-  <table class="grade-table">
-    <thead>
-      <tr>
-        <th>Subject</th>
-        <th>1st Test<br />(20)</th>
-        <th>2nd Test<br />(20)</th>
-        <th>Exam<br />(60)</th>
-        <th>Total<br />(100)</th>
-        <th>1st Term</th>
-        <th>2nd Term</th>
-        <th>Average</th>
-        <th>Grade</th>
-        <th>Comment</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for grade in grades %}
-      <tr>
-        <td>{{ grade.subject }}</td>
-        <td>{{ grade.first_test|default:"–" }}</td>
-        <td>{{ grade.second_test|default:"–" }}</td>
-        <td>{{ grade.exam|default:"–" }}</td>
-        <td>{{ grade.total_score|default:"–" }}</td>
-        <td>{{ grade.first_term_score|default:"–" }}</td>
-        <td>{{ grade.second_term_score|default:"–" }}</td>
-        <td>{{ grade.average_score|default:"–" }}</td>
-        <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
-        <td>{{ grade.grade_comment|default:"–" }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div style="width: 78%; float: left;">
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>1st Test<br>(20)</th>
+          <th>2nd Test<br>(20)</th>
+          <th>Exam<br>(60)</th>
+          <th>Total<br>(100)</th>
+          <th>1st Term</th>
+          <th>2nd Term</th>
+          <th>Average</th>
+          <th>Grade</th>
+          <th>Comment</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for grade in grades %}
+        <tr>
+          <td>{{ grade.subject }}</td>
+          <td>{{ grade.first_test|default:"–" }}</td>
+          <td>{{ grade.second_test|default:"–" }}</td>
+          <td>{{ grade.exam|default:"–" }}</td>
+          <td>{{ grade.total_score|default:"–" }}</td>
+          <td>{{ grade.first_term_score|default:"–" }}</td>
+          <td>{{ grade.second_term_score|default:"–" }}</td>
+          <td>{{ grade.average_score|default:"–" }}</td>
+          <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
+          <td>{{ grade.grade_comment|default:"–" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
   <div class="grade-scale-box">
-    <div>📏 Grade Scale</div>
-    <br />
-    A++ — 90% &amp; Above:<br />
-    Outstanding<br />
-    <br />
-    A+ — 80–89%:<br />
-    Excellent<br />
-    <br />
-    B++ — 70–79%:<br />
-    Very Good<br />
-    <br />
-    B+ — 60–69%:<br />
-    Good<br />
-    <br />
-    C — 50–59%:<br />
-    Fairly Good<br />
-    <br />
-    D — 40–49%:<br />
-    Fair<br />
-    <br />
-    F — 0–39%:<br />
-    Fail
+    <strong>📏 Grade Scale</strong><br><br>
+    A++ = 90% & Above<br>
+    A+ = 80–89%<br>
+    B++ = 70–79%<br>
+    B+ = 60–69%<br>
+    C = 50–59%<br>
+    D = 40–49%<br>
+    F = 0–39%
   </div>
 </div>
 
+<!-- Summary Section Side-by-Side -->
 <table class="summary-table">
   <tr>
     <td width="50%">
-      <strong>📌 Performance Summary</strong><br />
-      <strong>Total Score:</strong> {{ report.total_available_score|default:"N/A" }}<br />
-      <strong>Student Score:</strong> {{ report.overall_score|default:"N/A" }}<br />
-      <strong>Average:</strong> {{ report.overall_average|default:"N/A" }}%<br />
-      <strong>Position:</strong> {{ report.overall_position|default:"N/A" }}
+      📌 <strong>Performance Summary</strong><br>
+      Total Score: {{ report.total_available_score|default:"N/A" }}<br>
+      Student Score: {{ report.overall_score|default:"N/A" }}<br>
+      Average: {{ report.overall_average|default:"N/A" }}%<br>
+      Position: {{ report.overall_position|default:"N/A" }}
     </td>
     <td width="50%">
-      <strong>🗣️ Teacher/Admin Comments</strong><br />
-      <strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"No comment" }}<br />
-      <strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y" }}<br />
-      <strong>Admin’s Comment:</strong> {{ report.admin_comment_report|default:"No comment" }}<br />
-      <strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
+      🗣️ <strong>Teacher/Admin Comments</strong><br>
+      Teacher’s Comment: {{ report.teacher_comment|default:"No comment" }}<br>
+      Date: {{ report.date_uploaded|date:"F j, Y" }}<br>
+      Admin’s Comment: {{ report.admin_comment_report|default:"No comment" }}<br>
+      Next Term Begins: {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
     </td>
   </tr>
 </table>
