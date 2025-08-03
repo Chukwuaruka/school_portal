@@ -161,9 +161,10 @@
               <th>2nd Test</th>
               <th>Exam</th>
               <th>Total (100)</th>
+              <th>1st Term<br>Score</th>
+              <th>2nd Term<br>Score</th>
+              <th>Average</th>
               <th>Grade</th>
-              <th>Term</th>
-              <th>Session</th>
               <th>Grade Comment</th>
               <th>Actions</th>
             </tr>
@@ -176,6 +177,9 @@
                 <td>{{ grade.second_test|default:"–" }}</td>
                 <td>{{ grade.exam|default:"–" }}</td>
                 <td>{{ grade.total_score }}</td>
+                <td>{{ grade.first_term_score }}</td>
+                <td>{{ grade.second_term_score }}</td>
+                <td>{{ grade.average_score }}</td>
                 <td><strong>{{ grade.manual_grade|default:grade.grade }}</strong></td>
                 <td>{{ grade.grade_comment|default:"–" }}</td>
                 <td>
