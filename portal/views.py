@@ -925,7 +925,7 @@ def admin_manage_grades(request):
 
     else:
         # Show filterable list of all grades across students
-        grades = SubjectGrade.objects.select_related('report__student', 'teacher', 'report').all()
+        grades = SubjectGrade.objects.select_related('report__student', 'report').all()
 
         student_query = request.GET.get('student')
         term_query = request.GET.get('term')
