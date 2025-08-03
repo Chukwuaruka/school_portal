@@ -1076,14 +1076,14 @@ def delete_student_grade(request, grade_id):
 def download_grade_report_pdf(request):
     student = request.user
 
-    # Get the latest report
-    latest_report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+    # Get all reports and related subject grades
+    reports = GradeReport.objects.filter(student=student)
+    grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__term', 'subject')
+
+    latest_report = reports.order_by('-date_uploaded').first()
 
     if not latest_report:
         return HttpResponse("No report found.", status=404)
-
-    # Get subject grades related to this report
-    subject_grades = latest_report.subject_grades.all().order_by('subject')
 
     # Encode logo for PDF header
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
@@ -1095,8 +1095,9 @@ def download_grade_report_pdf(request):
             logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
     context = {
-        'grades': subject_grades,
-        'report': latest_report,
+        'grades': grades,
+        'reports': reports,
+        'report': latest_report,  # for summary section
         'student_name': student.get_full_name() or student.username,
         'logo_url': logo_data_uri,
     }
@@ -1108,6 +1109,7 @@ def download_grade_report_pdf(request):
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
 
     from io import BytesIO
+
     result = BytesIO()
     pisa_status = pisa.CreatePDF(html, dest=result)
 
@@ -1117,18 +1119,25 @@ def download_grade_report_pdf(request):
     response.write(result.getvalue())
     return response
 
+
 @login_required
 @user_passes_test(is_admin)
 def admin_download_grade_report_pdf(request, student_id):
-    student = get_object_or_404(User, id=student_id)
-    latest_report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+    # Get the student object
+    student = User.objects.filter(id=student_id, role='student').first()
+    if not student:
+        return HttpResponse("Student not found.", status=404)
+
+    # Get all reports and related subject grades for this student
+    reports = GradeReport.objects.filter(student=student)
+    grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__term', 'subject')
+
+    latest_report = reports.order_by('-date_uploaded').first()
 
     if not latest_report:
-        return HttpResponse("No report found for this student.", status=404)
+        return HttpResponse("No report found.", status=404)
 
-    subject_grades = latest_report.subject_grades.all().order_by('subject')
-
-    # Encode logo image as base64 data URI for PDF header
+    # Encode logo for PDF header
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
@@ -1138,7 +1147,8 @@ def admin_download_grade_report_pdf(request, student_id):
             logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
     context = {
-        'grades': subject_grades,
+        'grades': grades,
+        'reports': reports,
         'report': latest_report,
         'student_name': student.get_full_name() or student.username,
         'logo_url': logo_data_uri,
