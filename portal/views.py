@@ -954,26 +954,17 @@ def admin_manage_grades(request):
 @login_required
 @student_required
 def student_grades_view(request):
-    # Get all GradeReports for the logged-in student, latest first
-    reports = GradeReport.objects.filter(student=request.user).order_by('-date_uploaded')
-
-    if not reports.exists():
-        context = {
-            'no_grades': True,
-            'student_name': request.user.get_full_name() or request.user.username,
-        }
-        return render(request, 'portal/student_test_examination_grades.html', context)
-
-    latest_report = reports.first()
-    subject_grades = latest_report.subject_grades.all().order_by('subject')
+    subject_grades = SubjectGrade.objects.filter(
+        report__student=request.user
+    ).order_by('subject', '-report__date_uploaded')
 
     context = {
         'grades': subject_grades,
         'student_name': request.user.get_full_name() or request.user.username,
-        'report': latest_report,  # pass the whole GradeReport object
     }
 
     return render(request, 'portal/student_test_examination_grades.html', context)
+
 
 @login_required
 @teacher_required
