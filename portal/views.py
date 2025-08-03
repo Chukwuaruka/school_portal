@@ -899,38 +899,39 @@ def teacher_upload_grades(request):
 @user_passes_test(is_admin)
 def admin_manage_grades(request):
     student_id = request.GET.get('student_id')
-
     students = User.objects.filter(role='student').order_by('last_name', 'first_name')
 
     if student_id:
-        # Show individual student's grades grouped by report date (latest first)
         student = get_object_or_404(User, id=student_id)
-
         reports = GradeReport.objects.filter(student=student).order_by('-date_uploaded')
 
         if not reports.exists():
-            context = {
+            return render(request, 'portal/admin_manage_grades.html', {
                 'student_selected': student,
                 'no_grades': True,
                 'students': students,
-            }
-            return render(request, 'portal/admin_manage_grades.html', context)
+            })
 
-        # Prepare dictionary: report -> grades
-        reports_with_grades = []
-        for report in reports:
+        # Get latest report and grades (student view style)
+        latest_report = reports.first()
+        latest_grades = latest_report.subject_grades.all().order_by('subject')
+
+        # Also include other reports in case admin wants full history
+        other_reports_with_grades = []
+        for report in reports[1:]:
             grades = report.subject_grades.all().order_by('subject')
-            reports_with_grades.append({'report': report, 'grades': grades})
+            other_reports_with_grades.append({'report': report, 'grades': grades})
 
-        context = {
+        return render(request, 'portal/admin_manage_grades.html', {
             'student_selected': student,
-            'reports_with_grades': reports_with_grades,
+            'report': latest_report,
+            'grades': latest_grades,
+            'other_reports_with_grades': other_reports_with_grades,
             'students': students,
-        }
-        return render(request, 'portal/admin_manage_grades.html', context)
+        })
 
     else:
-        # Show filterable list of all grades across students
+        # All grades (filterable list)
         grades = SubjectGrade.objects.select_related('report__student', 'report').all()
 
         student_query = request.GET.get('student')
@@ -950,11 +951,11 @@ def admin_manage_grades(request):
 
         grades = grades.order_by('report__student__last_name', 'report__student__first_name', 'subject')
 
-        context = {
+        return render(request, 'portal/admin_manage_grades.html', {
             'grades_list': grades,
             'students': students,
-        }
-        return render(request, 'portal/admin_manage_grades.html', context)
+        })
+
 
 
 @login_required
