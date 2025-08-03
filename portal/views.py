@@ -903,8 +903,10 @@ def admin_manage_grades(request):
 
     if student_id:
         student = get_object_or_404(User, id=student_id)
+        
+        # Get all reports for the student
         reports = GradeReport.objects.filter(student=student).order_by('-date_uploaded')
-
+        
         if not reports.exists():
             return render(request, 'portal/admin_manage_grades.html', {
                 'student_selected': student,
@@ -912,21 +914,16 @@ def admin_manage_grades(request):
                 'students': students,
             })
 
-        # Get latest report and grades (student view style)
-        latest_report = reports.first()
-        latest_grades = latest_report.subject_grades.all().order_by('subject')
+        # Get all grades across all reports for this student, ordered by report date & subject
+        grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__date_uploaded', 'subject')
 
-        # Also include other reports in case admin wants full history
-        other_reports_with_grades = []
-        for report in reports[1:]:
-            grades = report.subject_grades.all().order_by('subject')
-            other_reports_with_grades.append({'report': report, 'grades': grades})
+        latest_report = reports.first()  # For summary data
 
         return render(request, 'portal/admin_manage_grades.html', {
             'student_selected': student,
-            'report': latest_report,
-            'grades': latest_grades,
-            'other_reports_with_grades': other_reports_with_grades,
+            'grades': grades,
+            'reports': reports,
+            'report': latest_report,  # latest report for summary
             'students': students,
         })
 
