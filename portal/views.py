@@ -959,27 +959,22 @@ def admin_manage_grades(request):
 @login_required
 @student_required
 def student_grades_view(request):
-    # Get all GradeReports for the logged-in student, latest first
-    reports = GradeReport.objects.filter(student=request.user).order_by('-date_uploaded')
+    student = request.user
 
-    if not reports.exists():
-        context = {
-            'no_grades': True,
-            'student_name': request.user.get_full_name() or request.user.username,
-        }
-        return render(request, 'portal/student_test_examination_grades.html', context)
+    latest_report = GradeReport.objects.filter(
+        student=student,
+    ).order_by('-date_uploaded').first()
 
-    latest_report = reports.first()
-    subject_grades = latest_report.subject_grades.all().order_by('subject')
+    subject_grades = SubjectGrade.objects.filter(
+        report=latest_report
+    ).order_by('subject') if latest_report else []
 
     context = {
         'grades': subject_grades,
-        'student_name': request.user.get_full_name() or request.user.username,
-        'report': latest_report,  # pass the whole GradeReport object
+        'report': latest_report,
+        'student_name': student.get_full_name() or student.username,
     }
-
     return render(request, 'portal/student_test_examination_grades.html', context)
-
 
 @login_required
 def edit_grade(request, grade_id):
