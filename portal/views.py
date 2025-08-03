@@ -961,18 +961,17 @@ def admin_manage_grades(request):
 def student_grades_view(request):
     student = request.user
 
-    # Get all GradeReports linked to this student (each report has subject grades)
+    # Get all reports
     reports = GradeReport.objects.filter(student=student).order_by('-date_uploaded')
 
-    # Build list of report and grades
+    # Link each report with its grades
     reports_with_grades = []
     for report in reports:
-        grades = report.subject_grades.all().order_by('subject')
-        if grades.exists():  # Only include reports with actual grades
-            reports_with_grades.append({
-                'report': report,
-                'grades': grades,
-            })
+        grades = report.subject_grades.all().order_by('subject')  # uses related_name
+        reports_with_grades.append({
+            'report': report,
+            'grades': grades,
+        })
 
     context = {
         'reports_with_grades': reports_with_grades,
