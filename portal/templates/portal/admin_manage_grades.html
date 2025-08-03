@@ -110,7 +110,6 @@
                     <th>1st Term</th>
                     <th>2nd Term</th>
                     <th>Average</th>
-                    <th>Teacher</th>
                     <th>Comment</th>
                     <th>Actions</th>
                 </tr>
@@ -131,7 +130,6 @@
                     <td>{{ grade.average_score|default:"–" }}</td>
                     <td>{{ grade.report.term }}</td>
                     <td>{{ grade.report.session }}</td>
-                    <td>{{ grade.teacher.get_full_name|default:"–" }}</td>
                     <td>{{ grade.comment|default:"–" }}</td>
                     <td>
                         <a href="{% url 'edit_student_grade' grade.id %}" class="btn btn-sm btn-outline-primary">
