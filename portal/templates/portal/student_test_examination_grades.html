@@ -68,27 +68,27 @@
         </div>
     </div>
 
-    <!-- Only show Performance Summary and Comments if report exists -->
-    {% if report %}
-    <div class="row my-4">
+    <!-- Loop over all reports -->
+    {% for report in reports %}
+    <div class="row my-4 border rounded shadow-sm p-3">
         <div class="col-md-6">
-            <h5 class="mb-3">📌 Performance Summary</h5>
+            <h5 class="mb-3">📌 Performance Summary ({{ report.session }} - {{ report.term }})</h5>
             <p><strong>Total Available Score:</strong> {{ report.total_available_score|default:"None" }}</p>
             <p><strong>Student Overall Score:</strong> {{ report.overall_score|default:"None" }}</p>
             <p><strong>Student Overall Average:</strong> {{ report.overall_average|default:"None" }}%</p>
-            <p><strong>Overall Position:</strong> {{ report.overall_position|default:"" }}</p>
+            <p><strong>Overall Position:</strong> {{ report.overall_position|default:"–" }}</p>
         </div>
         <div class="col-md-6">
             <h5 class="mb-3">🗣️ Teacher/Admin Comments</h5>
-            <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"" }}</p>
-            <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y"|default:"" }}</p>
-            <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"" }}</p>
-            <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"None" }}</p>
+            <p><strong>Teacher’s Comment:</strong> {{ report.teacher_comment|default:"–" }}</p>
+            <p><strong>Date:</strong> {{ report.date_uploaded|date:"F j, Y"|default:"–" }}</p>
+            <p><strong>Administrator’s Comment:</strong> {{ report.admin_comment_report|default:"–" }}</p>
+            <p><strong>Next Term Begins:</strong> {{ report.next_term_date|date:"F j, Y"|default:"–" }}</p>
         </div>
     </div>
-    {% endif %}
+    {% endfor %}
 
-    <!-- 🧠 Behavioral Assessment Section -->
+    <!-- Behavioural Section -->
     <div class="card border-primary mb-4">
         <div class="card-header bg-primary text-white">
             <strong>🎯 Behavioural & Psychomotor Skills</strong>
@@ -123,7 +123,7 @@
         </div>
     </div>
 
-    <!-- Download PDF button -->
+    <!-- Download PDF -->
     <div class="text-center mt-4">
         <a href="{% url 'download_grade_report_pdf' %}" class="btn btn-outline-primary btn-lg" target="_blank">
             📄 Download PDF Report
