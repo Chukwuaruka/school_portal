@@ -27,11 +27,10 @@
         {% else %}
             <!-- Download PDF button -->
             <div class="mb-3">
-                <a href="{% url 'admin_download_grade_report_pdf' student_selected.id %}" class="btn btn-success" target="_blank">
-                    📄 Download PDF Report
+                <a href="{% url 'admin_download_grade_report_pdf' student_selected.id %}" class="btn btn-primary">
+                    Download PDF Report
                 </a>
             </div>
-
             <!-- Grade Table -->
             <div class="table-responsive mb-4">
                 <table class="table table-striped table-bordered align-middle">
