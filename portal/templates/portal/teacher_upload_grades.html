@@ -162,6 +162,8 @@
               <th>Exam</th>
               <th>Total (100)</th>
               <th>Grade</th>
+              <th>Term</th>
+              <th>Session</th>
               <th>Grade Comment</th>
               <th>Actions</th>
             </tr>
@@ -175,8 +177,6 @@
                 <td>{{ grade.exam|default:"–" }}</td>
                 <td>{{ grade.total_score }}</td>
                 <td><strong>{{ grade.manual_grade|default:grade.grade }}</strong></td>
-                <td>{{ grade.report.term }}</td>
-                <td>{{ grade.report.session }}</td>
                 <td>{{ grade.grade_comment|default:"–" }}</td>
                 <td>
                   <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-warning">Edit</a>
