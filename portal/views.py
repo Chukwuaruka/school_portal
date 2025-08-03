@@ -898,30 +898,58 @@ def teacher_upload_grades(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_manage_grades(request):
-    # Start by querying all grades, joining related student info via report
-    grades = SubjectGrade.objects.select_related('report__student').all()
+    student_id = request.GET.get('student_id')
 
-    # Handle filter queries
-    student_query = request.GET.get('student')
-    term_query = request.GET.get('term')
-    session_query = request.GET.get('session')
+    if student_id:
+        # Show individual student grade report
+        student = get_object_or_404(User, id=student_id)
+        reports = GradeReport.objects.filter(student=student).order_by('-date_uploaded')
 
-    if student_query:
-        grades = grades.filter(
-            Q(report__student__first_name__icontains=student_query) |
-            Q(report__student__last_name__icontains=student_query) |
-            Q(report__student__username__icontains=student_query)
-        )
-    if term_query:
-        grades = grades.filter(report__term=term_query)
+        if not reports.exists():
+            return render(request, 'portal/admin_manage_grades.html', {
+                'student_selected': True,
+                'student_selected': student,
+                'no_grades': True,
+                'students': User.objects.filter(role='student').order_by('last_name', 'first_name'),
+            })
 
-    if session_query:
-        grades = grades.filter(report__session__icontains=session_query)
+        latest_report = reports.first()
+        subject_grades = latest_report.subject_grades.all().order_by('subject')
 
-    # Order by student last name and subject
-    grades = grades.order_by('report__student__last_name', 'subject')
+        return render(request, 'portal/admin_manage_grades.html', {
+            'grades': subject_grades,
+            'report': latest_report,
+            'student_selected': student,
+            'students': User.objects.filter(role='student').order_by('last_name', 'first_name'),
+        })
 
-    return render(request, 'portal/admin_manage_grades.html', {'grades': grades})
+    else:
+        # Show filterable list of all grades across students
+        grades = SubjectGrade.objects.select_related('report__student', 'teacher', 'report').all()
+
+        student_query = request.GET.get('student')
+        term_query = request.GET.get('term')
+        session_query = request.GET.get('session')
+
+        if student_query:
+            grades = grades.filter(
+                Q(report__student__first_name__icontains=student_query) |
+                Q(report__student__last_name__icontains=student_query) |
+                Q(report__student__username__icontains=student_query)
+            )
+        if term_query:
+            grades = grades.filter(report__term=term_query)
+        if session_query:
+            grades = grades.filter(report__session__icontains=session_query)
+
+        grades = grades.order_by('report__student__last_name', 'subject')
+
+        students = User.objects.filter(role='student').order_by('last_name', 'first_name')
+
+        return render(request, 'portal/admin_manage_grades.html', {
+            'grades_list': grades,
+            'students': students,
+        })
 
 @login_required
 @student_required
@@ -1035,6 +1063,49 @@ def download_grade_report_pdf(request):
     subject_grades = latest_report.subject_grades.all().order_by('subject')
 
     # Encode logo for PDF header
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
+    logo_data_uri = ''
+    if os.path.exists(logo_path):
+        mime_type, _ = mimetypes.guess_type(logo_path)
+        with open(logo_path, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
+            logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
+
+    context = {
+        'grades': subject_grades,
+        'report': latest_report,
+        'student_name': student.get_full_name() or student.username,
+        'logo_url': logo_data_uri,
+    }
+
+    template = get_template('portal/grades_pdf.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
+
+    from io import BytesIO
+    result = BytesIO()
+    pisa_status = pisa.CreatePDF(html, dest=result)
+
+    if pisa_status.err:
+        return HttpResponse('Error generating PDF. <pre>' + html + '</pre>')
+
+    response.write(result.getvalue())
+    return response
+
+@login_required
+@user_passes_test(is_admin)
+def admin_download_grade_report_pdf(request, student_id):
+    student = get_object_or_404(User, id=student_id)
+    latest_report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+
+    if not latest_report:
+        return HttpResponse("No report found for this student.", status=404)
+
+    subject_grades = latest_report.subject_grades.all().order_by('subject')
+
+    # Encode logo image as base64 data URI for PDF header
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):

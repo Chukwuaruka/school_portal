@@ -52,7 +52,8 @@ urlpatterns = [
     path('timetables/add/', views.add_timetable_period, name='add_timetable_period'),
     path('dashboard-admin/registration-codes/delete/<int:code_id>/', views.delete_registration_code, name='delete_registration_code'),
     path('dashboard-admin/grades/delete/<int:grade_id>/', views.delete_student_grade, name='delete_student_grade'),
-
+    path('admin/grades/<int:student_id>/download-pdf/', views.admin_download_grade_report_pdf, name='admin_download_grade_report_pdf'),
+    
     # 📣 Announcements (Admin)
     path('dashboard-admin/announcements/', views.manage_announcements, name='manage_announcements'),
     path('announcements/create/', views.create_announcement, name='create_announcement'),
