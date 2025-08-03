@@ -965,9 +965,7 @@ def student_grades_view(request):
 
     return render(request, 'portal/student_test_examination_grades.html', context)
 
-
 @login_required
-@teacher_required
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
     report = grade.report  # Linked GradeReport
