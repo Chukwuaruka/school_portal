@@ -3,8 +3,6 @@ from . import views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import delete_student_grade
-from .views import download_grade_report_pdf
 
 urlpatterns = [
     # 🔐 Authentication
@@ -40,32 +38,35 @@ urlpatterns = [
     path('teacher/profile/', views.teacher_profile, name='teacher_profile'),
     path('teacher/grades/', views.teacher_grades, name='teacher_grades'),
     path('teacher/grades/delete/<int:grade_id>/', views.delete_final_grade, name='delete_final_grade'),
+    path('teacher/upload-grades/', views.teacher_upload_grades, name='teacher_upload_grades'),
+    path('teacher/edit-grade/<int:grade_id>/', views.edit_grade, name='edit_grade'),
 
-    # 🛠 Admin Dashboard & Management
-    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    # 🛠 Admin Dashboard & Management (all prefixed with 'dashboard-admin/')
+    path('dashboard-admin/', views.admin_dashboard, name='admin_dashboard'),
     path('dashboard-admin/registration-codes/', views.manage_registration_codes, name='manage_registration_codes'),
+    path('dashboard-admin/registration-codes/delete/<int:code_id>/', views.delete_registration_code, name='delete_registration_code'),
+
     path('dashboard-admin/resources/', views.admin_resources, name='admin_resources'),
     path('dashboard-admin/resources/add/', views.add_resource, name='add_resource'),
     path('dashboard-admin/resources/edit/<int:resource_id>/', views.edit_resource, name='edit_resource'),
     path('dashboard-admin/resources/delete/<int:resource_id>/', views.delete_resource, name='delete_resource'),
+
     path('dashboard-admin/timetables/', views.manage_timetables, name='manage_timetables'),
-    path('timetables/add/', views.add_timetable_period, name='add_timetable_period'),
-    path('dashboard-admin/registration-codes/delete/<int:code_id>/', views.delete_registration_code, name='delete_registration_code'),
+    path('dashboard-admin/timetables/add/', views.add_timetable_period, name='add_timetable_period'),
+
+    path('dashboard-admin/grades/', views.admin_manage_grades, name='admin_manage_grades'),
     path('dashboard-admin/grades/delete/<int:grade_id>/', views.delete_student_grade, name='delete_student_grade'),
-    path('admin/grades/download/<int:student_id>/', views.admin_download_grade_report_pdf, name='admin_download_grade_report_pdf'),
+    path('dashboard-admin/grades/<int:grade_id>/edit/', views.edit_student_grade, name='edit_student_grade'),
+    path('dashboard-admin/grades/download/<int:student_id>/', views.admin_download_grade_report_pdf, name='admin_download_grade_report_pdf'),
 
     # 📣 Announcements (Admin)
     path('dashboard-admin/announcements/', views.manage_announcements, name='manage_announcements'),
-    path('announcements/create/', views.create_announcement, name='create_announcement'),
-    path('announcements/edit/<int:announcement_id>/', views.edit_announcement, name='edit_announcement'),
-    path('announcements/delete/<int:announcement_id>/', views.delete_announcement, name='delete_announcement'),
+    path('dashboard-admin/announcements/create/', views.create_announcement, name='create_announcement'),
+    path('dashboard-admin/announcements/edit/<int:announcement_id>/', views.edit_announcement, name='edit_announcement'),
+    path('dashboard-admin/announcements/delete/<int:announcement_id>/', views.delete_announcement, name='delete_announcement'),
 
-    path('teacher/upload-grades/', views.teacher_upload_grades, name='teacher_upload_grades'),
-    path('dashboard-admin/manage-grades/', views.admin_manage_grades, name='admin_manage_grades'),
+    # Student test/exam grades view
     path('student/test-examination-grades/', views.student_grades_view, name='student_test_examination_grades'),
-    path('teacher/edit-grade/<int:grade_id>/', views.edit_grade, name='edit_grade'),
-    path('dashboard-admin/grades/<int:grade_id>/edit/', views.edit_student_grade, name='edit_student_grade'),
-
 
     # 🔑 Password Reset
     path('password_reset/', auth_views.PasswordResetView.as_view(
@@ -89,7 +90,7 @@ urlpatterns = [
     ), name='password_reset_complete'),
 ]
 
-# 📁 Static & Media Files (Dev Only)
+# Static & Media files serving only in DEBUG (dev)
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

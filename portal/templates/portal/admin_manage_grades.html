@@ -36,30 +36,30 @@
                 <table class="table table-striped table-bordered align-middle">
                     <thead class="table-dark text-center">
                         <tr>
-                            <th>Subject</th>
-                            <th>1st Test</th>
-                            <th>2nd Test</th>
-                            <th>Exam</th>
-                            <th>Total</th>
-                            <th>1st Term</th>
-                            <th>2nd Term</th>
-                            <th>Average</th>
-                            <th>Grade</th>
-                            <th>Grade Comment</th>
-                            <th>Teacher</th>
+                            <th scope="col">Subject</th>
+                            <th scope="col">1st Test</th>
+                            <th scope="col">2nd Test</th>
+                            <th scope="col">Exam</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">1st Term</th>
+                            <th scope="col">2nd Term</th>
+                            <th scope="col">Average</th>
+                            <th scope="col">Grade</th>
+                            <th scope="col">Grade Comment</th>
+                            <th scope="col">Teacher</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for grade in grades %}
                         <tr class="text-center">
                             <td>{{ grade.subject }}</td>
-                            <td>{{ grade.first_test }}</td>
-                            <td>{{ grade.second_test }}</td>
-                            <td>{{ grade.exam }}</td>
+                            <td>{{ grade.first_test|default:"–" }}</td>
+                            <td>{{ grade.second_test|default:"–" }}</td>
+                            <td>{{ grade.exam|default:"–" }}</td>
                             <td><strong>{{ grade.total_score }}</strong></td>
-                            <td>{{ grade.first_term_score }}</td>
-                            <td>{{ grade.second_term_score }}</td>
-                            <td>{{ grade.average_score }}</td>
+                            <td>{{ grade.first_term_score|default:"–" }}</td>
+                            <td>{{ grade.second_term_score|default:"–" }}</td>
+                            <td>{{ grade.average_score|default:"–" }}</td>
                             <td>{{ grade.manual_grade|default:"–" }}</td>
                             <td>{{ grade.grade_comment|default:"–" }}</td>
                             <td>{{ grade.teacher.get_full_name|default:"–" }}</td>
@@ -98,19 +98,19 @@
         <table class="table table-bordered table-hover align-middle">
             <thead class="table-dark text-center">
                 <tr>
-                    <th>Student</th>
-                    <th>Subject</th>
-                    <th>1st Test</th>
-                    <th>2nd Test</th>
-                    <th>Exam</th>
-                    <th>Total (100)</th>
-                    <th>Manual Grade</th>
-                    <th>Grade Comment</th>
-                    <th>1st Term</th>
-                    <th>2nd Term</th>
-                    <th>Average</th>
-                    <th>Comment</th>
-                    <th>Actions</th>
+                    <th scope="col">Student</th>
+                    <th scope="col">Subject</th>
+                    <th scope="col">1st Test</th>
+                    <th scope="col">2nd Test</th>
+                    <th scope="col">Exam</th>
+                    <th scope="col">Total (100)</th>
+                    <th scope="col">Manual Grade</th>
+                    <th scope="col">Grade Comment</th>
+                    <th scope="col">1st Term</th>
+                    <th scope="col">2nd Term</th>
+                    <th scope="col">Average</th>
+                    <th scope="col">Comment</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -127,8 +127,6 @@
                     <td>{{ grade.first_term_score|default:"–" }}</td>
                     <td>{{ grade.second_term_score|default:"–" }}</td>
                     <td>{{ grade.average_score|default:"–" }}</td>
-                    <td>{{ grade.report.term }}</td>
-                    <td>{{ grade.report.session }}</td>
                     <td>{{ grade.comment|default:"–" }}</td>
                     <td>
                         <a href="{% url 'edit_student_grade' grade.id %}" class="btn btn-sm btn-outline-primary">
