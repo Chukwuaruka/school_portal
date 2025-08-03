@@ -976,36 +976,66 @@ def student_grades_view(request):
     }
     return render(request, 'portal/student_test_examination_grades.html', context)
 
+
 @login_required
 def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
     report = grade.report  # Linked GradeReport
 
+    def parse_int(value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def parse_float(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
     if request.method == 'POST':
         # SUBJECT GRADE updates
         grade.subject = request.POST.get('subject', grade.subject)
-        grade.first_test = request.POST.get('first_test') or None
-        grade.second_test = request.POST.get('second_test') or None
-        grade.exam = request.POST.get('exam') or None
-        grade.manual_total = request.POST.get('manual_total') or None
+        grade.first_test = parse_int(request.POST.get('first_test')) or None
+        grade.second_test = parse_int(request.POST.get('second_test')) or None
+        grade.exam = parse_int(request.POST.get('exam')) or None
+        grade.manual_total = parse_int(request.POST.get('manual_total')) or None
         grade.manual_grade = request.POST.get('manual_grade', '').strip()
         grade.grade_comment = request.POST.get('grade_comment', '').strip()
-        grade.first_term_score = request.POST.get('first_term_score') or None
-        grade.second_term_score = request.POST.get('second_term_score') or None
-        grade.average_score = request.POST.get('average_score') or None
+        grade.first_term_score = parse_int(request.POST.get('first_term_score')) or None
+        grade.second_term_score = parse_int(request.POST.get('second_term_score')) or None
+        grade.average_score = parse_float(request.POST.get('average_score')) or None
         grade.term = request.POST.get('term') or grade.term
         grade.session = request.POST.get('session') or grade.session
         grade.comment = request.POST.get('comment', '').strip()
         grade.admin_comment = request.POST.get('admin_comment', '').strip()
         grade.save()
 
-        # REPORT updates - only update if values are provided
-        report.total_available_score = request.POST.get('total_available_score') or report.total_available_score
-        report.overall_score = request.POST.get('overall_score') or report.overall_score
-        report.overall_average = request.POST.get('overall_average') or report.overall_average
-        report.overall_position = request.POST.get('overall_position', report.overall_position)
-        report.teacher_comment = request.POST.get('teacher_comment', report.teacher_comment)
-        report.admin_comment_report = request.POST.get('admin_comment_report', report.admin_comment_report)
+        # REPORT updates - parse numeric values correctly
+        total_available_score = parse_int(request.POST.get('total_available_score'))
+        if total_available_score is not None:
+            report.total_available_score = total_available_score
+
+        overall_score = parse_int(request.POST.get('overall_score'))
+        if overall_score is not None:
+            report.overall_score = overall_score
+
+        overall_average = parse_float(request.POST.get('overall_average'))
+        if overall_average is not None:
+            report.overall_average = overall_average
+
+        overall_position = request.POST.get('overall_position')
+        if overall_position is not None:
+            report.overall_position = overall_position.strip()
+
+        teacher_comment = request.POST.get('teacher_comment')
+        if teacher_comment is not None:
+            report.teacher_comment = teacher_comment.strip()
+
+        admin_comment_report = request.POST.get('admin_comment_report')
+        if admin_comment_report is not None:
+            report.admin_comment_report = admin_comment_report.strip()
 
         # Parse and update next_term_date
         next_term_date_str = request.POST.get('next_term_date')
@@ -1015,7 +1045,7 @@ def edit_grade(request, grade_id):
             except ValueError:
                 pass  # Ignore invalid date input
 
-        # Optional: update upload date
+        # Update upload date
         report.date_uploaded = timezone.now()
         report.save()
 
