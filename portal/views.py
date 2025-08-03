@@ -961,22 +961,17 @@ def admin_manage_grades(request):
 def student_grades_view(request):
     student = request.user
 
-    reports = GradeReport.objects.filter(student=student).order_by('-date_uploaded')
+    # Get latest report
+    report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+    
+    # Get grades from that report
+    grades = report.subject_grades.all().order_by('subject') if report else []
 
-    reports_with_grades = []
-    for report in reports.prefetch_related('subject_grades'):
-        reports_with_grades.append({
-            'report': report,
-            'grades': report.subject_grades.all().order_by('subject'),
-        })
-
-    context = {
-        'reports_with_grades': reports_with_grades,
+    return render(request, 'portal/student_test_examination_grades.html', {
+        'grades': grades,
+        'report': report,
         'student_name': student.get_full_name() or student.username,
-    }
-
-    return render(request, 'portal/student_test_examination_grades.html', context)
-
+    })
 
 @login_required
 def edit_grade(request, grade_id):
