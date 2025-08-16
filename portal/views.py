@@ -1097,13 +1097,6 @@ def download_grade_report_pdf(request):
     # Prepare student profile data
     student_profile = {
         'student_name': student.get_full_name() or student.username,
-        'student_sex': getattr(student, 'sex', 'Unknown'),
-        'student_height': getattr(student, 'height', 'Unknown'),
-        'student_weight': getattr(student, 'weight', 'Unknown'),
-        'student_department': getattr(student, 'department', 'Unknown'),
-        'student_class': getattr(student, 'student_class', 'Unknown'),
-        'student_nationality': getattr(student, 'nationality', 'Unknown'),
-        'student_time_present_absent': f"{getattr(student, 'time_present', 0)}/{getattr(student, 'time_absent', 0)}",
     }
 
     context = {
