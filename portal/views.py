@@ -1094,12 +1094,25 @@ def download_grade_report_pdf(request):
             encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
             logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
+    # Prepare student profile data
+    student_profile = {
+        'student_name': student.get_full_name() or student.username,
+        'student_sex': getattr(student, 'sex', 'Unknown'),
+        'student_height': getattr(student, 'height', 'Unknown'),
+        'student_weight': getattr(student, 'weight', 'Unknown'),
+        'student_department': getattr(student, 'department', 'Unknown'),
+        'student_class': getattr(student, 'student_class', 'Unknown'),
+        'student_nationality': getattr(student, 'nationality', 'Unknown'),
+        'student_time_present_absent': f"{getattr(student, 'time_present', 0)}/{getattr(student, 'time_absent', 0)}",
+    }
+
     context = {
         'grades': grades,
         'reports': reports,
         'report': latest_report,  # for summary section
-        'student_name': student.get_full_name() or student.username,
+        'student_name': student_profile['student_name'],
         'logo_url': logo_data_uri,
+        'student_profile': student_profile,
     }
 
     template = get_template('portal/grades_pdf.html')
@@ -1107,6 +1120,7 @@ def download_grade_report_pdf(request):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
+
 
     from io import BytesIO
 

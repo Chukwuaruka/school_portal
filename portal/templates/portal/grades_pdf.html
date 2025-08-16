@@ -90,6 +90,20 @@
       display: table;
       clear: both;
     }
+
+    .student-profile {
+      margin-bottom: 10px;
+    }
+
+    .student-profile td {
+      border: none;
+      text-align: left;
+      font-size: 11px;
+      padding: 4px;
+      vertical-align: top;
+      font-weight: bold;
+      color: #000;
+    }
   </style>
 </head>
 <body>
@@ -105,6 +119,21 @@
     <strong>MOTTO:</strong> TRAINED FOR DUTY & FOR THEE (GOVERNMENT APPROVED)
   </div>
   <div class="term-heading">THIRD TERM ASSESSMENT REPORT (SESSION 2024/2025)</div>
+</div>
+
+<div class="student-profile">
+  <table>
+    <tr>
+      <td><strong>NAME:</strong> {{ student_profile.student_name }}</td>
+      <td><strong>SEX:</strong> {{ student_profile.student_sex }}</td>
+      <td><strong>HEIGHT:</strong> {{ student_profile.student_height }}</td>
+      <td><strong>WEIGHT:</strong> {{ student_profile.student_weight }}</td>
+      <td><strong>DEPT:</strong> {{ student_profile.student_department }}</td>
+      <td><strong>CLASS:</strong> {{ student_profile.student_class }}</td>
+      <td><strong>NATIONALITY:</strong> {{ student_profile.student_nationality }}</td>
+      <td><strong>TIME PRESENT/ABSENT:</strong> {{ student_profile.student_time_present_absent }}</td>
+    </tr>
+  </table>
 </div>
 
 {% if grades %}
