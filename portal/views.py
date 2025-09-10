@@ -68,76 +68,66 @@ def student_register(request):
 
     if request.method == 'POST':
         # Extract form data
-        username = request.POST.get('username')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        middle_name = request.POST.get('middle_name')
-        email = request.POST.get('email')
-        gender = request.POST.get('gender')
-        dob = request.POST.get('dob')
-        phone = request.POST.get('phone')
-        classroom_name = request.POST.get('classroom')
-        reg_code_input = request.POST.get('registration_code')
-        profile_picture = request.FILES.get('profile_picture')
-        address = request.POST.get('address')
+        data = request.POST
+        files = request.FILES
 
-        # ✅ Required new fields
-        nationality = request.POST.get('nationality')
-        state_of_origin = request.POST.get('state_of_origin')
-        height = request.POST.get('height')
-        weight = request.POST.get('weight')
+        username = data.get('username', '').strip()
+        password1 = data.get('password1', '')
+        password2 = data.get('password2', '')
+        first_name = data.get('first_name', '').strip()
+        last_name = data.get('last_name', '').strip()
+        middle_name = data.get('middle_name', '').strip()
+        email = data.get('email', '').strip()
+        gender = data.get('gender', '').strip()
+        dob = data.get('dob', '').strip()
+        phone = data.get('phone', '').strip()
+        classroom_name = data.get('classroom', '')
+        reg_code_input = data.get('registration_code', '').strip()
+        profile_picture = files.get('profile_picture')
+        address = data.get('address', '').strip()
 
-        # ✅ Required parent info
-        parent_first_name = request.POST.get('parent_first_name')
-        parent_last_name = request.POST.get('parent_last_name')
-        parent_phone = request.POST.get('parent_phone')
-        parent_email = request.POST.get('parent_email')
-        parent_address = request.POST.get('parent_address')
+        # New fields
+        nationality = data.get('nationality', '').strip()
+        state_of_origin = data.get('state_of_origin', '').strip()
+        height = data.get('height', '').strip()
+        weight = data.get('weight', '').strip()
+
+        # Parent info
+        parent_first_name = data.get('parent_first_name', '').strip()
+        parent_last_name = data.get('parent_last_name', '').strip()
+        parent_phone = data.get('parent_phone', '').strip()
+        parent_email = data.get('parent_email', '').strip()
+        parent_address = data.get('parent_address', '').strip()
 
         # --- Validations ---
         errors = []
 
         if not classroom_name:
             errors.append('Please select a classroom.')
-
         if not username or not password1:
             errors.append('Username and password are required.')
-
         if password1 != password2:
             errors.append('Passwords do not match.')
-
         if not reg_code_input:
             errors.append('Registration code is required.')
-
         if not first_name or not last_name:
             errors.append('First name and last name are required.')
-
         if not gender:
             errors.append('Gender is required.')
-
         if not dob:
             errors.append('Date of birth is required.')
-
         if not phone:
             errors.append('Phone number is required.')
-
         if not address:
             errors.append('Address is required.')
-
         if not nationality:
             errors.append('Nationality is required.')
-
         if not state_of_origin:
             errors.append('State of Origin is required.')
-
         if not height:
             errors.append('Height is required.')
-
         if not weight:
             errors.append('Weight is required.')
-
         if not parent_first_name or not parent_last_name or not parent_phone or not parent_email or not parent_address:
             errors.append('All parent details are required.')
 
@@ -154,7 +144,10 @@ def student_register(request):
         if errors:
             for error in errors:
                 messages.error(request, error)
-            return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
+            # Preserve all submitted data
+            context = {'classrooms': classrooms}
+            context.update(data)
+            return render(request, 'portal/student_registration.html', context)
 
         # --- Create the user ---
         user = User.objects.create_user(
@@ -179,6 +172,7 @@ def student_register(request):
             parent_email=parent_email,
             parent_address=parent_address,
         )
+
         user.role = 'student'
         user.classroom = get_object_or_404(Classroom, name=classroom_name)
         user.save()
@@ -191,6 +185,7 @@ def student_register(request):
         messages.success(request, 'Registration successful. You can now login.')
         return redirect('login')
 
+    # GET request
     return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
 
 
