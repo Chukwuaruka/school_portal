@@ -67,16 +67,16 @@ def student_register(request):
     classrooms = Classroom.objects.all()
 
     if request.method == 'POST':
-        # Extract form data
         data = request.POST
         files = request.FILES
 
+        # --- Extract form data ---
         username = data.get('username', '').strip()
         password1 = data.get('password1', '')
         password2 = data.get('password2', '')
         first_name = data.get('first_name', '').strip()
-        last_name = data.get('last_name', '').strip()
         middle_name = data.get('middle_name', '').strip()
+        last_name = data.get('last_name', '').strip()
         email = data.get('email', '').strip()
         gender = data.get('gender', '').strip()
         dob = data.get('dob', '').strip()
@@ -86,32 +86,34 @@ def student_register(request):
         profile_picture = files.get('profile_picture')
         address = data.get('address', '').strip()
 
-        # New fields
+        # --- Additional fields ---
         nationality = data.get('nationality', '').strip()
         state_of_origin = data.get('state_of_origin', '').strip()
         height = data.get('height', '').strip()
         weight = data.get('weight', '').strip()
 
-        # Parent info
+        # --- Parent info ---
         parent_first_name = data.get('parent_first_name', '').strip()
         parent_last_name = data.get('parent_last_name', '').strip()
         parent_phone = data.get('parent_phone', '').strip()
         parent_email = data.get('parent_email', '').strip()
         parent_address = data.get('parent_address', '').strip()
 
-        # --- Validations ---
+        # --- Validation ---
         errors = []
 
         if not classroom_name:
             errors.append('Please select a classroom.')
-        if not username or not password1:
-            errors.append('Username and password are required.')
+        if not username:
+            errors.append('Username is required.')
+        if not password1:
+            errors.append('Password is required.')
         if password1 != password2:
             errors.append('Passwords do not match.')
         if not reg_code_input:
             errors.append('Registration code is required.')
         if not first_name or not last_name:
-            errors.append('First name and last name are required.')
+            errors.append('First and last name are required.')
         if not gender:
             errors.append('Gender is required.')
         if not dob:
@@ -131,32 +133,55 @@ def student_register(request):
         if not parent_first_name or not parent_last_name or not parent_phone or not parent_email or not parent_address:
             errors.append('All parent details are required.')
 
-        # Validate registration code
+        # Check registration code
         try:
             reg_code_obj = RegistrationCode.objects.get(code=reg_code_input, is_active=True)
         except RegistrationCode.DoesNotExist:
             errors.append('Invalid or already used registration code.')
 
-        # Check duplicate username
+        # Check username duplicate
         if User.objects.filter(username=username).exists():
             errors.append('Username already exists.')
 
+        # --- Handle errors ---
         if errors:
             for error in errors:
                 messages.error(request, error)
-            # Preserve all submitted data
-            context = {'classrooms': classrooms}
-            context.update(data)
+
+            # Preserve submitted data in context
+            context = {
+                'classrooms': classrooms,
+                'username': username,
+                'first_name': first_name,
+                'middle_name': middle_name,
+                'last_name': last_name,
+                'email': email,
+                'gender': gender,
+                'dob': dob,
+                'phone': phone,
+                'classroom': classroom_name,
+                'registration_code': reg_code_input,
+                'address': address,
+                'nationality': nationality,
+                'state_of_origin': state_of_origin,
+                'height': height,
+                'weight': weight,
+                'parent_first_name': parent_first_name,
+                'parent_last_name': parent_last_name,
+                'parent_phone': parent_phone,
+                'parent_email': parent_email,
+                'parent_address': parent_address,
+            }
             return render(request, 'portal/student_registration.html', context)
 
-        # --- Create the user ---
+        # --- Create user ---
         user = User.objects.create_user(
             username=username,
             password=password1,
             email=email,
             first_name=first_name,
-            last_name=last_name,
             middle_name=middle_name,
+            last_name=last_name,
             gender=gender,
             dob=dob,
             phone=phone,
@@ -185,7 +210,7 @@ def student_register(request):
         messages.success(request, 'Registration successful. You can now login.')
         return redirect('login')
 
-    # GET request
+    # --- GET request ---
     return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
 
 
