@@ -1,5 +1,6 @@
 {% extends 'portal/base.html' %}
-{% load static %}
+{% block title %}My Details – Pen-Ark Portal{% endblock %}
+
 {% block content %}
 <h2 class="mb-4">👤 My Details</h2>
 
@@ -11,13 +12,27 @@
       <p><strong>First Name:</strong> {{ student.first_name }}</p>
       <p><strong>Middle Name:</strong> {{ student.middle_name|default:"-" }}</p>
       <p><strong>Last Name:</strong> {{ student.last_name }}</p>
-      <p><strong>Email:</strong> {{ student.email }}</p>
+      <p><strong>Email:</strong> {{ student.email|default:"-" }}</p>
       <p><strong>Role:</strong> {{ student.role|title }}</p>
-      <p><strong>Class:</strong> {{ student.student_class }}</p>
+      <p><strong>Class:</strong> {{ student.classroom.name|default:"Not assigned" }}</p>
       <p><strong>Gender:</strong> {{ student.gender|default:"Not specified" }}</p>
-      <p><strong>Date of Birth:</strong> {{ student.dob|date:"M d, Y" }}</p>
-      <p><strong>Phone:</strong> {{ student.phone }}</p>
-      <p><strong>Address:</strong> {{ student.address }}</p>
+      <p><strong>Date of Birth:</strong> {% if student.dob %}{{ student.dob|date:"M d, Y" }}{% else %}-{% endif %}</p>
+      <p><strong>Phone:</strong> {{ student.phone|default:"-" }}</p>
+      <p><strong>Address:</strong> {{ student.address|default:"-" }}</p>
+
+      <!-- New Fields -->
+      <p><strong>Nationality:</strong> {{ student.nationality|default:"-" }}</p>
+      <p><strong>State of Origin:</strong> {{ student.state_of_origin|default:"-" }}</p>
+      <p><strong>Height:</strong> {% if student.height %}{{ student.height }} cm{% else %}-{% endif %}</p>
+      <p><strong>Weight:</strong> {% if student.weight %}{{ student.weight }} kg{% else %}-{% endif %}</p>
+
+      <!-- Parent Info -->
+      <hr>
+      <h5>Parent Information</h5>
+      <p><strong>Name:</strong> {{ student.parent_first_name }} {{ student.parent_last_name }}</p>
+      <p><strong>Phone:</strong> {{ student.parent_phone|default:"-" }}</p>
+      <p><strong>Email:</strong> {{ student.parent_email|default:"-" }}</p>
+      <p><strong>Address:</strong> {{ student.parent_address|default:"-" }}</p>
 
       <a href="{% url 'edit_student_profile' %}" class="btn btn-outline-primary mt-3">Edit Profile</a>
     </div>

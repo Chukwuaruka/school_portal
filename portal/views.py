@@ -28,7 +28,7 @@ from .models import (
     User, Assignment, Grade, SubjectGrade, GradeReport, Resource,
     Announcement, Timetable, Submission, Teacher, Classroom, RegistrationCode
 )
-from .forms import UserEditForm, ResourceForm, AnnouncementForm
+from .forms import ResourceForm, AnnouncementForm
 from .decorators import student_required, teacher_required
 
 
@@ -67,56 +67,120 @@ def student_register(request):
     classrooms = Classroom.objects.all()
 
     if request.method == 'POST':
+        # Extract form data
         username = request.POST.get('username')
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
+        middle_name = request.POST.get('middle_name')
         email = request.POST.get('email')
         gender = request.POST.get('gender')
+        dob = request.POST.get('dob')
+        phone = request.POST.get('phone')
         classroom_name = request.POST.get('classroom')
-        reg_code_input = request.POST.get('registration_code')  # new input for code
+        reg_code_input = request.POST.get('registration_code')
+        profile_picture = request.FILES.get('profile_picture')
+        address = request.POST.get('address')
+
+        # ✅ Required new fields
+        nationality = request.POST.get('nationality')
+        state_of_origin = request.POST.get('state_of_origin')
+        height = request.POST.get('height')
+        weight = request.POST.get('weight')
+
+        # ✅ Required parent info
+        parent_first_name = request.POST.get('parent_first_name')
+        parent_last_name = request.POST.get('parent_last_name')
+        parent_phone = request.POST.get('parent_phone')
+        parent_email = request.POST.get('parent_email')
+        parent_address = request.POST.get('parent_address')
+
+        # --- Validations ---
+        errors = []
 
         if not classroom_name:
-            messages.error(request, 'Please select a classroom.')
-            return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
+            errors.append('Please select a classroom.')
+
+        if not username or not password1:
+            errors.append('Username and password are required.')
 
         if password1 != password2:
-            messages.error(request, 'Passwords do not match.')
-            return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
+            errors.append('Passwords do not match.')
 
         if not reg_code_input:
-            messages.error(request, 'Registration code is required.')
-            return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
+            errors.append('Registration code is required.')
+
+        if not first_name or not last_name:
+            errors.append('First name and last name are required.')
+
+        if not gender:
+            errors.append('Gender is required.')
+
+        if not dob:
+            errors.append('Date of birth is required.')
+
+        if not phone:
+            errors.append('Phone number is required.')
+
+        if not address:
+            errors.append('Address is required.')
+
+        if not nationality:
+            errors.append('Nationality is required.')
+
+        if not state_of_origin:
+            errors.append('State of Origin is required.')
+
+        if not height:
+            errors.append('Height is required.')
+
+        if not weight:
+            errors.append('Weight is required.')
+
+        if not parent_first_name or not parent_last_name or not parent_phone or not parent_email or not parent_address:
+            errors.append('All parent details are required.')
 
         # Validate registration code
         try:
             reg_code_obj = RegistrationCode.objects.get(code=reg_code_input, is_active=True)
         except RegistrationCode.DoesNotExist:
-            messages.error(request, 'Invalid or already used registration code.')
-            return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
+            errors.append('Invalid or already used registration code.')
 
-        classroom = get_object_or_404(Classroom, name=classroom_name)
-
-        if not username or not password1:
-            messages.error(request, 'Username and password are required.')
-            return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
-
+        # Check duplicate username
         if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
+            errors.append('Username already exists.')
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
             return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
 
-        # Create the user
+        # --- Create the user ---
         user = User.objects.create_user(
             username=username,
-            password=password1,  # hashed automatically
+            password=password1,
             email=email,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            middle_name=middle_name,
+            gender=gender,
+            dob=dob,
+            phone=phone,
+            profile_picture=profile_picture,
+            address=address,
+            nationality=nationality,
+            state_of_origin=state_of_origin,
+            height=height,
+            weight=weight,
+            parent_first_name=parent_first_name,
+            parent_last_name=parent_last_name,
+            parent_phone=parent_phone,
+            parent_email=parent_email,
+            parent_address=parent_address,
         )
-        user.gender = gender
         user.role = 'student'
-        user.classroom = classroom
+        user.classroom = get_object_or_404(Classroom, name=classroom_name)
         user.save()
 
         # Mark registration code as used
@@ -128,6 +192,7 @@ def student_register(request):
         return redirect('login')
 
     return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
+
 
 # --- Teacher Registration ---
 def register_teacher(request):
@@ -176,6 +241,7 @@ def register_teacher(request):
 @login_required
 @student_required
 def student_dashboard(request):
+    # The template uses `user.classroom.name` directly
     return render(request, 'portal/student_dashboard.html')
 
 @login_required
@@ -246,26 +312,59 @@ def student_resources(request):
 @login_required
 @student_required
 def student_announcements(request):
-    announcements = Announcement.objects.order_by('-created_at')
-    return render(request, 'portal/student_announcements.html', {'announcements': announcements})
+    user_classroom = request.user.classroom
+
+    # Get announcements for the whole school (classroom=None) or for the student's class
+    announcements = Announcement.objects.filter(
+        target_audience__in=['student', 'all']
+    ).filter(
+        Q(classroom__isnull=True) | Q(classroom=user_classroom)
+    ).order_by('-created_at')
+
+    return render(request, 'portal/student_announcements.html', {
+        'announcements': announcements
+    })
 
 @login_required
+@student_required
 def student_details(request):
-    return render(request, 'portal/student_details.html', {'student': request.user})
+    student = request.user  # logged-in student
+
+    context = {
+        'student': student
+    }
+    return render(request, 'portal/student_details.html', context)
 
 @login_required
 @student_required
 def edit_student_profile(request):
-    user = request.user
+    student = request.user
+    classrooms = Classroom.objects.all()
+
     if request.method == 'POST':
-        form = UserEditForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully.')
-            return redirect('student_details')
-    else:
-        form = UserEditForm(instance=user)
-    return render(request, 'portal/edit_student_profile.html', {'form': form})
+        # Update basic info
+        student.first_name = request.POST.get('first_name', student.first_name)
+        student.middle_name = request.POST.get('middle_name', student.middle_name)
+        student.last_name = request.POST.get('last_name', student.last_name)
+        student.email = request.POST.get('email', student.email)
+        student.phone = request.POST.get('phone', student.phone)
+        student.address = request.POST.get('address', student.address)
+
+        # Update classroom by name
+        classroom_name = request.POST.get('classroom')
+        if classroom_name:
+            student.classroom = get_object_or_404(Classroom, name=classroom_name)
+
+        # Update profile picture if uploaded
+        if 'profile_picture' in request.FILES:
+            student.profile_picture = request.FILES['profile_picture']
+
+        student.save()
+        messages.success(request, 'Profile updated successfully.')
+        return redirect('student_details')
+
+    return render(request, 'portal/edit_student_profile.html', {'student': student, 'classrooms': classrooms})
+
 
 @login_required
 @student_required

@@ -1,104 +1,19 @@
 {% extends 'portal/base.html' %}
 {% block content %}
-<h2 class="mb-4">🎓 Welcome, {{ user.first_name }} ({{ student.class_name }})</h2>
+<h2 class="mb-4">🎓 Welcome, {{ user.first_name }} ({{ student.classroom.name }})</h2>
 
 <div class="row row-cols-1 row-cols-md-2 g-4">
-
-  <!-- My Details -->
-  <div class="col">
-    <a href="{% url 'student_details' %}" class="text-decoration-none">
-      <div class="card text-white bg-dark shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">🙋‍♂️ My Details</h3>
-          <p class="card-text">View your profile and account information.</p>
+  {% for card in dashboard_cards %}
+    <div class="col">
+      <a href="{% url card.url_name %}" class="text-decoration-none">
+        <div class="card text-white shadow-lg h-100" style="background-color: {{ card.bg_color }};">
+          <div class="card-body py-5 text-center">
+            <h3 class="card-title">{{ card.title }}</h3>
+            <p class="card-text">{{ card.text }}</p>
+          </div>
         </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Timetable -->
-  <div class="col">
-    <a href="{% url 'student_timetable' %}" class="text-decoration-none">
-      <div class="card text-white bg-primary shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📅 Timetable</h3>
-          <p class="card-text">View your class schedule.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Assignments -->
-  <div class="col">
-    <a href="{% url 'student_assignments' %}" class="text-decoration-none">
-      <div class="card text-white bg-success shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📝 Assignments</h3>
-          <p class="card-text">Check and submit your assignments.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Submissions & Feedback -->
-  <div class="col">
-    <a href="{% url 'student_submissions' %}" class="text-decoration-none">
-      <div class="card text-white bg-secondary shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📤 Submissions</h3>
-          <p class="card-text">Track submitted work and review feedback.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Grades -->
-  <div class="col">
-    <a href="{% url 'student_grades' %}" class="text-decoration-none">
-      <div class="card text-white bg-warning shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📊 Grades</h3>
-          <p class="card-text">Review your academic performance.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- 🆕 Test/Examination Grades -->
-  <div class="col">
-    <a href="{% url 'student_test_examination_grades' %}" class="text-decoration-none">
-      <div class="card text-white bg-purple shadow-lg h-100" style="background-color: rebeccapurple;">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">🧪 Test/Exams</h3>
-          <p class="card-text">View your test and examination scores.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Resources -->
-  <div class="col">
-    <a href="{% url 'student_resources' %}" class="text-decoration-none">
-      <div class="card text-white bg-info shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📚 Resources</h3>
-          <p class="card-text">Access course materials and e-books.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Announcements -->
-  <div class="col">
-    <a href="{% url 'student_announcements' %}" class="text-decoration-none">
-      <div class="card text-white bg-danger shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📢 Announcements</h3>
-          <p class="card-text">Stay updated with school news.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
+      </a>
+    </div>
+  {% endfor %}
 </div>
 {% endblock %}

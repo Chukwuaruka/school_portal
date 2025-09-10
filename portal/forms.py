@@ -14,8 +14,3 @@ class ResourceForm(forms.ModelForm):
     class Meta:
         model = Resource
         fields = ['title', 'subject', 'file']
-
-class UserEditForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'gender', 'profile_picture']

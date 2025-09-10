@@ -43,9 +43,19 @@ class User(AbstractUser):
     dob = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=50, default='Not specified', blank=True)
     phone = models.CharField(max_length=20, default='Not specified', blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', default='profile_pics/default.jpg', blank=True)
+    profile_picture = models.ImageField(
+        upload_to='profile_pics/', 
+        default='profile_pics/default.jpg', 
+        blank=True
+    )
     classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True)
     address = models.CharField(max_length=255, default='N/A', blank=True)
+
+    # ✅ New fields
+    nationality = models.CharField(max_length=100, blank=True, null=True)
+    state_of_origin = models.CharField(max_length=100, blank=True, null=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # e.g., 170.50 cm
+    weight = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)  # e.g., 65.25 kg
 
     # Parent Info
     parent_first_name = models.CharField(max_length=50, blank=True)

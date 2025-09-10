@@ -5,11 +5,42 @@
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <h2 class="mb-4">Edit Announcement</h2>
-
-      <form method="post">
+      <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-
+        <div class="mb-3">
+          <label for="title" class="form-label">Title</label>
+          <input type="text" id="title" name="title" class="form-control" value="{{ announcement.title }}" required>
+        </div>
+        <div class="mb-3">
+          <label for="content" class="form-label">Content</label>
+          <textarea id="content" name="content" class="form-control" rows="4" required>{{ announcement.content }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label for="attachment" class="form-label">Attachment</label>
+          <input type="file" id="attachment" name="attachment" class="form-control">
+          {% if announcement.attachment %}
+            <a href="{{ announcement.attachment.url }}" class="btn btn-sm btn-outline-primary" download>
+              📎 Download Current Attachment
+            </a>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <label for="target_audience" class="form-label">Target Audience</label>
+          <select id="target_audience" name="target_audience" class="form-select">
+            <option value="all" {% if announcement.target_audience == 'all' %}selected{% endif %}>All</option>
+            <option value="student" {% if announcement.target_audience == 'student' %}selected{% endif %}>Student</option>
+            <option value="teacher" {% if announcement.target_audience == 'teacher' %}selected{% endif %}>Teacher</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="classroom" class="form-label">Classroom (Optional)</label>
+          <select id="classroom" name="classroom" class="form-select">
+            <option value="">Select Classroom</option>
+            {% for room in classrooms %}
+              <option value="{{ room.name }}" {% if announcement.classroom and announcement.classroom.name == room.name %}selected{% endif %}>{{ room.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
         <button type="submit" class="btn btn-primary">Update</button>
         <a href="{% url 'manage_announcements' %}" class="btn btn-secondary ms-2">Cancel</a>
       </form>
