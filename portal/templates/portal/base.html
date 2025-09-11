@@ -105,7 +105,6 @@
 
         {% elif user.role == 'teacher' %}
           <a href="{% url 'teacher_dashboard' %}" class="{% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}">Dashboard</a>
-          <a href="{% url 'teacher_timetable' %}" class="{% if request.resolver_match.url_name == 'teacher_timetable' %}active{% endif %}">Timetable</a>
           <a href="{% url 'teacher_assignments' %}" class="{% if request.resolver_match.url_name == 'teacher_assignments' %}active{% endif %}">Assignments</a>
           <a href="{% url 'teacher_resources' %}" class="{% if request.resolver_match.url_name == 'teacher_resources' %}active{% endif %}">Resources</a>
           <a href="{% url 'teacher_submissions' %}" class="{% if request.resolver_match.url_name == 'teacher_submissions' %}active{% endif %}">Submissions</a>
