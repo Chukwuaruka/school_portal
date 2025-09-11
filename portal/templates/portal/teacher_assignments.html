@@ -3,6 +3,16 @@
 <div class="container mt-4">
   <h2 class="mb-4">📝 Create Assignment</h2>
 
+  <!-- Flash messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
   <!-- Assignment Creation Form -->
   <form method="POST" class="card p-4 shadow-sm mb-5">
     {% csrf_token %}
@@ -19,19 +29,20 @@
 
     <div class="mb-3">
       <label for="classroom" class="form-label">Classroom</label>
-      <select name="classroom" required>
-  <option value="">-- Select Class --</option>
-  {% for room in classrooms %}
-    <option value="{{ room.name }}">{{ room.name }}</option>
-  {% empty %}
-    <option disabled>No classrooms available</option>
-  {% endfor %}
-</select>
+      <select name="classroom" id="classroom" class="form-select" required>
+        <option value="">-- Select Class --</option>
+        {% for room in classrooms %}
+          <option value="{{ room.name }}">{{ room.name }}</option>
+        {% empty %}
+          <option disabled>No classrooms available</option>
+        {% endfor %}
+      </select>
     </div>
+
     <div class="mb-3">
-  <label for="due_date" class="form-label">Due Date</label>
-  <input type="date" name="due_date" id="due_date" class="form-control" required>
-</div>
+      <label for="due_date" class="form-label">Due Date</label>
+      <input type="date" name="due_date" id="due_date" class="form-control" required>
+    </div>
 
     <button type="submit" class="btn btn-success">Create Assignment</button>
   </form>
@@ -46,6 +57,7 @@
           <h5 class="mb-1">{{ assignment.title }}</h5>
           <small class="text-muted">Due: {{ assignment.due_date|date:"M d, Y" }}</small>
           <p class="mt-2">{{ assignment.description|default:"No description provided." }}</p>
+          <small class="text-muted">Class: {{ assignment.classroom.name }}</small>
         </div>
       {% endfor %}
     </div>

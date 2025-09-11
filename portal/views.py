@@ -522,34 +522,44 @@ def teacher_dashboard(request):
 @teacher_required
 def teacher_assignments(request):
     user = request.user
-    assignments = Assignment.objects.filter(teacher=user)
-
-    # This is what is probably missing:
+    assignments = Assignment.objects.filter(teacher=user).order_by('-due_date')
     classrooms = Classroom.objects.all()
 
     if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
         due_date = request.POST.get('due_date')
         classroom_name = request.POST.get('classroom')
 
-        classroom = get_object_or_404(Classroom, name=classroom_name)
+        # Validate fields
+        errors = []
+        if not title:
+            errors.append("Title is required.")
+        if not due_date:
+            errors.append("Due date is required.")
+        if not classroom_name:
+            errors.append("Please select a classroom.")
 
-        Assignment.objects.create(
-            teacher=user,
-            title=title,
-            description=description,
-            due_date=due_date,
-            classroom=classroom
-        )
-        messages.success(request, 'Assignment created successfully!')
-        return redirect('teacher_assignments')
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            classroom = get_object_or_404(Classroom, name=classroom_name)
+
+            Assignment.objects.create(
+                teacher=user,
+                title=title,
+                description=description,
+                due_date=due_date,
+                classroom=classroom
+            )
+            messages.success(request, 'Assignment created successfully!')
+            return redirect('teacher_assignments')
 
     return render(request, 'portal/teacher_assignments.html', {
         'assignments': assignments,
         'classrooms': classrooms
     })
-
 
 @login_required
 @teacher_required
@@ -567,14 +577,14 @@ def grade_submission(request, submission_id):
             score = float(request.POST.get('score'))
             total_marks = float(request.POST.get('total_marks'))
         except (ValueError, TypeError):
-            messages.error(request, 'Please enter valid numeric values for score and total marks.')
+            messages.error(request, 'Enter valid numeric values for score and total marks.')
             return redirect('teacher_submissions')
 
         feedback = request.POST.get('feedback', '')
 
         submission.score = score
-        submission.feedback = feedback
         submission.total_marks = total_marks
+        submission.feedback = feedback
         submission.graded = True
         submission.save()
 
@@ -592,6 +602,7 @@ def grade_submission(request, submission_id):
         return redirect('teacher_submissions')
 
     return render(request, 'portal/grade_submission.html', {'submission': submission})
+
 
 @login_required
 @teacher_required
@@ -656,49 +667,6 @@ def edit_teacher_profile(request):
         return redirect("teacher_profile")
 
     return render(request, "portal/edit_teacher_profile.html", {"teacher": teacher})
-
-
-@login_required
-@teacher_required
-def teacher_timetable(request):
-    teacher = request.user
-    current_day = now().strftime("%A")
-
-    periods = Timetable.objects.filter(teacher=teacher).select_related('classroom')
-    timetable_data = {}
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-
-    if not periods.exists():
-        messages.info(request, "No timetable assigned yet.")
-    else:
-        class_names = periods.values_list('classroom__name', flat=True).distinct()
-
-        for class_name in class_names:
-            class_periods = periods.filter(classroom__name=class_name).order_by('day', 'start_time')
-
-            # Create unique time slots (sorted)
-            time_slots = sorted(set(
-                f"{p.start_time.strftime('%H:%M')} - {p.end_time.strftime('%H:%M')}"
-                for p in class_periods
-            ))
-
-            # Build grid: {day: [subjects for each time slot]}
-            grid = {day: ['' for _ in time_slots] for day in days}
-            for p in class_periods:
-                time_label = f"{p.start_time.strftime('%H:%M')} - {p.end_time.strftime('%H:%M')}"
-                col_index = time_slots.index(time_label)
-                grid[p.day][col_index] = f"{p.subject}<br><small>{p.classroom.name}</small>"
-
-            timetable_data[class_name] = {
-                'time_slots': time_slots,
-                'timetable': grid
-            }
-
-    return render(request, 'portal/teacher_timetable.html', {
-        'timetable_data': timetable_data,
-        'current_day': current_day,
-        'days': days
-    })
 
 # --- Admin Views ---
 @login_required
