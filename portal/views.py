@@ -430,7 +430,7 @@ def student_submissions(request):
 
         return redirect('student_submissions')
 
-    # Attach grade info to each submission if available
+    # Attach grade info and calculate percentage/pass-fail
     for sub in submissions:
         try:
             grade = Grade.objects.get(student=request.user, assignment=sub.assignment)
@@ -438,11 +438,22 @@ def student_submissions(request):
             sub.total_marks = grade.total_marks
             sub.graded = True
             sub.feedback = grade.feedback
+
+            # Compute percentage and pass/fail
+            if sub.total_marks and sub.total_marks > 0:
+                sub.percentage = round((sub.grade / sub.total_marks) * 100, 2)
+                sub.pass_fail = 'Pass' if sub.percentage >= 50 else 'Fail'
+            else:
+                sub.percentage = None
+                sub.pass_fail = None
+
         except Grade.DoesNotExist:
             sub.grade = None
             sub.total_marks = None
             sub.graded = False
             sub.feedback = None
+            sub.percentage = None
+            sub.pass_fail = None
 
     context = {
         'submissions': submissions,
@@ -452,8 +463,25 @@ def student_submissions(request):
     }
     return render(request, 'portal/student_submissions.html', context)
 
-# --- Teacher Views ---
 
+@login_required
+@student_required
+def student_grades_view(request):
+    student = request.user
+
+    reports = GradeReport.objects.filter(student=student)
+    grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__term', 'subject')
+
+    latest_report = reports.order_by('-date_uploaded').first()
+
+    return render(request, 'portal/student_test_examination_grades.html', {
+        'grades': grades,
+        'reports': reports,
+        'report': latest_report,  # single report for summary
+        'student_name': student.get_full_name() or student.username,
+    })
+
+# --- Teacher Views ---
 @login_required(login_url='login')
 def teacher_dashboard(request):
     if request.user.role != 'teacher':
@@ -1112,22 +1140,7 @@ def admin_manage_grades(request):
             'students': students,
         })
 
-@login_required
-@student_required
-def student_grades_view(request):
-    student = request.user
 
-    reports = GradeReport.objects.filter(student=student)
-    grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__term', 'subject')
-
-    latest_report = reports.order_by('-date_uploaded').first()
-
-    return render(request, 'portal/student_test_examination_grades.html', {
-        'grades': grades,
-        'reports': reports,
-        'report': latest_report,  # single report for summary
-        'student_name': student.get_full_name() or student.username,
-    })
 
 @login_required
 def edit_grade(request, grade_id):

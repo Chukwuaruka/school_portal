@@ -89,40 +89,10 @@
                 <span class="badge bg-warning text-dark">Pending</span>
               {% endif %}
             </td>
-            <td>
-              {% if submission.graded %}
-                {{ submission.grade|default:"-" }}
-              {% else %}
-                <em>–</em>
-              {% endif %}
-            </td>
-            <td>
-              {% if submission.graded %}
-                {{ submission.total_marks|default:"-" }}
-              {% else %}
-                <em>–</em>
-              {% endif %}
-            </td>
-            <td>
-              {% if submission.graded and submission.total_marks %}
-                {% with percent=submission.grade|floatformat:2|divisibleby:submission.total_marks|floatformat:2 %}
-                  {{ percent }}%
-                {% endwith %}
-              {% else %}
-                <em>–</em>
-              {% endif %}
-            </td>
-            <td>
-              {% if submission.graded and submission.total_marks %}
-                {% if submission.grade >= submission.total_marks|floatformat:"0"|divisibleby:"2" %}
-                  <span class="badge bg-success">Pass</span>
-                {% else %}
-                  <span class="badge bg-danger">Fail</span>
-                {% endif %}
-              {% else %}
-                <em>–</em>
-              {% endif %}
-            </td>
+            <td>{{ submission.grade|default:"–" }}</td>
+            <td>{{ submission.total_marks|default:"–" }}</td>
+            <td>{{ submission.percentage|default:"–" }}{% if submission.percentage %}%{% endif %}</td>
+            <td>{{ submission.pass_fail|default:"–" }}</td>
             <td>
               {% if submission.file %}
                 <a href="{{ submission.file.url }}" class="btn btn-sm btn-outline-primary" download>📎 Download</a>
