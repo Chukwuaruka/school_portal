@@ -214,46 +214,76 @@ def student_register(request):
     return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
 
 
-# --- Teacher Registration ---
 def register_teacher(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        email = request.POST.get('email')
-        subject = request.POST.get('subject')
-        phone = request.POST.get('phone')
-        profile_picture = request.FILES.get('profile_picture')
+        data = request.POST
+        files = request.FILES
 
-        if not username or not password1:
-            messages.error(request, 'Username and password are required.')
-            return redirect('teacher_register')
+        username = data.get('username', '').strip()
+        password1 = data.get('password1', '')
+        password2 = data.get('password2', '')
+        first_name = data.get('first_name', '').strip()
+        last_name = data.get('last_name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        phone = data.get('phone', '').strip()
+        profile_picture = files.get('profile_picture')
 
+        errors = []
+
+        # All fields required
+        if not username:
+            errors.append("Username is required.")
+        if not password1 or not password2:
+            errors.append("Password and confirmation are required.")
         if password1 != password2:
-            messages.error(request, 'Passwords do not match.')
-            return redirect('teacher_register')
-
+            errors.append("Passwords do not match.")
+        if not first_name:
+            errors.append("First name is required.")
+        if not last_name:
+            errors.append("Last name is required.")
+        if not email:
+            errors.append("Email is required.")
+        if not subject:
+            errors.append("Subject/Department is required.")
+        if not phone:
+            errors.append("Phone number is required.")
+        if not profile_picture:
+            errors.append("Profile picture is required.")
         if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username already exists.')
-        else:
-            user = User.objects.create_user(
-                username=username,
-                password=password1,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                role='teacher'
-            )
-            Teacher.objects.create(
-                user=user,
-                subject=subject,
-                phone=phone,
-                profile_picture=profile_picture
-            )
-            messages.success(request, 'Registration successful. You can now login.')
-            return redirect('login')
+            errors.append("Username already exists.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            # Return form with previously entered data (except password & profile)
+            context = {
+                'username': username,
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'subject': subject,
+                'phone': phone,
+            }
+            return render(request, 'portal/teacher_registration.html', context)
+
+        # Create user and teacher
+        user = User.objects.create_user(
+            username=username,
+            password=password1,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            role='teacher'
+        )
+        Teacher.objects.create(
+            user=user,
+            subject=subject,
+            phone=phone,
+            profile_picture=profile_picture
+        )
+        messages.success(request, 'Registration successful. You can now login.')
+        return redirect('login')
 
     return render(request, 'portal/teacher_registration.html')
 
@@ -602,15 +632,31 @@ def teacher_resources(request):
 @teacher_required
 def edit_teacher_profile(request):
     user = request.user
-    if request.method == 'POST':
-        form = UserEditForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully.')
-            return redirect('teacher_dashboard')
-    else:
-        form = UserEditForm(instance=user)
-    return render(request, 'portal/edit_teacher_profile.html', {'form': form})
+    teacher = get_object_or_404(Teacher, user=user)
+
+    if request.method == "POST":
+        # Update User model fields
+        user.first_name = request.POST.get("first_name")
+        user.last_name = request.POST.get("last_name")
+        user.email = request.POST.get("email")
+
+        # Update Teacher model fields
+        teacher.phone = request.POST.get("phone")
+        teacher.subject = request.POST.get("subject")
+        teacher.gender = request.POST.get("gender")
+
+        if "profile_picture" in request.FILES:
+            teacher.profile_picture = request.FILES["profile_picture"]
+
+        # Save both
+        user.save()
+        teacher.save()
+
+        messages.success(request, "Profile updated successfully.")
+        return redirect("teacher_profile")
+
+    return render(request, "portal/edit_teacher_profile.html", {"teacher": teacher})
+
 
 @login_required
 @teacher_required
@@ -916,8 +962,6 @@ def teacher_grades(request):
     return render(request, 'portal/teacher_grades.html', {
         'submissions': submissions,
     })
-
-
 
 @login_required
 @teacher_required
