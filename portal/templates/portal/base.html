@@ -99,7 +99,6 @@
           <a href="{% url 'student_timetable' %}" class="{% if request.resolver_match.url_name == 'student_timetable' %}active{% endif %}">Timetable</a>
           <a href="{% url 'student_assignments' %}" class="{% if request.resolver_match.url_name == 'student_assignments' %}active{% endif %}">Assignments</a>
           <a href="{% url 'student_submissions' %}" class="{% if request.resolver_match.url_name == 'student_submissions' %}active{% endif %}">Submissions</a>
-          <a href="{% url 'student_grades' %}" class="{% if request.resolver_match.url_name == 'student_grades' %}active{% endif %}">Grades</a>
           <a href="{% url 'student_test_examination_grades' %}" class="{% if request.resolver_match.url_name == 'student_test_examination_grades' %}active{% endif %}">Test/Examination Grades</a>
           <a href="{% url 'student_resources' %}" class="{% if request.resolver_match.url_name == 'student_resources' %}active{% endif %}">Resources</a>
           <a href="{% url 'student_announcements' %}" class="{% if request.resolver_match.url_name == 'student_announcements' %}active{% endif %}">Announcements</a>
