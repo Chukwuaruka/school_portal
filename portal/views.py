@@ -319,15 +319,15 @@ def student_assignments(request):
 
 @login_required
 @student_required
-def student_grades(request):
-    grades = Grade.objects.filter(student=request.user)
-    return render(request, 'portal/student_grades.html', {'grades': grades})
-
-@login_required
-@student_required
 def student_resources(request):
-    resources = Resource.objects.all().order_by('-uploaded_at')
-    return render(request, 'portal/student_resources.html', {'resources': resources})
+    user_classroom = request.user.classroom
+
+    # Only show resources for the logged-in student's class
+    resources = Resource.objects.filter(classroom=user_classroom).order_by('-uploaded_at')
+
+    return render(request, 'portal/student_resources.html', {
+        'resources': resources
+    })
 
 @login_required
 @student_required
@@ -385,32 +385,72 @@ def edit_student_profile(request):
 
     return render(request, 'portal/edit_student_profile.html', {'student': student, 'classrooms': classrooms})
 
-
 @login_required
 @student_required
 def student_submissions(request):
+    # All submissions for the logged-in student
     submissions = Submission.objects.filter(student=request.user).order_by('-submitted_at')
-    return render(request, 'portal/student_submissions.html', {'submissions': submissions})
+    assignments = Assignment.objects.all().order_by('-due_date')
 
-@login_required
-@student_required
-def submit_assignment(request, assignment_id):
-    assignment = get_object_or_404(Assignment, id=assignment_id)
+    # Pre-select assignment from GET parameter (from assignments page)
+    preselected_assignment_id = request.GET.get('assignment')
+
     if request.method == 'POST':
+        assignment_id = request.POST.get('assignment')
         uploaded_file = request.FILES.get('file')
-        if not uploaded_file:
-            messages.error(request, 'No file uploaded.')
-            return redirect('submit_assignment', assignment_id=assignment.id)
+        notes = request.POST.get('notes', '').strip()
 
-        Submission.objects.create(
+        # Validate assignment exists
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+
+        # Prevent submission if deadline passed
+        if assignment.due_date < timezone.now():
+            messages.error(request, f"❌ Submission failed. The deadline for '{assignment.title}' has passed.")
+            return redirect('student_submissions')
+
+        if not uploaded_file:
+            messages.error(request, "Please upload a file.")
+            return redirect('student_submissions')
+
+        # Allow resubmission (update existing submission or create new)
+        submission, created = Submission.objects.update_or_create(
             student=request.user,
             assignment=assignment,
-            file=uploaded_file
+            defaults={
+                'file': uploaded_file,
+                'notes': notes,
+                'submitted_at': timezone.now()
+            }
         )
-        messages.success(request, 'Assignment submitted successfully.')
-        return redirect('student_assignments')
-    return render(request, 'portal/submit_assignment.html', {'assignment': assignment})
 
+        if created:
+            messages.success(request, f"✅ Your submission for '{assignment.title}' was successful!")
+        else:
+            messages.success(request, f"🔄 Your submission for '{assignment.title}' has been updated!")
+
+        return redirect('student_submissions')
+
+    # Attach grade info to each submission if available
+    for sub in submissions:
+        try:
+            grade = Grade.objects.get(student=request.user, assignment=sub.assignment)
+            sub.grade = grade.score
+            sub.total_marks = grade.total_marks
+            sub.graded = True
+            sub.feedback = grade.feedback
+        except Grade.DoesNotExist:
+            sub.grade = None
+            sub.total_marks = None
+            sub.graded = False
+            sub.feedback = None
+
+    context = {
+        'submissions': submissions,
+        'assignments': assignments,
+        'now': timezone.now(),
+        'preselected_assignment_id': preselected_assignment_id,
+    }
+    return render(request, 'portal/student_submissions.html', context)
 
 # --- Teacher Views ---
 

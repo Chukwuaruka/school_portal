@@ -1,63 +1,152 @@
 {% extends 'portal/base.html' %}
 {% block content %}
-<h2 class="mb-4">📤 My Submissions</h2>
 
+<h2 class="mb-4">📤 My Submissions & Grades</h2>
+
+<!-- Flash messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<!-- Submission Form -->
+<div class="card shadow mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0">Submit Assignment</h5>
+  </div>
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Assignment</label>
+          <select name="assignment" class="form-select" required>
+            <option value="">-- Select Assignment --</option>
+            {% for assignment in assignments %}
+              <option value="{{ assignment.id }}" 
+                {% if assignment.due_date < now %}disabled{% endif %}
+                {% if assignment.id|stringformat:"s" == preselected_assignment_id %}selected{% endif %}>
+                {{ assignment.title }} (Due: {{ assignment.due_date|date:"M d, Y H:i" }})
+                {% if assignment.due_date < now %} ⏰ Closed{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Upload File</label>
+          <input type="file" name="file" class="form-control" required>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="form-label">Notes (Optional)</label>
+        <textarea name="notes" rows="2" class="form-control"></textarea>
+      </div>
+      <div class="d-grid mt-3">
+        <button type="submit" class="btn btn-success">📤 Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Past Submissions with Grades -->
 {% if submissions %}
-  <div class="table-responsive">
-    <table class="table table-hover table-bordered align-middle">
-      <thead class="table-dark">
-        <tr>
-          <th>Assignment Title</th>
-          <th>Due Date</th>
-          <th>Submitted On</th>
-          <th>Status</th>
-          <th>Grade</th>
-          <th>Download</th>
-          <th>Feedback</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for submission in submissions %}
-        <tr>
-          <td>{{ submission.assignment.title }}</td>
-          <td>{{ submission.assignment.due_date|date:"M d, Y" }}</td>
-          <td>{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
-          <td>
-            {% if submission.graded %}
-              <span class="badge bg-success">Graded</span>
-            {% else %}
-              <span class="badge bg-warning text-dark">Pending</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if submission.graded %}
-              {{ submission.grade|default:"-" }}
-            {% else %}
-              <em>–</em>
-            {% endif %}
-          </td>
-          <td>
-            {% if submission.file %}
-              <a href="{{ submission.file.url }}" class="btn btn-sm btn-outline-primary" download>📎 Download</a>
-            {% else %}
-              <em>No file</em>
-            {% endif %}
-          </td>
-          <td>
-            {% if submission.feedback %}
-              <blockquote class="blockquote mb-0 small text-muted">{{ submission.feedback }}</blockquote>
-            {% else %}
-              <em>No feedback yet</em>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="card shadow">
+    <div class="card-header bg-dark text-white">
+      <h5 class="mb-0">My Submissions & Grades</h5>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="table table-hover table-bordered align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>Assignment Title</th>
+            <th>Due Date</th>
+            <th>Last Submitted</th>
+            <th>Status</th>
+            <th>Grade</th>
+            <th>Total Marks</th>
+            <th>Percentage</th>
+            <th>Pass/Fail</th>
+            <th>Download</th>
+            <th>Feedback</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for submission in submissions %}
+          <tr>
+            <td>{{ submission.assignment.title }}</td>
+            <td>{{ submission.assignment.due_date|date:"M d, Y H:i" }}</td>
+            <td>{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
+            <td>
+              {% if submission.assignment.due_date < now %}
+                <span class="badge bg-secondary">Closed</span>
+              {% elif submission.graded %}
+                <span class="badge bg-success">Graded</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if submission.graded %}
+                {{ submission.grade|default:"-" }}
+              {% else %}
+                <em>–</em>
+              {% endif %}
+            </td>
+            <td>
+              {% if submission.graded %}
+                {{ submission.total_marks|default:"-" }}
+              {% else %}
+                <em>–</em>
+              {% endif %}
+            </td>
+            <td>
+              {% if submission.graded and submission.total_marks %}
+                {% with percent=submission.grade|floatformat:2|divisibleby:submission.total_marks|floatformat:2 %}
+                  {{ percent }}%
+                {% endwith %}
+              {% else %}
+                <em>–</em>
+              {% endif %}
+            </td>
+            <td>
+              {% if submission.graded and submission.total_marks %}
+                {% if submission.grade >= submission.total_marks|floatformat:"0"|divisibleby:"2" %}
+                  <span class="badge bg-success">Pass</span>
+                {% else %}
+                  <span class="badge bg-danger">Fail</span>
+                {% endif %}
+              {% else %}
+                <em>–</em>
+              {% endif %}
+            </td>
+            <td>
+              {% if submission.file %}
+                <a href="{{ submission.file.url }}" class="btn btn-sm btn-outline-primary" download>📎 Download</a>
+              {% else %}
+                <em>No file</em>
+              {% endif %}
+            </td>
+            <td>
+              {% if submission.feedback %}
+                <blockquote class="blockquote mb-0 small text-muted">{{ submission.feedback }}</blockquote>
+              {% else %}
+                <em>No feedback yet</em>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 {% else %}
   <div class="alert alert-info">
     You haven’t submitted any assignments yet.
   </div>
 {% endif %}
+
 {% endblock %}
