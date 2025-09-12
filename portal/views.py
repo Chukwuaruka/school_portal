@@ -440,6 +440,52 @@ def student_grades_view(request):
         'student_name': student.get_full_name() or student.username,
     })
 
+@login_required
+def download_my_grade_report_pdf(request):
+    student = request.user
+    if student.role != 'student':
+        return HttpResponse("Unauthorized", status=403)
+
+    # Get the latest report
+    report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+    if not report:
+        return HttpResponse("No report available.", status=404)
+
+    grades = report.subject_grades.all()
+    behavioural_skills = report.behavioural_skills.all()
+
+    student_profile = {
+        "student_name": student.get_full_name(),
+        "classroom": getattr(student.classroom, 'name', ''),
+        "age": getattr(student, 'age', ''),
+    }
+
+    logo_url = getattr(student, 'school_logo', None)
+    if logo_url:
+        logo_url = logo_url.url
+
+    context = {
+        "student_name": student.get_full_name(),
+        "student_profile": student_profile,
+        "grades": grades,
+        "report": report,
+        "logo_url": logo_url,
+        "behavioural_skills": behavioural_skills,
+    }
+
+    template_path = "portal/grades_pdf.html"
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{student.username}_report.pdf"'
+
+    html = render(request, template_path, context).content.decode("UTF-8")
+    result = BytesIO()
+    pisa_status = pisa.CreatePDF(src=html, dest=result)
+    if pisa_status.err:
+        return HttpResponse("Error generating PDF <pre>" + html + "</pre>")
+
+    response.write(result.getvalue())
+    return response
+
 def register_teacher(request):
     if request.method == 'POST':
         data = request.POST
@@ -692,6 +738,253 @@ def delete_assignment(request, assignment_id):
         return redirect('teacher_assignments')
     return render(request, 'portal/delete_assignment.html', {'assignment': assignment})
 
+@login_required
+def teacher_profile(request):
+    teacher = get_object_or_404(Teacher, user=request.user)
+    return render(request, 'portal/teacher_profile.html', {'teacher': teacher})
+
+@login_required
+@teacher_required
+def teacher_grades(request):
+    teacher = request.user
+    classroom = teacher.classroom
+    assignments = Assignment.objects.filter(teacher=teacher)
+    submissions = Submission.objects.filter(assignment__in=assignments)
+    return render(request, 'portal/teacher_grades.html', {
+        'submissions': submissions,
+    })
+
+@login_required
+def edit_student_grade(request, grade_id):
+    # grade_id corresponds to submission id
+    submission = get_object_or_404(Submission, id=grade_id)
+
+    if request.method == 'POST':
+        submission.score = request.POST.get('score') or 0
+        submission.total_marks = request.POST.get('total_marks') or 0
+        submission.feedback = request.POST.get('feedback') or ''
+        submission.graded = True
+        submission.save()
+        return redirect('teacher_submissions')  # adjust if needed
+
+    return render(request, 'portal/edit_student_grades.html', {
+        'submission': submission
+    })
+
+BEHAVIOURAL_SKILLS = [
+    "Punctuality", "Neatness", "Attentiveness", "Social Development", 
+    "Assignment", "Class Participation", "Perseverance",
+    "Responsibility", "Politeness", "Honesty", "Sport & Games",
+    "Industry", "Club Participation", "Psychomotor"
+]
+
+@login_required
+@teacher_required
+def teacher_upload_grades(request):
+    students = User.objects.filter(role='student')
+    selected_classroom = request.GET.get('classroom')
+    if selected_classroom:
+        students = students.filter(classroom__name=selected_classroom)
+
+    # Build student_grades dictionary
+    grade_reports = GradeReport.objects.filter(student__in=students)
+    if selected_classroom:
+        grade_reports = grade_reports.filter(classroom__name=selected_classroom)
+
+    student_grades = {}
+    for report in grade_reports.prefetch_related('subject_grades','behavioural_skills').select_related('student'):
+        student = report.student
+        if student not in student_grades:
+            student_grades[student] = []
+        student_grades[student].extend(report.subject_grades.all())
+
+    if request.method == 'POST':
+        student_username = request.POST.get('student_username')
+        subject = request.POST.get('subject')
+        term = request.POST.get('term')
+        session = request.POST.get('session')
+        classroom_name = request.POST.get('classroom')
+
+        if not all([student_username, subject, term, session, classroom_name]):
+            messages.error(request, "Please fill in all required fields.")
+            return redirect('teacher_upload_grades')
+
+        student = get_object_or_404(User, username=student_username, role='student')
+        classroom = get_object_or_404(Classroom, name=classroom_name)
+
+        grade_report, created = GradeReport.objects.get_or_create(
+            student=student, classroom=classroom, term=term, session=session
+        )
+
+        # Helpers
+        def to_int(val): 
+            try: return int(val)
+            except: return None
+        def to_float(val):
+            try: return float(val)
+            except: return None
+
+        # SubjectGrade fields
+        first_test = to_int(request.POST.get('first_test'))
+        second_test = to_int(request.POST.get('second_test'))
+        exam = to_int(request.POST.get('exam'))
+        manual_total = to_int(request.POST.get('manual_total'))
+        manual_grade = request.POST.get('manual_grade', '').strip()
+        grade_comment = request.POST.get('grade_comment', '').strip()
+        first_term_score = to_int(request.POST.get('first_term_score'))
+        second_term_score = to_int(request.POST.get('second_term_score'))
+        average_score = to_float(request.POST.get('average_score'))
+
+        # Overall report fields
+        total_available_score = to_int(request.POST.get('total_available_score'))
+        overall_score = to_int(request.POST.get('overall_score'))
+        overall_average = to_float(request.POST.get('overall_average'))
+        overall_position = request.POST.get('overall_position','').strip()
+        teacher_comment = request.POST.get('teacher_comment','').strip()
+        admin_comment_report = request.POST.get('admin_comment_report','').strip()
+        next_term_date_str = request.POST.get('next_term_date')
+        next_term_date = None
+        if next_term_date_str:
+            try: next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
+            except: pass
+
+        # Update GradeReport
+        if total_available_score is not None: grade_report.total_available_score = total_available_score
+        if overall_score is not None: grade_report.overall_score = overall_score
+        if overall_average is not None: grade_report.overall_average = overall_average
+        if overall_position: grade_report.overall_position = overall_position
+        if teacher_comment: grade_report.teacher_comment = teacher_comment
+        grade_report.admin_comment_report = admin_comment_report
+        grade_report.date_uploaded = timezone.now()
+        if next_term_date: grade_report.next_term_date = next_term_date
+        grade_report.save()
+
+        # Create or update SubjectGrade
+        grade, created = SubjectGrade.objects.get_or_create(
+            report=grade_report, subject=subject,
+            defaults={
+                'first_test': first_test, 'second_test': second_test, 'exam': exam,
+                'manual_total': manual_total, 'manual_grade': manual_grade,
+                'grade_comment': grade_comment, 'first_term_score': first_term_score,
+                'second_term_score': second_term_score, 'average_score': average_score
+            }
+        )
+        if not created:
+            grade.first_test = first_test
+            grade.second_test = second_test
+            grade.exam = exam
+            grade.manual_total = manual_total
+            grade.manual_grade = manual_grade
+            grade.grade_comment = grade_comment
+            grade.first_term_score = first_term_score
+            grade.second_term_score = second_term_score
+            grade.average_score = average_score
+            grade.save()
+
+        # Behavioural skills
+        for skill in BEHAVIOURAL_SKILLS:
+            key_name = f'beh_{skill.replace(" ","_")}'
+            rating = request.POST.get(key_name)
+            if rating:
+                BehaviouralSkill.objects.update_or_create(
+                    student=student,
+                    report=grade_report,
+                    skill_name=skill,
+                    defaults={'rating': int(rating)}
+                )
+
+        messages.success(request,"Grades uploaded successfully.")
+        return redirect('teacher_upload_grades')
+
+    classrooms = Classroom.objects.all()
+    return render(request,'portal/teacher_upload_grades.html',{
+        'students': students,
+        'student_grades': student_grades,
+        'selected_classroom': selected_classroom,
+        'classrooms': classrooms,
+        'behavioural_skills': BEHAVIOURAL_SKILLS
+    })
+
+@login_required
+def edit_grade(request, grade_id):
+    grade = get_object_or_404(SubjectGrade, id=grade_id)
+    report = grade.report  # Linked GradeReport
+
+    def parse_int(value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def parse_float(value):
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    if request.method == 'POST':
+        # SUBJECT GRADE updates
+        grade.subject = request.POST.get('subject', grade.subject)
+        grade.first_test = parse_int(request.POST.get('first_test')) or None
+        grade.second_test = parse_int(request.POST.get('second_test')) or None
+        grade.exam = parse_int(request.POST.get('exam')) or None
+        grade.manual_total = parse_int(request.POST.get('manual_total')) or None
+        grade.manual_grade = request.POST.get('manual_grade', '').strip()
+        grade.grade_comment = request.POST.get('grade_comment', '').strip()
+        grade.first_term_score = parse_int(request.POST.get('first_term_score')) or None
+        grade.second_term_score = parse_int(request.POST.get('second_term_score')) or None
+        grade.average_score = parse_float(request.POST.get('average_score')) or None
+        grade.term = request.POST.get('term') or grade.term
+        grade.session = request.POST.get('session') or grade.session
+        grade.comment = request.POST.get('comment', '').strip()
+        grade.admin_comment = request.POST.get('admin_comment', '').strip()
+        grade.save()
+
+        # REPORT updates - parse numeric values correctly
+        total_available_score = parse_int(request.POST.get('total_available_score'))
+        if total_available_score is not None:
+            report.total_available_score = total_available_score
+
+        overall_score = parse_int(request.POST.get('overall_score'))
+        if overall_score is not None:
+            report.overall_score = overall_score
+
+        overall_average = parse_float(request.POST.get('overall_average'))
+        if overall_average is not None:
+            report.overall_average = overall_average
+
+        overall_position = request.POST.get('overall_position')
+        if overall_position is not None:
+            report.overall_position = overall_position.strip()
+
+        teacher_comment = request.POST.get('teacher_comment')
+        if teacher_comment is not None:
+            report.teacher_comment = teacher_comment.strip()
+
+        admin_comment_report = request.POST.get('admin_comment_report')
+        if admin_comment_report is not None:
+            report.admin_comment_report = admin_comment_report.strip()
+
+        # Parse and update next_term_date
+        next_term_date_str = request.POST.get('next_term_date')
+        if next_term_date_str:
+            try:
+                report.next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass  # Ignore invalid date input
+
+        # Update upload date
+        report.date_uploaded = timezone.now()
+        report.save()
+
+        return redirect('teacher_upload_grades')
+
+    context = {
+        'grade': grade,
+        'report': report,
+    }
+    return render(request, 'portal/edit_grade.html', context)
+
 # --- Admin Views ---
 @login_required
 def admin_dashboard(request):
@@ -919,179 +1212,6 @@ def add_timetable_period(request):
     })
 
 @login_required
-def teacher_profile(request):
-    teacher = get_object_or_404(Teacher, user=request.user)
-    return render(request, 'portal/teacher_profile.html', {'teacher': teacher})
-
-@login_required
-@teacher_required
-def teacher_grades(request):
-    teacher = request.user
-    classroom = teacher.classroom
-    assignments = Assignment.objects.filter(teacher=teacher)
-    submissions = Submission.objects.filter(assignment__in=assignments)
-    return render(request, 'portal/teacher_grades.html', {
-        'submissions': submissions,
-    })
-
-@login_required
-def edit_student_grade(request, grade_id):
-    # grade_id corresponds to submission id
-    submission = get_object_or_404(Submission, id=grade_id)
-
-    if request.method == 'POST':
-        submission.score = request.POST.get('score') or 0
-        submission.total_marks = request.POST.get('total_marks') or 0
-        submission.feedback = request.POST.get('feedback') or ''
-        submission.graded = True
-        submission.save()
-        return redirect('teacher_submissions')  # adjust if needed
-
-    return render(request, 'portal/edit_student_grades.html', {
-        'submission': submission
-    })
-
-BEHAVIOURAL_SKILLS = [
-    'Punctuality', 'Neatness', 'Attentiveness', 'Social Development', 'Assignment',
-    'Class Participation', 'Perseverance', 'Responsibility', 'Politeness',
-    'Honesty', 'Sport & Games', 'Club Participation', 'Psychomotor'
-]
-
-BEHAVIOURAL_SKILLS = [
-    "Punctuality", "Neatness", "Attentiveness", "Social Development", 
-    "Assignment", "Class Participation", "Perseverance",
-    "Responsibility", "Politeness", "Honesty", "Sport & Games",
-    "Industry", "Club Participation", "Psychomotor"
-]
-
-@login_required
-@teacher_required
-def teacher_upload_grades(request):
-    students = User.objects.filter(role='student')
-    selected_classroom = request.GET.get('classroom')
-    if selected_classroom:
-        students = students.filter(classroom__name=selected_classroom)
-
-    # Build student_grades dictionary
-    grade_reports = GradeReport.objects.filter(student__in=students)
-    if selected_classroom:
-        grade_reports = grade_reports.filter(classroom__name=selected_classroom)
-
-    student_grades = {}
-    for report in grade_reports.prefetch_related('subject_grades','behavioural_skills').select_related('student'):
-        student = report.student
-        if student not in student_grades:
-            student_grades[student] = []
-        student_grades[student].extend(report.subject_grades.all())
-
-    if request.method == 'POST':
-        student_username = request.POST.get('student_username')
-        subject = request.POST.get('subject')
-        term = request.POST.get('term')
-        session = request.POST.get('session')
-        classroom_name = request.POST.get('classroom')
-
-        if not all([student_username, subject, term, session, classroom_name]):
-            messages.error(request, "Please fill in all required fields.")
-            return redirect('teacher_upload_grades')
-
-        student = get_object_or_404(User, username=student_username, role='student')
-        classroom = get_object_or_404(Classroom, name=classroom_name)
-
-        grade_report, created = GradeReport.objects.get_or_create(
-            student=student, classroom=classroom, term=term, session=session
-        )
-
-        # Helpers
-        def to_int(val): 
-            try: return int(val)
-            except: return None
-        def to_float(val):
-            try: return float(val)
-            except: return None
-
-        # SubjectGrade fields
-        first_test = to_int(request.POST.get('first_test'))
-        second_test = to_int(request.POST.get('second_test'))
-        exam = to_int(request.POST.get('exam'))
-        manual_total = to_int(request.POST.get('manual_total'))
-        manual_grade = request.POST.get('manual_grade', '').strip()
-        grade_comment = request.POST.get('grade_comment', '').strip()
-        first_term_score = to_int(request.POST.get('first_term_score'))
-        second_term_score = to_int(request.POST.get('second_term_score'))
-        average_score = to_float(request.POST.get('average_score'))
-
-        # Overall report fields
-        total_available_score = to_int(request.POST.get('total_available_score'))
-        overall_score = to_int(request.POST.get('overall_score'))
-        overall_average = to_float(request.POST.get('overall_average'))
-        overall_position = request.POST.get('overall_position','').strip()
-        teacher_comment = request.POST.get('teacher_comment','').strip()
-        admin_comment_report = request.POST.get('admin_comment_report','').strip()
-        next_term_date_str = request.POST.get('next_term_date')
-        next_term_date = None
-        if next_term_date_str:
-            try: next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
-            except: pass
-
-        # Update GradeReport
-        if total_available_score is not None: grade_report.total_available_score = total_available_score
-        if overall_score is not None: grade_report.overall_score = overall_score
-        if overall_average is not None: grade_report.overall_average = overall_average
-        if overall_position: grade_report.overall_position = overall_position
-        if teacher_comment: grade_report.teacher_comment = teacher_comment
-        grade_report.admin_comment_report = admin_comment_report
-        grade_report.date_uploaded = timezone.now()
-        if next_term_date: grade_report.next_term_date = next_term_date
-        grade_report.save()
-
-        # Create or update SubjectGrade
-        grade, created = SubjectGrade.objects.get_or_create(
-            report=grade_report, subject=subject,
-            defaults={
-                'first_test': first_test, 'second_test': second_test, 'exam': exam,
-                'manual_total': manual_total, 'manual_grade': manual_grade,
-                'grade_comment': grade_comment, 'first_term_score': first_term_score,
-                'second_term_score': second_term_score, 'average_score': average_score
-            }
-        )
-        if not created:
-            grade.first_test = first_test
-            grade.second_test = second_test
-            grade.exam = exam
-            grade.manual_total = manual_total
-            grade.manual_grade = manual_grade
-            grade.grade_comment = grade_comment
-            grade.first_term_score = first_term_score
-            grade.second_term_score = second_term_score
-            grade.average_score = average_score
-            grade.save()
-
-        # Behavioural skills
-        for skill in BEHAVIOURAL_SKILLS:
-            key_name = f'beh_{skill.replace(" ","_")}'
-            rating = request.POST.get(key_name)
-            if rating:
-                BehaviouralSkill.objects.update_or_create(
-                    student=student,
-                    report=grade_report,
-                    skill_name=skill,
-                    defaults={'rating': int(rating)}
-                )
-
-        messages.success(request,"Grades uploaded successfully.")
-        return redirect('teacher_upload_grades')
-
-    classrooms = Classroom.objects.all()
-    return render(request,'portal/teacher_upload_grades.html',{
-        'students': students,
-        'student_grades': student_grades,
-        'selected_classroom': selected_classroom,
-        'classrooms': classrooms,
-        'behavioural_skills': BEHAVIOURAL_SKILLS
-    })
-
-@login_required
 @user_passes_test(is_admin)
 def admin_manage_grades(request):
     student_id = request.GET.get('student_id')
@@ -1149,88 +1269,6 @@ def admin_manage_grades(request):
             'students': students,
         })
 
-
-
-@login_required
-def edit_grade(request, grade_id):
-    grade = get_object_or_404(SubjectGrade, id=grade_id)
-    report = grade.report  # Linked GradeReport
-
-    def parse_int(value):
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return None
-
-    def parse_float(value):
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return None
-
-    if request.method == 'POST':
-        # SUBJECT GRADE updates
-        grade.subject = request.POST.get('subject', grade.subject)
-        grade.first_test = parse_int(request.POST.get('first_test')) or None
-        grade.second_test = parse_int(request.POST.get('second_test')) or None
-        grade.exam = parse_int(request.POST.get('exam')) or None
-        grade.manual_total = parse_int(request.POST.get('manual_total')) or None
-        grade.manual_grade = request.POST.get('manual_grade', '').strip()
-        grade.grade_comment = request.POST.get('grade_comment', '').strip()
-        grade.first_term_score = parse_int(request.POST.get('first_term_score')) or None
-        grade.second_term_score = parse_int(request.POST.get('second_term_score')) or None
-        grade.average_score = parse_float(request.POST.get('average_score')) or None
-        grade.term = request.POST.get('term') or grade.term
-        grade.session = request.POST.get('session') or grade.session
-        grade.comment = request.POST.get('comment', '').strip()
-        grade.admin_comment = request.POST.get('admin_comment', '').strip()
-        grade.save()
-
-        # REPORT updates - parse numeric values correctly
-        total_available_score = parse_int(request.POST.get('total_available_score'))
-        if total_available_score is not None:
-            report.total_available_score = total_available_score
-
-        overall_score = parse_int(request.POST.get('overall_score'))
-        if overall_score is not None:
-            report.overall_score = overall_score
-
-        overall_average = parse_float(request.POST.get('overall_average'))
-        if overall_average is not None:
-            report.overall_average = overall_average
-
-        overall_position = request.POST.get('overall_position')
-        if overall_position is not None:
-            report.overall_position = overall_position.strip()
-
-        teacher_comment = request.POST.get('teacher_comment')
-        if teacher_comment is not None:
-            report.teacher_comment = teacher_comment.strip()
-
-        admin_comment_report = request.POST.get('admin_comment_report')
-        if admin_comment_report is not None:
-            report.admin_comment_report = admin_comment_report.strip()
-
-        # Parse and update next_term_date
-        next_term_date_str = request.POST.get('next_term_date')
-        if next_term_date_str:
-            try:
-                report.next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
-            except ValueError:
-                pass  # Ignore invalid date input
-
-        # Update upload date
-        report.date_uploaded = timezone.now()
-        report.save()
-
-        return redirect('teacher_upload_grades')
-
-    context = {
-        'grade': grade,
-        'report': report,
-    }
-    return render(request, 'portal/edit_grade.html', context)
-
 @login_required
 def delete_final_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
@@ -1250,51 +1288,7 @@ def delete_student_grade(request, grade_id):
     messages.success(request, "Grade deleted successfully.")
     return redirect('admin_manage_grades')
 
-@login_required
-def download_my_grade_report_pdf(request):
-    student = request.user
-    if student.role != 'student':
-        return HttpResponse("Unauthorized", status=403)
 
-    # Get the latest report
-    report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
-    if not report:
-        return HttpResponse("No report available.", status=404)
-
-    grades = report.subject_grades.all()
-    behavioural_skills = report.behavioural_skills.all()
-
-    student_profile = {
-        "student_name": student.get_full_name(),
-        "classroom": getattr(student.classroom, 'name', ''),
-        "age": getattr(student, 'age', ''),
-    }
-
-    logo_url = getattr(student, 'school_logo', None)
-    if logo_url:
-        logo_url = logo_url.url
-
-    context = {
-        "student_name": student.get_full_name(),
-        "student_profile": student_profile,
-        "grades": grades,
-        "report": report,
-        "logo_url": logo_url,
-        "behavioural_skills": behavioural_skills,
-    }
-
-    template_path = "portal/grades_pdf.html"
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{student.username}_report.pdf"'
-
-    html = render(request, template_path, context).content.decode("UTF-8")
-    result = BytesIO()
-    pisa_status = pisa.CreatePDF(src=html, dest=result)
-    if pisa_status.err:
-        return HttpResponse("Error generating PDF <pre>" + html + "</pre>")
-
-    response.write(result.getvalue())
-    return response
 
 @login_required
 @user_passes_test(is_admin)
