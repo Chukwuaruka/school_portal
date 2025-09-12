@@ -76,7 +76,6 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-
 # 🔐 Registration Code
 class RegistrationCode(models.Model):
     code = models.CharField(max_length=20, unique=True)
@@ -125,6 +124,7 @@ class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     file = models.FileField(upload_to='submissions/')
     submitted_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, null=True)  
     graded = models.BooleanField(default=False)
     feedback = models.TextField(blank=True, null=True)
     score = models.FloatField(null=True, blank=True)
@@ -132,7 +132,6 @@ class Submission(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.assignment.title}"
-
 
 # 📊 Grade
 class Grade(models.Model):
