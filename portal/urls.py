@@ -21,8 +21,8 @@ urlpatterns = [
     path('student/announcements/', views.student_announcements, name='student_announcements'),
     path('student/details/', views.student_details, name='student_details'),
     path('student/details/edit/', views.edit_student_profile, name='edit_student_profile'),
+    path('student/test-examination-grades/', views.student_grades_view, name='student_test_examination_grades'),
     path('download-my-grade-report/', views.download_my_grade_report_pdf, name='download_my_grade_report_pdf'),
-
 
     # 🧑‍🏫 Teacher Dashboard & Features
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
@@ -57,9 +57,6 @@ urlpatterns = [
     path('dashboard-admin/announcements/create/', views.create_announcement, name='create_announcement'),
     path('dashboard-admin/announcements/edit/<int:announcement_id>/', views.edit_announcement, name='edit_announcement'),
     path('dashboard-admin/announcements/delete/<int:announcement_id>/', views.delete_announcement, name='delete_announcement'),
-
-    # Student test/exam grades view (if still used)
-    path('student/test-examination-grades/', views.student_grades_view, name='student_test_examination_grades'),
 
     # 🔑 Password Reset
     path('password_reset/', auth_views.PasswordResetView.as_view(
