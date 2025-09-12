@@ -215,78 +215,6 @@ def student_register(request):
     return render(request, 'portal/student_registration.html', {'classrooms': classrooms})
 
 
-def register_teacher(request):
-    if request.method == 'POST':
-        data = request.POST
-        files = request.FILES
-
-        username = data.get('username', '').strip()
-        password1 = data.get('password1', '')
-        password2 = data.get('password2', '')
-        first_name = data.get('first_name', '').strip()
-        last_name = data.get('last_name', '').strip()
-        email = data.get('email', '').strip()
-        subject = data.get('subject', '').strip()
-        phone = data.get('phone', '').strip()
-        profile_picture = files.get('profile_picture')
-
-        errors = []
-
-        # All fields required
-        if not username:
-            errors.append("Username is required.")
-        if not password1 or not password2:
-            errors.append("Password and confirmation are required.")
-        if password1 != password2:
-            errors.append("Passwords do not match.")
-        if not first_name:
-            errors.append("First name is required.")
-        if not last_name:
-            errors.append("Last name is required.")
-        if not email:
-            errors.append("Email is required.")
-        if not subject:
-            errors.append("Subject/Department is required.")
-        if not phone:
-            errors.append("Phone number is required.")
-        if not profile_picture:
-            errors.append("Profile picture is required.")
-        if User.objects.filter(username=username).exists():
-            errors.append("Username already exists.")
-
-        if errors:
-            for error in errors:
-                messages.error(request, error)
-            # Return form with previously entered data (except password & profile)
-            context = {
-                'username': username,
-                'first_name': first_name,
-                'last_name': last_name,
-                'email': email,
-                'subject': subject,
-                'phone': phone,
-            }
-            return render(request, 'portal/teacher_registration.html', context)
-
-        # Create user and teacher
-        user = User.objects.create_user(
-            username=username,
-            password=password1,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            role='teacher'
-        )
-        Teacher.objects.create(
-            user=user,
-            subject=subject,
-            phone=phone,
-            profile_picture=profile_picture
-        )
-        messages.success(request, 'Registration successful. You can now login.')
-        return redirect('login')
-
-    return render(request, 'portal/teacher_registration.html')
 
 # --- Student Views ---
 @login_required
@@ -512,6 +440,79 @@ def student_grades_view(request):
         'student_name': student.get_full_name() or student.username,
     })
 
+def register_teacher(request):
+    if request.method == 'POST':
+        data = request.POST
+        files = request.FILES
+
+        username = data.get('username', '').strip()
+        password1 = data.get('password1', '')
+        password2 = data.get('password2', '')
+        first_name = data.get('first_name', '').strip()
+        last_name = data.get('last_name', '').strip()
+        email = data.get('email', '').strip()
+        subject = data.get('subject', '').strip()
+        phone = data.get('phone', '').strip()
+        profile_picture = files.get('profile_picture')
+
+        errors = []
+
+        # All fields required
+        if not username:
+            errors.append("Username is required.")
+        if not password1 or not password2:
+            errors.append("Password and confirmation are required.")
+        if password1 != password2:
+            errors.append("Passwords do not match.")
+        if not first_name:
+            errors.append("First name is required.")
+        if not last_name:
+            errors.append("Last name is required.")
+        if not email:
+            errors.append("Email is required.")
+        if not subject:
+            errors.append("Subject/Department is required.")
+        if not phone:
+            errors.append("Phone number is required.")
+        if not profile_picture:
+            errors.append("Profile picture is required.")
+        if User.objects.filter(username=username).exists():
+            errors.append("Username already exists.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            # Return form with previously entered data (except password & profile)
+            context = {
+                'username': username,
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'subject': subject,
+                'phone': phone,
+            }
+            return render(request, 'portal/teacher_registration.html', context)
+
+        # Create user and teacher
+        user = User.objects.create_user(
+            username=username,
+            password=password1,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            role='teacher'
+        )
+        Teacher.objects.create(
+            user=user,
+            subject=subject,
+            phone=phone,
+            profile_picture=profile_picture
+        )
+        messages.success(request, 'Registration successful. You can now login.')
+        return redirect('login')
+
+    return render(request, 'portal/teacher_registration.html')
+
 # --- Teacher Views ---
 @login_required(login_url='login')
 def teacher_dashboard(request):
@@ -604,7 +605,6 @@ def grade_submission(request, submission_id):
 
     return render(request, 'portal/grade_submission.html', {'submission': submission})
 
-
 @login_required
 @teacher_required
 def teacher_resources(request):
@@ -668,6 +668,29 @@ def edit_teacher_profile(request):
         return redirect("teacher_profile")
 
     return render(request, "portal/edit_teacher_profile.html", {"teacher": teacher})
+
+@login_required
+@teacher_required
+def edit_assignment(request, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, teacher=request.user)
+    if request.method == 'POST':
+        assignment.title = request.POST.get('title')
+        assignment.description = request.POST.get('description')
+        assignment.due_date = request.POST.get('due_date')
+        assignment.save()
+        messages.success(request, 'Assignment updated successfully.')
+        return redirect('teacher_assignments')
+    return render(request, 'portal/edit_assignment.html', {'assignment': assignment})
+
+@login_required
+@teacher_required
+def delete_assignment(request, assignment_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id, teacher=request.user)
+    if request.method == 'POST':
+        assignment.delete()
+        messages.success(request, 'Assignment deleted successfully.')
+        return redirect('teacher_assignments')
+    return render(request, 'portal/delete_assignment.html', {'assignment': assignment})
 
 # --- Admin Views ---
 @login_required
@@ -863,28 +886,7 @@ def manage_timetables(request):
         'current_day': now().strftime("%A")
     })
 
-@login_required
-@teacher_required
-def edit_assignment(request, assignment_id):
-    assignment = get_object_or_404(Assignment, id=assignment_id, teacher=request.user)
-    if request.method == 'POST':
-        assignment.title = request.POST.get('title')
-        assignment.description = request.POST.get('description')
-        assignment.due_date = request.POST.get('due_date')
-        assignment.save()
-        messages.success(request, 'Assignment updated successfully.')
-        return redirect('teacher_assignments')
-    return render(request, 'portal/edit_assignment.html', {'assignment': assignment})
 
-@login_required
-@teacher_required
-def delete_assignment(request, assignment_id):
-    assignment = get_object_or_404(Assignment, id=assignment_id, teacher=request.user)
-    if request.method == 'POST':
-        assignment.delete()
-        messages.success(request, 'Assignment deleted successfully.')
-        return redirect('teacher_assignments')
-    return render(request, 'portal/delete_assignment.html', {'assignment': assignment})
 
 def add_timetable_period(request):
     if request.method == 'POST':
