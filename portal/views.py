@@ -14,8 +14,8 @@ from django.db.models import Q
 import mimetypes
 from django.db.models import Max, Q
 from io import BytesIO
+from django.template.loader import render_to_string
 
-# Python standard library imports
 import os
 import base64
 from collections import defaultdict
@@ -954,12 +954,6 @@ BEHAVIOURAL_SKILLS = [
     'Honesty', 'Sport & Games', 'Club Participation', 'Psychomotor'
 ]
 
-BEHAVIOURAL_SKILLS = [
-    'punctuality','neatness','attentiveness','social_development','assignment',
-    'class_participation','perseverance','responsibility','politeness','honesty',
-    'sport_games','industry','club_participation','psychomotor'
-]
-
 @login_required
 @teacher_required
 def teacher_upload_grades(request):
@@ -1245,12 +1239,14 @@ def delete_student_grade(request, grade_id):
     messages.success(request, "Grade deleted successfully.")
     return redirect('admin_manage_grades')
 
-
 @login_required
 def download_grade_report_pdf(request, student_id):
-    # Get the student report
+    # Get the grade report
     report = get_object_or_404(GradeReport, student__id=student_id)
     grades = report.subject_grades.all()
+    
+    # Get behavioural skills for this report
+    behavioural_skills = report.behavioural_skills.all()  # assuming your model has report FK
 
     # Prepare student profile data
     student_profile = {
@@ -1259,31 +1255,28 @@ def download_grade_report_pdf(request, student_id):
         "age": getattr(report.student, 'age', ''),
     }
 
-    # Encode logo if needed (optional)
-    logo_url = None
-    if hasattr(report.student, 'school_logo') and report.student.school_logo:
+    # Optional school logo
+    logo_url = getattr(report.student, 'school_logo', None)
+    if logo_url:
         logo_url = report.student.school_logo.url
 
-    # Render template to HTML string
     context = {
         "student_name": report.student.get_full_name(),
         "student_profile": student_profile,
         "grades": grades,
+        "behavioural_skills": behavioural_skills,
         "report": report,
         "logo_url": logo_url,
     }
-    template_path = "portal/grades_pdf.html"
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{report.student.username}_report.pdf"'
 
-    # Render HTML to PDF
-    html = render(request, template_path, context).content.decode("UTF-8")
+    html = render_to_string("portal/grades_pdf.html", context)
     result = BytesIO()
     pisa_status = pisa.CreatePDF(src=html, dest=result)
     if pisa_status.err:
         return HttpResponse("Error generating PDF <pre>" + html + "</pre>")
 
-    response.write(result.getvalue())
+    response = HttpResponse(result.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{report.student.username}_report.pdf"'
     return response
 
 @login_required

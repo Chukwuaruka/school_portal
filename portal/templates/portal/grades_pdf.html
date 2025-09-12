@@ -166,6 +166,26 @@
   </tbody>
 </table>
 
+{% if behavioural_skills %}
+<h4>📋 Behavioural Assessment (1-5)</h4>
+<table>
+  <thead>
+    <tr>
+      <th>Skill</th>
+      <th>Rating</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for skill in behavioural_skills %}
+    <tr>
+      <td>{{ skill.skill_name }}</td>
+      <td>{{ skill.rating }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
 <p class="grade-scale-inline">
   📏 <strong>Grade Scale:</strong>
   A++ = 90%+ (Outstanding), A+ = 80–89% (Excellent), B++ = 70–79% (Very Good),
