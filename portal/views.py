@@ -1240,44 +1240,48 @@ def delete_student_grade(request, grade_id):
     return redirect('admin_manage_grades')
 
 @login_required
-def download_grade_report_pdf(request, student_id):
-    # Get the grade report
-    report = get_object_or_404(GradeReport, student__id=student_id)
-    grades = report.subject_grades.all()
-    
-    # Get behavioural skills for this report
-    behavioural_skills = report.behavioural_skills.all()  # assuming your model has report FK
+def download_my_grade_report_pdf(request):
+    # Use the logged-in user
+    student = request.user
+    if student.role != 'student':
+        return HttpResponse("Unauthorized", status=403)
 
-    # Prepare student profile data
+    report = get_object_or_404(GradeReport, student=student)
+    grades = report.subject_grades.all()
+    behavioural_skills = report.behavioural_skills.all()
+
     student_profile = {
-        "student_name": report.student.get_full_name(),
-        "classroom": getattr(report.student.classroom, 'name', ''),
-        "age": getattr(report.student, 'age', ''),
+        "student_name": student.get_full_name(),
+        "classroom": getattr(student.classroom, 'name', ''),
+        "age": getattr(student, 'age', ''),
     }
 
-    # Optional school logo
-    logo_url = getattr(report.student, 'school_logo', None)
+    logo_url = getattr(student, 'school_logo', None)
     if logo_url:
-        logo_url = report.student.school_logo.url
+        logo_url = logo_url.url
 
     context = {
-        "student_name": report.student.get_full_name(),
+        "student_name": student.get_full_name(),
         "student_profile": student_profile,
         "grades": grades,
-        "behavioural_skills": behavioural_skills,
         "report": report,
         "logo_url": logo_url,
+        "behavioural_skills": behavioural_skills,
     }
 
-    html = render_to_string("portal/grades_pdf.html", context)
+    template_path = "portal/grades_pdf.html"
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{student.username}_report.pdf"'
+
+    html = render(request, template_path, context).content.decode("UTF-8")
     result = BytesIO()
     pisa_status = pisa.CreatePDF(src=html, dest=result)
     if pisa_status.err:
         return HttpResponse("Error generating PDF <pre>" + html + "</pre>")
 
-    response = HttpResponse(result.getvalue(), content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{report.student.username}_report.pdf"'
+    response.write(result.getvalue())
     return response
+
 
 @login_required
 @user_passes_test(is_admin)
