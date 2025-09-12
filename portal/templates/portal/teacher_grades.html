@@ -8,7 +8,15 @@
       <h5>{{ submission.assignment.title }} ({{ submission.student.classroom.name }})</h5>
       <p><strong>Student:</strong> {{ submission.student.get_full_name }}</p>
       <p><strong>Submitted At:</strong> {{ submission.submitted_at|date:"M d, Y H:i" }}</p>
-      <a href="{{ submission.file.url }}" class="btn btn-outline-primary btn-sm" download>Download Submission</a>
+
+      <!-- ✅ Safe download button -->
+      {% if submission.file %}
+        <a href="{{ submission.file.url }}" class="btn btn-outline-primary btn-sm" download>
+          📎 Download Submission
+        </a>
+      {% else %}
+        <span class="text-muted">No file uploaded</span>
+      {% endif %}
 
       <form method="POST" class="mt-3">
         {% csrf_token %}
