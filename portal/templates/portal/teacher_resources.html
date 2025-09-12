@@ -9,14 +9,17 @@
       <label for="title" class="form-label">Title</label>
       <input type="text" name="title" id="title" class="form-control" required>
     </div>
+
     <div class="mb-3">
       <label for="description" class="form-label">Description</label>
       <textarea name="description" id="description" class="form-control" rows="3"></textarea>
     </div>
+
     <div class="mb-3">
       <label for="subject" class="form-label">Subject</label>
       <input type="text" name="subject" id="subject" class="form-control">
     </div>
+
     <div class="mb-3">
       <label for="classroom" class="form-label">Classroom</label>
       <select name="classroom" id="classroom" class="form-select" required>
@@ -26,9 +29,12 @@
         {% endfor %}
       </select>
     </div>
+
     <div class="mb-3">
       <label for="file" class="form-label">Upload File</label>
-     <input type="file" name="file" id="file" class="form-control" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+      <input type="file" name="file" id="file" class="form-control" required accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+    </div>
+
     <button type="submit" class="btn btn-primary">Upload</button>
   </form>
 

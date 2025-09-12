@@ -935,7 +935,7 @@ def teacher_grades(request):
 @teacher_required
 @user_passes_test(is_admin)
 def edit_student_grade(request, grade_id):
-    # Here grade_id corresponds to submission id
+    # grade_id corresponds to submission id
     submission = get_object_or_404(Submission, id=grade_id)
 
     if request.method == 'POST':
@@ -944,13 +944,15 @@ def edit_student_grade(request, grade_id):
         submission.feedback = request.POST.get('feedback') or ''
         submission.graded = True
         submission.save()
-        return redirect('teacher_submissions')  # or admin_manage_grades or wherever you want
+        return redirect('teacher_submissions')  # adjust if needed
 
-    return render(request, 'portal/edit_student_grades.html', {'submission': submission})
+    return render(request, 'portal/edit_student_grades.html', {
+        'submission': submission
+    })
 
 @login_required
 @teacher_required
-def teacher_upload_grades(request): 
+def teacher_upload_grades(request):
     students = User.objects.filter(role='student')
     selected_classroom = request.GET.get('classroom')
 
@@ -989,6 +991,7 @@ def teacher_upload_grades(request):
             session=session,
         )
 
+        # Helpers
         def to_int(val):
             try:
                 return int(val)
@@ -1001,23 +1004,21 @@ def teacher_upload_grades(request):
             except (TypeError, ValueError):
                 return None
 
-        # SubjectGrade fields from form
+        # SubjectGrade fields
         first_test = to_int(request.POST.get('first_test'))
         second_test = to_int(request.POST.get('second_test'))
         exam = to_int(request.POST.get('exam'))
         manual_total = to_int(request.POST.get('manual_total'))
         manual_grade = request.POST.get('manual_grade', '').strip()
         grade_comment = request.POST.get('grade_comment', '').strip()
-
-        # Term scores
         first_term_score = to_int(request.POST.get('first_term_score'))
         second_term_score = to_int(request.POST.get('second_term_score'))
         average_score = to_float(request.POST.get('average_score'))
 
-        # GradeReport (overall) fields from form
+        # GradeReport overall fields
         total_available_score = to_int(request.POST.get('total_available_score'))
         overall_score = to_int(request.POST.get('overall_score'))
-        overall_average = to_float(request.POST.get('overall_average'))
+        overall_average = to_float(request.POST.get('average_score'))
         overall_position = request.POST.get('overall_position', '').strip()
         teacher_comment = request.POST.get('teacher_comment', '').strip()
         admin_comment_report = request.POST.get('admin_comment_report', '').strip()
@@ -1031,7 +1032,7 @@ def teacher_upload_grades(request):
                 messages.error(request, "Invalid date format for Next Term Begins.")
                 return redirect('teacher_upload_grades')
 
-        # Safely update GradeReport fields (only if provided)
+        # Update GradeReport fields
         if total_available_score is not None:
             grade_report.total_available_score = total_available_score
         if overall_score is not None:
@@ -1042,14 +1043,10 @@ def teacher_upload_grades(request):
             grade_report.overall_position = overall_position
         if teacher_comment:
             grade_report.teacher_comment = teacher_comment
-
-        # Always update admin_comment_report and date_uploaded
         grade_report.admin_comment_report = admin_comment_report
         grade_report.date_uploaded = timezone.now()
-
         if next_term_date:
             grade_report.next_term_date = next_term_date
-
         grade_report.save()
 
         # Create or update SubjectGrade
