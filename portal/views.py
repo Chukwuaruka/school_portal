@@ -932,8 +932,6 @@ def teacher_grades(request):
     })
 
 @login_required
-@teacher_required
-@user_passes_test(is_admin)
 def edit_student_grade(request, grade_id):
     # grade_id corresponds to submission id
     submission = get_object_or_404(Submission, id=grade_id)
@@ -1232,7 +1230,6 @@ def edit_grade(request, grade_id):
     return render(request, 'portal/edit_grade.html', context)
 
 @login_required
-@teacher_required
 def delete_final_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
 
@@ -1245,7 +1242,6 @@ def delete_final_grade(request, grade_id):
     return redirect('teacher_upload_grades')
 
 @login_required
-@user_passes_test(is_admin)
 def delete_student_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
     grade.delete()
