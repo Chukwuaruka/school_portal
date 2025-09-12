@@ -93,15 +93,11 @@
     <!-- Behavioural Assessment Fields -->
     <h4>📋 Behavioural Assessment (1-5)</h4>
     <div class="row g-3">
-      {% for field in [
-        'punctuality','neatness','attentiveness','social_development','assignment',
-        'class_participation','perseverance','responsibility','politeness','honesty',
-        'sport_games','industry','club_participation','psychomotor'
-      ] %}
-      <div class="col-md-3">
-        <label for="{{ field }}" class="form-label">{{ field|capfirst }}</label>
-        <input type="number" id="{{ field }}" name="{{ field }}" class="form-control" min="1" max="5">
-      </div>
+      {% for skill in behavioural_skills %}
+        <div class="col-md-3">
+          <label for="beh_{{ skill|slugify }}" class="form-label">{{ skill }}</label>
+          <input type="number" id="beh_{{ skill|slugify }}" name="beh_{{ skill|slugify }}" class="form-control" min="1" max="5">
+        </div>
       {% endfor %}
     </div>
 
@@ -146,11 +142,11 @@
   </form>
 
   {% if messages %}
-  <div class="mt-3">
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-    {% endfor %}
-  </div>
+    <div class="mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
   {% endif %}
 
   <hr class="my-5">
@@ -158,45 +154,47 @@
   <!-- Uploaded Grades Table -->
   <h4>📋 Uploaded Grades</h4>
   {% if student_grades %}
-    {% for student, grades in student_grades.items %}
-      <h5 class="mt-4 text-primary">{{ student.get_full_name }} ({{ student.username }})</h5>
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover mt-2 align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Subject</th>
-              <th>1st Test</th>
-              <th>2nd Test</th>
-              <th>Exam</th>
-              <th>Total</th>
-              <th>1st Term</th>
-              <th>2nd Term</th>
-              <th>Average</th>
-              <th>Grade</th>
-              <th>Comment</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for grade in grades %}
-            <tr>
-              <td>{{ grade.subject }}</td>
-              <td>{{ grade.first_test|default:"–" }}</td>
-              <td>{{ grade.second_test|default:"–" }}</td>
-              <td>{{ grade.exam|default:"–" }}</td>
-              <td>{{ grade.total_score }}</td>
-              <td>{{ grade.first_term_score }}</td>
-              <td>{{ grade.second_term_score }}</td>
-              <td>{{ grade.average_score }}</td>
-              <td>{{ grade.manual_grade|default:grade.grade }}</td>
-              <td>{{ grade.grade_comment|default:"–" }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% endfor %}
+      {% for student_grade in student_grades.items %}
+          {% with student=student_grade.0 grades=student_grade.1 %}
+              <h5 class="mt-4 text-primary">{{ student.get_full_name }} ({{ student.username }})</h5>
+              <div class="table-responsive">
+                  <table class="table table-bordered table-hover mt-2 align-middle">
+                      <thead class="table-light">
+                          <tr>
+                              <th>Subject</th>
+                              <th>1st Test</th>
+                              <th>2nd Test</th>
+                              <th>Exam</th>
+                              <th>Total</th>
+                              <th>1st Term</th>
+                              <th>2nd Term</th>
+                              <th>Average</th>
+                              <th>Grade</th>
+                              <th>Comment</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for grade in grades %}
+                              <tr>
+                                  <td>{{ grade.subject }}</td>
+                                  <td>{{ grade.first_test|default:"–" }}</td>
+                                  <td>{{ grade.second_test|default:"–" }}</td>
+                                  <td>{{ grade.exam|default:"–" }}</td>
+                                  <td>{{ grade.total_score }}</td>
+                                  <td>{{ grade.first_term_score }}</td>
+                                  <td>{{ grade.second_term_score }}</td>
+                                  <td>{{ grade.average_score }}</td>
+                                  <td>{{ grade.manual_grade|default:grade.grade }}</td>
+                                  <td>{{ grade.grade_comment|default:"–" }}</td>
+                              </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
+          {% endwith %}
+      {% endfor %}
   {% else %}
-    <p class="text-muted mt-3">No grades uploaded yet.</p>
+      <p class="text-muted mt-3">No grades uploaded yet.</p>
   {% endif %}
 </div>
 {% endblock %}
