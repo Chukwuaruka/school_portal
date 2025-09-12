@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>{{ student_name }} - Report</title>
+<title>Student Report Card</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -16,10 +16,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    text-align: center;
     margin-bottom: 20px;
   }
-  .header img {
+  .logo {
     width: 100px;
   }
   .school-details {
@@ -37,6 +36,13 @@
     font-weight: bold;
     margin-top: 10px;
     margin-bottom: 20px;
+  }
+  .student-profile {
+    font-size: 12px;
+    text-align: right;
+    float: right;
+    width: 30%;
+    margin-left: 20px;
   }
   table {
     width: 100%;
@@ -82,7 +88,7 @@
 <body>
 
 <div class="header">
-  {% if logo_url %}<img src="{{ logo_url }}" alt="Logo">{% endif %}
+  <img src="logo_url_here" alt="Logo" class="logo">
   <div class="school-details">
     <div class="school-name">PEN ARK SCHOOLS</div>
     <div class="school-address">
@@ -96,7 +102,7 @@
 
 <div class="student-profile">
   <table>
-    <tr><td><strong>Student Profile:</strong> {{ student_profile.profile_id }}</td></tr>
+    <tr><td><strong>Student Profile:</strong> PA-SS-002</td></tr>
     <tr><td><strong>Name:</strong> {{ student_profile.student_name }}</td></tr>
     <tr><td><strong>Class:</strong> {{ student_profile.classroom }}</td></tr>
     <tr><td><strong>Sex:</strong> {{ student_profile.sex }}</td></tr>
