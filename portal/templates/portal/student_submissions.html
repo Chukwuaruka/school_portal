@@ -30,7 +30,7 @@
               <option value="{{ assignment.id }}" 
                 {% if assignment.due_date < now %}disabled{% endif %}
                 {% if assignment.id|stringformat:"s" == preselected_assignment_id %}selected{% endif %}>
-                {{ assignment.title }} (Due: {{ assignment.due_date|date:"M d, Y H:i" }})
+                {{ assignment.title }} (Due: {{ assignment.due_date|date:"M d, Y" }})
                 {% if assignment.due_date < now %} ⏰ Closed{% endif %}
               </option>
             {% endfor %}
@@ -78,8 +78,8 @@
           {% for submission in submissions %}
           <tr>
             <td>{{ submission.assignment.title }}</td>
-            <td>{{ submission.assignment.due_date|date:"M d, Y H:i" }}</td>
-            <td>{{ submission.submitted_at|date:"M d, Y H:i" }}</td>
+            <td>{{ submission.assignment.due_date|date:"M d, Y" }}</td>
+            <td>{{ submission.submitted_at|date:"M d, Y" }}</td>
             <td>
               {% if submission.assignment.due_date < now %}
                 <span class="badge bg-secondary">Closed</span>
