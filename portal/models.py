@@ -304,3 +304,27 @@ class SubjectGrade(models.Model):
 
     class Meta:
         ordering = ['subject']
+class BehaviouralSkill(models.Model):
+    SKILL_CHOICES = [
+        ('Punctuality', 'Punctuality'),
+        ('Neatness', 'Neatness'),
+        ('Attentiveness', 'Attentiveness'),
+        ('Social Development', 'Social Development'),
+        ('Assignment', 'Assignment'),
+        ('Class Participation', 'Class Participation'),
+        ('Perseverance', 'Perseverance'),
+        ('Responsibility', 'Responsibility'),
+        ('Politeness', 'Politeness'),
+        ('Honesty', 'Honesty'),
+        ('Sport & Games', 'Sport & Games'),
+        ('Club Participation', 'Club Participation'),
+        ('Psychomotor', 'Psychomotor'),
+    ]
+    RATING_CHOICES = [(i, str(i)) for i in range(1,6)]
+    student = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role':'student'})
+    report = models.ForeignKey(GradeReport, on_delete=models.CASCADE, related_name='behavioural_skills')
+    skill_name = models.CharField(max_length=50, choices=SKILL_CHOICES)
+    rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES)
+
+    class Meta:
+        unique_together = ('student', 'report', 'skill_name')

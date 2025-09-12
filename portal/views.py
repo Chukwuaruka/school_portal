@@ -13,6 +13,7 @@ from django.templatetags.static import static
 from django.db.models import Q
 import mimetypes
 from django.db.models import Max, Q
+from io import BytesIO
 
 # Python standard library imports
 import os
@@ -26,7 +27,7 @@ from xhtml2pdf import pisa
 # Local app imports
 from .models import (
     User, Assignment, Grade, SubjectGrade, GradeReport, Resource,
-    Announcement, Timetable, Submission, Teacher, Classroom, RegistrationCode
+    Announcement, Timetable, Submission, Teacher, Classroom, RegistrationCode, BehaviouralSkill
 )
 from .forms import ResourceForm, AnnouncementForm
 from .decorators import student_required, teacher_required
@@ -947,12 +948,17 @@ def edit_student_grade(request, grade_id):
         'submission': submission
     })
 
+BEHAVIOURAL_SKILLS = [
+    'Punctuality', 'Neatness', 'Attentiveness', 'Social Development', 'Assignment',
+    'Class Participation', 'Perseverance', 'Responsibility', 'Politeness',
+    'Honesty', 'Sport & Games', 'Club Participation', 'Psychomotor'
+]
+
 @login_required
 @teacher_required
 def teacher_upload_grades(request):
     students = User.objects.filter(role='student')
     selected_classroom = request.GET.get('classroom')
-
     if selected_classroom:
         students = students.filter(classroom__name=selected_classroom)
 
@@ -961,7 +967,7 @@ def teacher_upload_grades(request):
         grade_reports = grade_reports.filter(classroom__name=selected_classroom)
 
     student_grades = {}
-    for report in grade_reports.prefetch_related('subject_grades').select_related('student'):
+    for report in grade_reports.prefetch_related('subject_grades','behavioural_skills').select_related('student'):
         student = report.student
         if student not in student_grades:
             student_grades[student] = []
@@ -982,26 +988,17 @@ def teacher_upload_grades(request):
         classroom = get_object_or_404(Classroom, name=classroom_name)
 
         grade_report, created = GradeReport.objects.get_or_create(
-            student=student,
-            classroom=classroom,
-            term=term,
-            session=session,
+            student=student, classroom=classroom, term=term, session=session
         )
 
-        # Helpers
-        def to_int(val):
-            try:
-                return int(val)
-            except (TypeError, ValueError):
-                return None
-
-        def to_float(val):
-            try:
-                return float(val)
-            except (TypeError, ValueError):
-                return None
-
         # SubjectGrade fields
+        def to_int(val): 
+            try: return int(val)
+            except: return None
+        def to_float(val):
+            try: return float(val)
+            except: return None
+
         first_test = to_int(request.POST.get('first_test'))
         second_test = to_int(request.POST.get('second_test'))
         exam = to_int(request.POST.get('exam'))
@@ -1012,57 +1009,37 @@ def teacher_upload_grades(request):
         second_term_score = to_int(request.POST.get('second_term_score'))
         average_score = to_float(request.POST.get('average_score'))
 
-        # GradeReport overall fields
+        # Overall report fields
         total_available_score = to_int(request.POST.get('total_available_score'))
         overall_score = to_int(request.POST.get('overall_score'))
         overall_average = to_float(request.POST.get('average_score'))
-        overall_position = request.POST.get('overall_position', '').strip()
-        teacher_comment = request.POST.get('teacher_comment', '').strip()
-        admin_comment_report = request.POST.get('admin_comment_report', '').strip()
+        overall_position = request.POST.get('overall_position','').strip()
+        teacher_comment = request.POST.get('teacher_comment','').strip()
+        admin_comment_report = request.POST.get('admin_comment_report','').strip()
         next_term_date_str = request.POST.get('next_term_date')
-
         next_term_date = None
         if next_term_date_str:
-            try:
-                next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
-            except ValueError:
-                messages.error(request, "Invalid date format for Next Term Begins.")
-                return redirect('teacher_upload_grades')
+            try: next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
+            except: pass
 
-        # Update GradeReport fields
-        if total_available_score is not None:
-            grade_report.total_available_score = total_available_score
-        if overall_score is not None:
-            grade_report.overall_score = overall_score
-        if overall_average is not None:
-            grade_report.overall_average = overall_average
-        if overall_position:
-            grade_report.overall_position = overall_position
-        if teacher_comment:
-            grade_report.teacher_comment = teacher_comment
+        # Update report
+        if total_available_score is not None: grade_report.total_available_score = total_available_score
+        if overall_score is not None: grade_report.overall_score = overall_score
+        if overall_average is not None: grade_report.overall_average = overall_average
+        if overall_position: grade_report.overall_position = overall_position
+        if teacher_comment: grade_report.teacher_comment = teacher_comment
         grade_report.admin_comment_report = admin_comment_report
         grade_report.date_uploaded = timezone.now()
-        if next_term_date:
-            grade_report.next_term_date = next_term_date
+        if next_term_date: grade_report.next_term_date = next_term_date
         grade_report.save()
 
-        # Create or update SubjectGrade
+        # SubjectGrade
         grade, created = SubjectGrade.objects.get_or_create(
-            report=grade_report,
-            subject=subject,
-            defaults={
-                'first_test': first_test,
-                'second_test': second_test,
-                'exam': exam,
-                'manual_total': manual_total,
-                'manual_grade': manual_grade,
-                'grade_comment': grade_comment,
-                'first_term_score': first_term_score,
-                'second_term_score': second_term_score,
-                'average_score': average_score,
-            }
+            report=grade_report, subject=subject,
+            defaults={'first_test':first_test,'second_test':second_test,'exam':exam,
+                      'manual_total':manual_total,'manual_grade':manual_grade,'grade_comment':grade_comment,
+                      'first_term_score':first_term_score,'second_term_score':second_term_score,'average_score':average_score}
         )
-
         if not created:
             grade.first_test = first_test
             grade.second_test = second_test
@@ -1074,18 +1051,28 @@ def teacher_upload_grades(request):
             grade.second_term_score = second_term_score
             grade.average_score = average_score
             grade.save()
-            messages.success(request, "Grade updated successfully.")
-        else:
-            messages.success(request, "Grade uploaded successfully.")
 
+        # Behavioural skills
+        for skill in BEHAVIOURAL_SKILLS:
+            rating = request.POST.get(f'beh_{skill.replace(" ","_")}')
+            if rating:
+                BehaviouralSkill.objects.update_or_create(
+                    student=student,
+                    report=grade_report,
+                    skill_name=skill,
+                    defaults={'rating': int(rating)}
+                )
+
+        messages.success(request,"Grades uploaded successfully.")
         return redirect('teacher_upload_grades')
 
     classrooms = Classroom.objects.all()
-    return render(request, 'portal/teacher_upload_grades.html', {
+    return render(request,'portal/teacher_upload_grades.html',{
         'students': students,
         'student_grades': student_grades,
         'selected_classroom': selected_classroom,
         'classrooms': classrooms,
+        'behavioural_skills': BEHAVIOURAL_SKILLS
     })
 
 @login_required
@@ -1247,21 +1234,20 @@ def delete_student_grade(request, grade_id):
     messages.success(request, "Grade deleted successfully.")
     return redirect('admin_manage_grades')
 
+
 @login_required
-@student_required
 def download_grade_report_pdf(request):
     student = request.user
 
-    # Get all reports and related subject grades
+    # Fetch all reports and grades
     reports = GradeReport.objects.filter(student=student)
     grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__term', 'subject')
-
-    latest_report = reports.order_by('-date_uploaded').first()
+    latest_report = reports.prefetch_related('behavioural_skills').order_by('-date_uploaded').first()
 
     if not latest_report:
         return HttpResponse("No report found.", status=404)
 
-    # Encode logo for PDF header
+    # Encode logo
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
     if os.path.exists(logo_path):
@@ -1270,15 +1256,15 @@ def download_grade_report_pdf(request):
             encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
             logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
-    # Prepare student profile data
     student_profile = {
         'student_name': student.get_full_name() or student.username,
+        'classroom': getattr(student, 'classroom', None),
+        # Add other profile fields if available, e.g. age, height, etc.
     }
 
     context = {
         'grades': grades,
-        'reports': reports,
-        'report': latest_report,  # for summary section
+        'report': latest_report,
         'student_name': student_profile['student_name'],
         'logo_url': logo_data_uri,
         'student_profile': student_profile,
@@ -1290,9 +1276,6 @@ def download_grade_report_pdf(request):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
 
-
-    from io import BytesIO
-
     result = BytesIO()
     pisa_status = pisa.CreatePDF(html, dest=result)
 
@@ -1301,6 +1284,9 @@ def download_grade_report_pdf(request):
 
     response.write(result.getvalue())
     return response
+
+
+ 
 
 
 @login_required
