@@ -433,8 +433,8 @@ def student_submissions(request):
         # Validate assignment exists
         assignment = get_object_or_404(Assignment, id=assignment_id)
 
-        # Prevent submission if deadline passed
-        if assignment.due_date < timezone.now():
+        # Prevent submission if deadline passed (compare as dates)
+        if assignment.due_date < timezone.now().date():
             messages.error(request, f"❌ Submission failed. The deadline for '{assignment.title}' has passed.")
             return redirect('student_submissions')
 
@@ -492,7 +492,6 @@ def student_submissions(request):
         'preselected_assignment_id': preselected_assignment_id,
     }
     return render(request, 'portal/student_submissions.html', context)
-
 
 @login_required
 @student_required
