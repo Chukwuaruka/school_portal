@@ -954,6 +954,12 @@ BEHAVIOURAL_SKILLS = [
     'Honesty', 'Sport & Games', 'Club Participation', 'Psychomotor'
 ]
 
+BEHAVIOURAL_SKILLS = [
+    'punctuality','neatness','attentiveness','social_development','assignment',
+    'class_participation','perseverance','responsibility','politeness','honesty',
+    'sport_games','industry','club_participation','psychomotor'
+]
+
 @login_required
 @teacher_required
 def teacher_upload_grades(request):
@@ -991,7 +997,7 @@ def teacher_upload_grades(request):
             student=student, classroom=classroom, term=term, session=session
         )
 
-        # SubjectGrade fields
+        # Helpers
         def to_int(val): 
             try: return int(val)
             except: return None
@@ -999,6 +1005,7 @@ def teacher_upload_grades(request):
             try: return float(val)
             except: return None
 
+        # SubjectGrade fields
         first_test = to_int(request.POST.get('first_test'))
         second_test = to_int(request.POST.get('second_test'))
         exam = to_int(request.POST.get('exam'))
@@ -1012,7 +1019,7 @@ def teacher_upload_grades(request):
         # Overall report fields
         total_available_score = to_int(request.POST.get('total_available_score'))
         overall_score = to_int(request.POST.get('overall_score'))
-        overall_average = to_float(request.POST.get('average_score'))
+        overall_average = to_float(request.POST.get('overall_average'))
         overall_position = request.POST.get('overall_position','').strip()
         teacher_comment = request.POST.get('teacher_comment','').strip()
         admin_comment_report = request.POST.get('admin_comment_report','').strip()
@@ -1022,7 +1029,7 @@ def teacher_upload_grades(request):
             try: next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
             except: pass
 
-        # Update report
+        # Update GradeReport
         if total_available_score is not None: grade_report.total_available_score = total_available_score
         if overall_score is not None: grade_report.overall_score = overall_score
         if overall_average is not None: grade_report.overall_average = overall_average
@@ -1033,12 +1040,15 @@ def teacher_upload_grades(request):
         if next_term_date: grade_report.next_term_date = next_term_date
         grade_report.save()
 
-        # SubjectGrade
+        # Create or update SubjectGrade
         grade, created = SubjectGrade.objects.get_or_create(
             report=grade_report, subject=subject,
-            defaults={'first_test':first_test,'second_test':second_test,'exam':exam,
-                      'manual_total':manual_total,'manual_grade':manual_grade,'grade_comment':grade_comment,
-                      'first_term_score':first_term_score,'second_term_score':second_term_score,'average_score':average_score}
+            defaults={
+                'first_test': first_test, 'second_test': second_test, 'exam': exam,
+                'manual_total': manual_total, 'manual_grade': manual_grade,
+                'grade_comment': grade_comment, 'first_term_score': first_term_score,
+                'second_term_score': second_term_score, 'average_score': average_score
+            }
         )
         if not created:
             grade.first_test = first_test
@@ -1054,7 +1064,8 @@ def teacher_upload_grades(request):
 
         # Behavioural skills
         for skill in BEHAVIOURAL_SKILLS:
-            rating = request.POST.get(f'beh_{skill.replace(" ","_")}')
+            key_name = f'beh_{skill.replace(" ","_")}'  # matches input name in template
+            rating = request.POST.get(key_name)
             if rating:
                 BehaviouralSkill.objects.update_or_create(
                     student=student,
@@ -1236,58 +1247,44 @@ def delete_student_grade(request, grade_id):
 
 
 @login_required
-def download_grade_report_pdf(request):
-    student = request.user
+def download_grade_report_pdf(request, student_id):
+    # Get the student report
+    report = get_object_or_404(GradeReport, student__id=student_id)
+    grades = report.subject_grades.all()
 
-    # Fetch all reports and grades
-    reports = GradeReport.objects.filter(student=student)
-    grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__term', 'subject')
-    latest_report = reports.prefetch_related('behavioural_skills').order_by('-date_uploaded').first()
-
-    if not latest_report:
-        return HttpResponse("No report found.", status=404)
-
-    # Encode logo
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
-    logo_data_uri = ''
-    if os.path.exists(logo_path):
-        mime_type, _ = mimetypes.guess_type(logo_path)
-        with open(logo_path, "rb") as image_file:
-            encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
-            logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
-
+    # Prepare student profile data
     student_profile = {
-        'student_name': student.get_full_name() or student.username,
-        'classroom': getattr(student, 'classroom', None),
-        # Add other profile fields if available, e.g. age, height, etc.
+        "student_name": report.student.get_full_name(),
+        "classroom": getattr(report.student.classroom, 'name', ''),
+        "age": getattr(report.student, 'age', ''),
     }
 
+    # Encode logo if needed (optional)
+    logo_url = None
+    if hasattr(report.student, 'school_logo') and report.student.school_logo:
+        logo_url = report.student.school_logo.url
+
+    # Render template to HTML string
     context = {
-        'grades': grades,
-        'report': latest_report,
-        'student_name': student_profile['student_name'],
-        'logo_url': logo_data_uri,
-        'student_profile': student_profile,
+        "student_name": report.student.get_full_name(),
+        "student_profile": student_profile,
+        "grades": grades,
+        "report": report,
+        "logo_url": logo_url,
     }
+    template_path = "portal/grades_pdf.html"
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{report.student.username}_report.pdf"'
 
-    template = get_template('portal/grades_pdf.html')
-    html = template.render(context)
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{student.username}_report.pdf"'
-
+    # Render HTML to PDF
+    html = render(request, template_path, context).content.decode("UTF-8")
     result = BytesIO()
-    pisa_status = pisa.CreatePDF(html, dest=result)
-
+    pisa_status = pisa.CreatePDF(src=html, dest=result)
     if pisa_status.err:
-        return HttpResponse('Error generating PDF. <pre>' + html + '</pre>')
+        return HttpResponse("Error generating PDF <pre>" + html + "</pre>")
 
     response.write(result.getvalue())
     return response
-
-
- 
-
 
 @login_required
 @user_passes_test(is_admin)

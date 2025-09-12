@@ -54,7 +54,6 @@
   th {
     background-color: #222;
     font-weight: bold;
-    writing-mode: horizontal-tb;
   }
 
   .summary-table {
@@ -190,27 +189,6 @@
     </td>
   </tr>
 </table>
-
-<!-- Add below the grades table and summary -->
-{% if report.behavioural_skills.exists %}
-<h4 style="margin-top: 15px;">📋 Behavioural Skills</h4>
-<table>
-  <thead>
-    <tr>
-      <th>Skill</th>
-      <th>Rating</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for skill in report.behavioural_skills.all %}
-    <tr>
-      <td>{{ skill.skill_name }}</td>
-      <td>{{ skill.rating }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% endif %}
 
 {% else %}
 <p style="text-align:center;">No grades available for this report.</p>
