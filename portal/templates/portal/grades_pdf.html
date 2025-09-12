@@ -4,107 +4,24 @@
 <meta charset="UTF-8">
 <title>{{ student_name }} - Report</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    margin: 20px;
-    background-color: #000;
-    color: #fff;
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-  .header img {
-    width: 60px;
-  }
-
-  .school-name {
-    font-size: 18px;
-    font-weight: bold;
-  }
-
-  .school-address {
-    font-size: 10px;
-  }
-
-  .term-heading {
-    font-size: 13px;
-    font-weight: bold;
-    margin-top: 4px;
-    margin-bottom: 10px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 8px;
-    color: #fff;
-  }
-
-  th, td {
-    border: 1px solid #fff;
-    padding: 5px;
-    text-align: center;
-    font-size: 11px;
-  }
-
-  th {
-    background-color: #222;
-    font-weight: bold;
-  }
-
-  .summary-table {
-    width: 100%;
-    margin-top: 8px;
-  }
-
-  .summary-table td {
-    border: none;
-    text-align: left;
-    font-size: 11px;
-    padding: 4px;
-    vertical-align: top;
-    font-weight: bold;
-  }
-
-  .summary-table .highlight {
-    color: #a0522d; /* brown */
-  }
-
-  .footer {
-    text-align: center;
-    font-size: 10px;
-    margin-top: 12px;
-    padding-top: 6px;
-    border-top: 1px dashed #fff;
-  }
-
-  .student-profile td {
-    border: none;
-    text-align: left;
-    font-size: 11px;
-    padding: 4px;
-    vertical-align: top;
-  }
-
-  .grade-scale-inline {
-    font-size: 10px;
-    text-align: center;
-    margin: 8px 0 6px 0;
-    padding: 4px 6px;
-    border-top: 1px solid #fff;
-  }
+  body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #000; background-color: #fff; }
+  .header { text-align: center; margin-bottom: 10px; }
+  .header img { width: 60px; }
+  .school-name { font-size: 18px; font-weight: bold; }
+  .school-address { font-size: 10px; }
+  .term-heading { font-size: 13px; font-weight: bold; margin-top: 4px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 11px; }
+  th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+  th { background-color: #eee; font-weight: bold; }
+  .summary-table td { border: none; text-align: left; padding: 4px; vertical-align: top; font-weight: bold; }
+  .highlight { color: #a0522d; }
+  .footer { text-align: center; font-size: 10px; margin-top: 12px; padding-top: 6px; border-top: 1px dashed #000; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  {% if logo_url %}
-    <img src="{{ logo_url }}" alt="Logo">
-  {% endif %}
+  {% if logo_url %}<img src="{{ logo_url }}" alt="Logo">{% endif %}
   <div class="school-name">PEN ARK SCHOOLS</div>
   <div class="school-address">
     9/11 EDUN STREET, LADIPO, OSHODI, LAGOS<br>
@@ -114,21 +31,11 @@
   <div class="term-heading">THIRD TERM ASSESSMENT REPORT (SESSION 2024/2025)</div>
 </div>
 
-<div class="student-profile">
+<div>
   <table>
-    <tr>
-      <td><strong>Name:</strong> {{ student_profile.student_name }}</td>
-    </tr>
-    {% if student_profile.classroom %}
-    <tr>
-      <td><strong>Classroom:</strong> {{ student_profile.classroom }}</td>
-    </tr>
-    {% endif %}
-    {% if student_profile.age %}
-    <tr>
-      <td><strong>Age:</strong> {{ student_profile.age }}</td>
-    </tr>
-    {% endif %}
+    <tr><td><strong>Name:</strong> {{ student_profile.student_name }}</td></tr>
+    {% if student_profile.classroom %}<tr><td><strong>Classroom:</strong> {{ student_profile.classroom }}</td></tr>{% endif %}
+    {% if student_profile.age %}<tr><td><strong>Age:</strong> {{ student_profile.age }}</td></tr>{% endif %}
   </table>
 </div>
 
@@ -170,10 +77,7 @@
 <h4>📋 Behavioural Assessment (1-5)</h4>
 <table>
   <thead>
-    <tr>
-      <th>Skill</th>
-      <th>Rating</th>
-    </tr>
+    <tr><th>Skill</th><th>Rating</th></tr>
   </thead>
   <tbody>
     {% for skill in behavioural_skills %}
@@ -186,28 +90,22 @@
 </table>
 {% endif %}
 
-<p class="grade-scale-inline">
-  📏 <strong>Grade Scale:</strong>
-  A++ = 90%+ (Outstanding), A+ = 80–89% (Excellent), B++ = 70–79% (Very Good),
-  B+ = 60–69% (Good), C = 50–59% (Fairly Good), D = 40–49% (Fair), F = 0–39% (Fail)
-</p>
-
 <table class="summary-table">
-  <tr>
-    <td width="50%">
-      📌 <strong>Performance Summary</strong><br>
-      Total Score: <span class="highlight">{{ report.total_available_score|default:"N/A" }}</span><br>
-      Student Score: <span class="highlight">{{ report.overall_score|default:"N/A" }}</span><br>
-      Average: <span class="highlight">{{ report.overall_average|default:"N/A" }}%</span><br>
-      Position: <span class="highlight">{{ report.overall_position|default:"N/A" }}</span>
-    </td>
-    <td width="50%">
-      🗣️ <strong>Teacher/Admin Comments</strong><br>
-      Teacher’s Comment: <span class="highlight">{{ report.teacher_comment|default:"No comment" }}</span><br>
-      Admin Comment: {{ report.admin_comment_report|default:"No comment" }}<br>
-      Next Term Begins: {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
-    </td>
-  </tr>
+<tr>
+<td width="50%">
+📌 <strong>Performance Summary</strong><br>
+Total Score: <span class="highlight">{{ report.total_available_score|default:"N/A" }}</span><br>
+Student Score: <span class="highlight">{{ report.overall_score|default:"N/A" }}</span><br>
+Average: <span class="highlight">{{ report.overall_average|default:"N/A" }}%</span><br>
+Position: <span class="highlight">{{ report.overall_position|default:"N/A" }}</span>
+</td>
+<td width="50%">
+🗣️ <strong>Teacher/Admin Comments</strong><br>
+Teacher: <span class="highlight">{{ report.teacher_comment|default:"No comment" }}</span><br>
+Admin: {{ report.admin_comment_report|default:"No comment" }}<br>
+Next Term Begins: {{ report.next_term_date|date:"F j, Y"|default:"TBD" }}
+</td>
+</tr>
 </table>
 
 {% else %}
@@ -215,8 +113,7 @@
 {% endif %}
 
 <div class="footer">
-  PEN ARK SCHOOLS — Trained For Duty And For Thee.
+PEN ARK SCHOOLS — Trained For Duty And For Thee.
 </div>
-
 </body>
 </html>

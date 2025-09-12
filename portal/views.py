@@ -499,15 +499,16 @@ def student_submissions(request):
 def student_grades_view(request):
     student = request.user
 
+    # All reports for this student
     reports = GradeReport.objects.filter(student=student)
+    # All grades for all reports
     grades = SubjectGrade.objects.filter(report__in=reports).order_by('report__term', 'subject')
-
+    # Latest report for summary
     latest_report = reports.order_by('-date_uploaded').first()
 
     return render(request, 'portal/student_test_examination_grades.html', {
         'grades': grades,
-        'reports': reports,
-        'report': latest_report,  # single report for summary
+        'report': latest_report,
         'student_name': student.get_full_name() or student.username,
     })
 
@@ -954,6 +955,13 @@ BEHAVIOURAL_SKILLS = [
     'Honesty', 'Sport & Games', 'Club Participation', 'Psychomotor'
 ]
 
+BEHAVIOURAL_SKILLS = [
+    "Punctuality", "Neatness", "Attentiveness", "Social Development", 
+    "Assignment", "Class Participation", "Perseverance",
+    "Responsibility", "Politeness", "Honesty", "Sport & Games",
+    "Industry", "Club Participation", "Psychomotor"
+]
+
 @login_required
 @teacher_required
 def teacher_upload_grades(request):
@@ -962,6 +970,7 @@ def teacher_upload_grades(request):
     if selected_classroom:
         students = students.filter(classroom__name=selected_classroom)
 
+    # Build student_grades dictionary
     grade_reports = GradeReport.objects.filter(student__in=students)
     if selected_classroom:
         grade_reports = grade_reports.filter(classroom__name=selected_classroom)
@@ -1058,7 +1067,7 @@ def teacher_upload_grades(request):
 
         # Behavioural skills
         for skill in BEHAVIOURAL_SKILLS:
-            key_name = f'beh_{skill.replace(" ","_")}'  # matches input name in template
+            key_name = f'beh_{skill.replace(" ","_")}'
             rating = request.POST.get(key_name)
             if rating:
                 BehaviouralSkill.objects.update_or_create(
@@ -1241,12 +1250,15 @@ def delete_student_grade(request, grade_id):
 
 @login_required
 def download_my_grade_report_pdf(request):
-    # Use the logged-in user
     student = request.user
     if student.role != 'student':
         return HttpResponse("Unauthorized", status=403)
 
-    report = get_object_or_404(GradeReport, student=student)
+    # Get the latest report
+    report = GradeReport.objects.filter(student=student).order_by('-date_uploaded').first()
+    if not report:
+        return HttpResponse("No report available.", status=404)
+
     grades = report.subject_grades.all()
     behavioural_skills = report.behavioural_skills.all()
 
@@ -1281,7 +1293,6 @@ def download_my_grade_report_pdf(request):
 
     response.write(result.getvalue())
     return response
-
 
 @login_required
 @user_passes_test(is_admin)

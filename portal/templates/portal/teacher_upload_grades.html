@@ -5,10 +5,12 @@
 <div class="container mt-4">
   <h2 class="mb-4">📝 Upload or Edit Student Grades</h2>
 
+  <!-- Grade Upload Form -->
   <form method="POST" novalidate>
     {% csrf_token %}
     <div class="row g-3">
-      <!-- Student & Classroom Selection -->
+
+      <!-- Student & Classroom -->
       <div class="col-md-6">
         <label for="student_username" class="form-label">Select Student</label>
         <select id="student_username" name="student_username" class="form-select" required>
@@ -18,6 +20,7 @@
           {% endfor %}
         </select>
       </div>
+
       <div class="col-md-6">
         <label for="classroom" class="form-label">Classroom</label>
         <select id="classroom" name="classroom" class="form-select" required>
@@ -29,11 +32,11 @@
       </div>
 
       <!-- Subject, Term, Session -->
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label for="subject" class="form-label">Subject</label>
         <input type="text" id="subject" name="subject" class="form-control" required>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label for="term" class="form-label">Term</label>
         <select id="term" name="term" class="form-select" required>
           <option value="" disabled selected>-- Select Term --</option>
@@ -42,38 +45,39 @@
           <option>3rd Term</option>
         </select>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label for="session" class="form-label">Session</label>
         <input type="text" id="session" name="session" class="form-control" placeholder="e.g. 2024/2025" required>
       </div>
 
       <!-- Subject Grades -->
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="first_test" class="form-label">1st Test (20)</label>
         <input type="number" id="first_test" name="first_test" class="form-control" min="0" max="20">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="second_test" class="form-label">2nd Test (20)</label>
         <input type="number" id="second_test" name="second_test" class="form-control" min="0" max="20">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="exam" class="form-label">Exam (60)</label>
         <input type="number" id="exam" name="exam" class="form-control" min="0" max="60">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="manual_total" class="form-label">Manual Total</label>
         <input type="number" id="manual_total" name="manual_total" class="form-control" min="0" max="100" placeholder="Override total">
       </div>
+
       <div class="col-md-4">
         <label for="manual_grade" class="form-label">Manual Grade</label>
         <input type="text" id="manual_grade" name="manual_grade" class="form-control" maxlength="3" placeholder="A, B+, C">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-8">
         <label for="grade_comment" class="form-label">Grade Comment</label>
         <textarea id="grade_comment" name="grade_comment" class="form-control" rows="1"></textarea>
       </div>
 
-      <!-- Term Scores -->
+      <!-- Term Scores & Average -->
       <div class="col-md-4">
         <label for="first_term_score" class="form-label">1st Term Score</label>
         <input type="number" id="first_term_score" name="first_term_score" class="form-control" min="0" max="100">
@@ -86,11 +90,12 @@
         <label for="average_score" class="form-label">Average (%)</label>
         <input type="number" step="0.01" id="average_score" name="average_score" class="form-control" min="0" max="100">
       </div>
+
     </div>
 
     <hr class="my-4">
 
-    <!-- Behavioural Assessment Fields -->
+    <!-- Behavioural Assessment -->
     <h4>📋 Behavioural Assessment (1-5)</h4>
     <div class="row g-3">
       {% for skill in behavioural_skills %}
@@ -103,22 +108,22 @@
 
     <hr class="my-4">
 
-    <!-- Overall Report Fields -->
+    <!-- Performance Summary -->
     <h4>📊 Performance Summary</h4>
     <div class="row g-3">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="total_available_score" class="form-label">Total Available Score</label>
         <input type="number" id="total_available_score" name="total_available_score" class="form-control" min="0" max="100">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="overall_score" class="form-label">Overall Score</label>
         <input type="number" id="overall_score" name="overall_score" class="form-control" min="0" max="100">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="overall_average" class="form-label">Overall Average (%)</label>
         <input type="number" step="0.01" id="overall_average" name="overall_average" class="form-control" min="0" max="100">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="overall_position" class="form-label">Overall Position</label>
         <input type="text" id="overall_position" name="overall_position" class="form-control">
       </div>
@@ -130,7 +135,7 @@
         <label for="admin_comment_report" class="form-label">Admin Comment</label>
         <textarea id="admin_comment_report" name="admin_comment_report" class="form-control" rows="2"></textarea>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label for="next_term_date" class="form-label">Next Term Begins</label>
         <input type="date" id="next_term_date" name="next_term_date" class="form-control">
       </div>
@@ -141,6 +146,7 @@
     </div>
   </form>
 
+  <!-- Success/Error Messages -->
   {% if messages %}
     <div class="mt-3">
       {% for message in messages %}
@@ -158,7 +164,7 @@
           {% with student=student_grade.0 grades=student_grade.1 %}
               <h5 class="mt-4 text-primary">{{ student.get_full_name }} ({{ student.username }})</h5>
               <div class="table-responsive">
-                  <table class="table table-bordered table-hover mt-2 align-middle">
+                  <table class="table table-bordered table-hover mt-2 align-middle text-center">
                       <thead class="table-light">
                           <tr>
                               <th>Subject</th>
@@ -175,18 +181,18 @@
                       </thead>
                       <tbody>
                           {% for grade in grades %}
-                              <tr>
-                                  <td>{{ grade.subject }}</td>
-                                  <td>{{ grade.first_test|default:"–" }}</td>
-                                  <td>{{ grade.second_test|default:"–" }}</td>
-                                  <td>{{ grade.exam|default:"–" }}</td>
-                                  <td>{{ grade.total_score }}</td>
-                                  <td>{{ grade.first_term_score }}</td>
-                                  <td>{{ grade.second_term_score }}</td>
-                                  <td>{{ grade.average_score }}</td>
-                                  <td>{{ grade.manual_grade|default:grade.grade }}</td>
-                                  <td>{{ grade.grade_comment|default:"–" }}</td>
-                              </tr>
+                          <tr>
+                              <td>{{ grade.subject }}</td>
+                              <td>{{ grade.first_test|default:"–" }}</td>
+                              <td>{{ grade.second_test|default:"–" }}</td>
+                              <td>{{ grade.exam|default:"–" }}</td>
+                              <td>{{ grade.total_score|default:"–" }}</td>
+                              <td>{{ grade.first_term_score|default:"–" }}</td>
+                              <td>{{ grade.second_term_score|default:"–" }}</td>
+                              <td>{{ grade.average_score|default:"–" }}</td>
+                              <td>{{ grade.manual_grade|default:grade.grade }}</td>
+                              <td>{{ grade.grade_comment|default:"–" }}</td>
+                          </tr>
                           {% endfor %}
                       </tbody>
                   </table>
@@ -196,5 +202,6 @@
   {% else %}
       <p class="text-muted mt-3">No grades uploaded yet.</p>
   {% endif %}
+
 </div>
 {% endblock %}
