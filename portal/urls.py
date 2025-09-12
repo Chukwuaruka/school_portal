@@ -25,7 +25,6 @@ urlpatterns = [
 
     # 🧑‍🏫 Teacher Dashboard & Features
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
-    path('teacher/timetable/', views.teacher_timetable, name='teacher_timetable'),
     path('teacher/assignments/', views.teacher_assignments, name='teacher_assignments'),
     path('teacher/assignments/edit/<int:assignment_id>/', views.edit_assignment, name='edit_assignment'),
     path('teacher/assignments/delete/<int:assignment_id>/', views.delete_assignment, name='delete_assignment'),
