@@ -925,63 +925,65 @@ def edit_grade(request, grade_id):
     if request.method == 'POST':
         # SUBJECT GRADE updates
         grade.subject = request.POST.get('subject', grade.subject)
-        grade.first_test = parse_int(request.POST.get('first_test')) or None
-        grade.second_test = parse_int(request.POST.get('second_test')) or None
-        grade.exam = parse_int(request.POST.get('exam')) or None
-        grade.manual_total = parse_int(request.POST.get('manual_total')) or None
+        grade.first_test = parse_int(request.POST.get('first_test'))
+        grade.second_test = parse_int(request.POST.get('second_test'))
+        grade.exam = parse_int(request.POST.get('exam'))
+        grade.manual_total = parse_int(request.POST.get('manual_total'))
         grade.manual_grade = request.POST.get('manual_grade', '').strip()
         grade.grade_comment = request.POST.get('grade_comment', '').strip()
-        grade.first_term_score = parse_int(request.POST.get('first_term_score')) or None
-        grade.second_term_score = parse_int(request.POST.get('second_term_score')) or None
-        grade.average_score = parse_float(request.POST.get('average_score')) or None
+        grade.first_term_score = parse_int(request.POST.get('first_term_score'))
+        grade.second_term_score = parse_int(request.POST.get('second_term_score'))
+        grade.average_score = parse_float(request.POST.get('average_score'))
         grade.term = request.POST.get('term') or grade.term
         grade.session = request.POST.get('session') or grade.session
         grade.comment = request.POST.get('comment', '').strip()
         grade.admin_comment = request.POST.get('admin_comment', '').strip()
         grade.save()
 
-        # REPORT updates - parse numeric values correctly
-        total_available_score = parse_int(request.POST.get('total_available_score'))
-        if total_available_score is not None:
-            report.total_available_score = total_available_score
+        # REPORT updates
+        report.total_available_score = parse_int(request.POST.get('total_available_score')) or report.total_available_score
+        report.overall_score = parse_int(request.POST.get('overall_score')) or report.overall_score
+        report.overall_average = parse_float(request.POST.get('overall_average')) or report.overall_average
+        report.overall_position = request.POST.get('overall_position', report.overall_position).strip()
+        report.teacher_comment = request.POST.get('teacher_comment', report.teacher_comment).strip()
+        report.admin_comment_report = request.POST.get('admin_comment_report', report.admin_comment_report).strip()
 
-        overall_score = parse_int(request.POST.get('overall_score'))
-        if overall_score is not None:
-            report.overall_score = overall_score
-
-        overall_average = parse_float(request.POST.get('overall_average'))
-        if overall_average is not None:
-            report.overall_average = overall_average
-
-        overall_position = request.POST.get('overall_position')
-        if overall_position is not None:
-            report.overall_position = overall_position.strip()
-
-        teacher_comment = request.POST.get('teacher_comment')
-        if teacher_comment is not None:
-            report.teacher_comment = teacher_comment.strip()
-
-        admin_comment_report = request.POST.get('admin_comment_report')
-        if admin_comment_report is not None:
-            report.admin_comment_report = admin_comment_report.strip()
-
-        # Parse and update next_term_date
         next_term_date_str = request.POST.get('next_term_date')
         if next_term_date_str:
             try:
                 report.next_term_date = datetime.strptime(next_term_date_str, '%Y-%m-%d').date()
             except ValueError:
-                pass  # Ignore invalid date input
+                pass
 
-        # Update upload date
         report.date_uploaded = timezone.now()
         report.save()
 
+        # BEHAVIOURAL SKILLS updates
+        for skill in BEHAVIOURAL_SKILLS:
+            key_name = f'beh_{skill.replace(" ", "_")}'
+            rating = request.POST.get(key_name)
+            if rating:
+                BehaviouralSkill.objects.update_or_create(
+                    student=report.student,
+                    report=report,
+                    skill_name=skill,
+                    defaults={'rating': int(rating)}
+                )
+
+        messages.success(request, "Grade and behavioural skills updated successfully.")
         return redirect('teacher_upload_grades')
+
+    # Prepare existing behavioural skill ratings for the form
+    skills_data = {}
+    for skill in BEHAVIOURAL_SKILLS:
+        existing = report.behavioural_skills.filter(skill_name=skill).first()
+        skills_data[skill] = existing.rating if existing else None
 
     context = {
         'grade': grade,
         'report': report,
+        'behavioural_skills': BEHAVIOURAL_SKILLS,
+        'skills_data': skills_data,
     }
     return render(request, 'portal/edit_grade.html', context)
 
