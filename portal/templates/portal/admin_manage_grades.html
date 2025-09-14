@@ -31,6 +31,7 @@
                     Download PDF Report
                 </a>
             </div>
+
             <!-- Grade Table -->
             <div class="table-responsive mb-4">
                 <table class="table table-striped table-bordered align-middle">
@@ -47,6 +48,7 @@
                             <th scope="col">Grade</th>
                             <th scope="col">Grade Comment</th>
                             <th scope="col">Teacher</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,6 +65,14 @@
                             <td>{{ grade.manual_grade|default:"–" }}</td>
                             <td>{{ grade.grade_comment|default:"–" }}</td>
                             <td>{{ grade.teacher.get_full_name|default:"–" }}</td>
+                            <td>
+                                <a href="{% url 'edit_student_grade' grade.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
+                                <a href="{% url 'delete_student_grade' grade.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this grade?');">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -89,62 +99,5 @@
         {% endif %}
     {% endif %}
 
-    <hr class="my-5">
-
-    <!-- Bulk Grades Management Table -->
-    <h4>🗂️ All Grades Management</h4>
-    {% if grades_list %}
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-            <thead class="table-dark text-center">
-                <tr>
-                    <th scope="col">Student</th>
-                    <th scope="col">Subject</th>
-                    <th scope="col">1st Test</th>
-                    <th scope="col">2nd Test</th>
-                    <th scope="col">Exam</th>
-                    <th scope="col">Total (100)</th>
-                    <th scope="col">Manual Grade</th>
-                    <th scope="col">Grade Comment</th>
-                    <th scope="col">1st Term</th>
-                    <th scope="col">2nd Term</th>
-                    <th scope="col">Average</th>
-                    <th scope="col">Comment</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for grade in grades_list %}
-                <tr>
-                    <td>{{ grade.report.student.get_full_name }} ({{ grade.report.student.username }})</td>
-                    <td>{{ grade.subject }}</td>
-                    <td>{{ grade.first_test|default:"–" }}</td>
-                    <td>{{ grade.second_test|default:"–" }}</td>
-                    <td>{{ grade.exam|default:"–" }}</td>
-                    <td><strong>{{ grade.total_score }}</strong></td>
-                    <td>{{ grade.manual_grade|default:"–" }}</td>
-                    <td>{{ grade.grade_comment|default:"–" }}</td>
-                    <td>{{ grade.first_term_score|default:"–" }}</td>
-                    <td>{{ grade.second_term_score|default:"–" }}</td>
-                    <td>{{ grade.average_score|default:"–" }}</td>
-                    <td>{{ grade.comment|default:"–" }}</td>
-                    <td>
-                        <a href="{% url 'edit_student_grade' grade.id %}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-pencil-square"></i> Edit
-                        </a>
-                        <a href="{% url 'delete_student_grade' grade.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this grade?');">
-                            <i class="bi bi-trash"></i> Delete
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-        <div class="alert alert-info text-center">
-            No grades found.
-        </div>
-    {% endif %}
 </div>
 {% endblock %}

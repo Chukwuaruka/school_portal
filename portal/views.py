@@ -921,40 +921,40 @@ def edit_grade(request, grade_id):
         existing = report.behavioural_skills.filter(skill_name=skill).first()
         skills_list.append(SkillRating(skill, existing.rating if existing else None))
 
-    def parse_int(value):
+    def parse_int(value, current):
         try:
-            return int(value)
-        except (TypeError, ValueError):
-            return None
+            return int(value) if value not in [None, ""] else current
+        except ValueError:
+            return current
 
-    def parse_float(value):
+    def parse_float(value, current):
         try:
-            return float(value)
-        except (TypeError, ValueError):
-            return None
+            return float(value) if value not in [None, ""] else current
+        except ValueError:
+            return current
 
     if request.method == 'POST':
-        # SUBJECT GRADE updates
-        grade.subject = request.POST.get('subject', grade.subject)
-        grade.first_test = parse_int(request.POST.get('first_test'))
-        grade.second_test = parse_int(request.POST.get('second_test'))
-        grade.exam = parse_int(request.POST.get('exam'))
-        grade.manual_total = parse_int(request.POST.get('manual_total'))
-        grade.manual_grade = request.POST.get('manual_grade', '').strip()
-        grade.grade_comment = request.POST.get('grade_comment', '').strip()
-        grade.first_term_score = parse_int(request.POST.get('first_term_score'))
-        grade.second_term_score = parse_int(request.POST.get('second_term_score'))
-        grade.average_score = parse_float(request.POST.get('average_score'))
+        # SUBJECT GRADE updates (safe assignment)
+        grade.subject = request.POST.get('subject', grade.subject).strip() or grade.subject
+        grade.first_test = parse_int(request.POST.get('first_test'), grade.first_test)
+        grade.second_test = parse_int(request.POST.get('second_test'), grade.second_test)
+        grade.exam = parse_int(request.POST.get('exam'), grade.exam)
+        grade.manual_total = parse_int(request.POST.get('manual_total'), grade.manual_total)
+        grade.manual_grade = request.POST.get('manual_grade', grade.manual_grade).strip()
+        grade.grade_comment = request.POST.get('grade_comment', grade.grade_comment).strip()
+        grade.first_term_score = parse_int(request.POST.get('first_term_score'), grade.first_term_score)
+        grade.second_term_score = parse_int(request.POST.get('second_term_score'), grade.second_term_score)
+        grade.average_score = parse_float(request.POST.get('average_score'), grade.average_score)
         grade.term = request.POST.get('term') or grade.term
         grade.session = request.POST.get('session') or grade.session
-        grade.comment = request.POST.get('comment', '').strip()
-        grade.admin_comment = request.POST.get('admin_comment', '').strip()
+        grade.comment = request.POST.get('comment', grade.comment).strip()
+        grade.admin_comment = request.POST.get('admin_comment', grade.admin_comment).strip()
         grade.save()
 
-        # REPORT updates
-        report.total_available_score = parse_int(request.POST.get('total_available_score')) or report.total_available_score
-        report.overall_score = parse_int(request.POST.get('overall_score')) or report.overall_score
-        report.overall_average = parse_float(request.POST.get('overall_average')) or report.overall_average
+        # REPORT updates (already safe)
+        report.total_available_score = parse_int(request.POST.get('total_available_score'), report.total_available_score)
+        report.overall_score = parse_int(request.POST.get('overall_score'), report.overall_score)
+        report.overall_average = parse_float(request.POST.get('overall_average'), report.overall_average)
         report.overall_position = request.POST.get('overall_position', report.overall_position).strip()
         report.teacher_comment = request.POST.get('teacher_comment', report.teacher_comment).strip()
         report.admin_comment_report = request.POST.get('admin_comment_report', report.admin_comment_report).strip()
