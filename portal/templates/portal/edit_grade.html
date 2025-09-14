@@ -78,7 +78,7 @@
                 <input type="text" name="session" class="form-control" value="{{ grade.session }}" required>
             </div>
 
-            <!-- Report Level Fields -->
+            <!-- Report Fields -->
             <div class="col-md-6">
                 <label class="form-label">Total Available Score</label>
                 <input type="number" name="total_available_score" class="form-control" value="{{ report.total_available_score|default:'' }}">
@@ -101,4 +101,41 @@
 
             <div class="col-12">
                 <label class="form-label">Teacher Comment</label>
-                <
+                <textarea name="teacher_comment" class="form-control" rows="2">{{ report.teacher_comment|default:'' }}</textarea>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Admin Comment</label>
+                <textarea name="admin_comment_report" class="form-control" rows="2">{{ report.admin_comment_report|default:'' }}</textarea>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Next Term Begins</label>
+                <input type="date" name="next_term_date" class="form-control" value="{{ report.next_term_date|date:'Y-m-d' }}">
+            </div>
+        </div>
+
+        <hr class="my-4">
+        <!-- Behavioural Skills -->
+        <h4 class="mt-3">🎯 Behavioural Skills</h4>
+        <div class="row g-3">
+            {% for skill in skills_list %}
+            <div class="col-md-4">
+                <label class="form-label">{{ skill.name }}</label>
+                <select name="beh_{{ skill.name|slugify }}" class="form-select">
+                    <option value="">-- Select --</option>
+                    {% for i in "12345" %}
+                        <option value="{{ i }}" {% if skill.rating == i|add:"0" %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-4 d-grid">
+            <button type="submit" class="btn btn-success">💾 Save Changes</button>
+            <a href="{% url 'teacher_upload_grades' %}" class="btn btn-secondary mt-2">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
