@@ -158,50 +158,56 @@
   <hr class="my-5">
 
   <!-- Uploaded Grades Table -->
-  <h4>📋 Uploaded Grades</h4>
-  {% if student_grades %}
-      {% for student_grade in student_grades.items %}
-          {% with student=student_grade.0 grades=student_grade.1 %}
-              <h5 class="mt-4 text-primary">{{ student.get_full_name }} ({{ student.username }})</h5>
-              <div class="table-responsive">
-                  <table class="table table-bordered table-hover mt-2 align-middle text-center">
-                      <thead class="table-light">
-                          <tr>
-                              <th>Subject</th>
-                              <th>1st Test</th>
-                              <th>2nd Test</th>
-                              <th>Exam</th>
-                              <th>Total</th>
-                              <th>1st Term</th>
-                              <th>2nd Term</th>
-                              <th>Average</th>
-                              <th>Grade</th>
-                              <th>Comment</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          {% for grade in grades %}
-                          <tr>
-                              <td>{{ grade.subject }}</td>
-                              <td>{{ grade.first_test|default:"–" }}</td>
-                              <td>{{ grade.second_test|default:"–" }}</td>
-                              <td>{{ grade.exam|default:"–" }}</td>
-                              <td>{{ grade.total_score|default:"–" }}</td>
-                              <td>{{ grade.first_term_score|default:"–" }}</td>
-                              <td>{{ grade.second_term_score|default:"–" }}</td>
-                              <td>{{ grade.average_score|default:"–" }}</td>
-                              <td>{{ grade.manual_grade|default:grade.grade }}</td>
-                              <td>{{ grade.grade_comment|default:"–" }}</td>
-                          </tr>
-                          {% endfor %}
-                      </tbody>
-                  </table>
-              </div>
-          {% endwith %}
-      {% endfor %}
-  {% else %}
-      <p class="text-muted mt-3">No grades uploaded yet.</p>
-  {% endif %}
+<h4>📋 Uploaded Grades</h4>
+{% if student_grades %}
+    {% for student_grade in student_grades.items %}
+        {% with student=student_grade.0 grades=student_grade.1 %}
+            <h5 class="mt-4 text-primary">{{ student.get_full_name }} ({{ student.username }})</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mt-2 align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th>1st Test</th>
+                            <th>2nd Test</th>
+                            <th>Exam</th>
+                            <th>Total</th>
+                            <th>1st Term</th>
+                            <th>2nd Term</th>
+                            <th>Average</th>
+                            <th>Grade</th>
+                            <th>Comment</th>
+                            <th>Actions</th> <!-- New column for action buttons -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade in grades %}
+                        <tr>
+                            <td>{{ grade.subject }}</td>
+                            <td>{{ grade.first_test|default:"–" }}</td>
+                            <td>{{ grade.second_test|default:"–" }}</td>
+                            <td>{{ grade.exam|default:"–" }}</td>
+                            <td>{{ grade.total_score|default:"–" }}</td>
+                            <td>{{ grade.first_term_score|default:"–" }}</td>
+                            <td>{{ grade.second_term_score|default:"–" }}</td>
+                            <td>{{ grade.average_score|default:"–" }}</td>
+                            <td>{{ grade.manual_grade|default:grade.grade }}</td>
+                            <td>{{ grade.grade_comment|default:"–" }}</td>
+                            <td>
+                                <a href="{% url 'edit_grade' grade.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <a href="{% url 'delete_final_grade' grade.id %}" class="btn btn-sm btn-outline-danger" 
+                                   onclick="return confirm('Are you sure you want to delete this grade?');">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endwith %}
+    {% endfor %}
+{% else %}
+    <p class="text-muted mt-3">No grades uploaded yet.</p>
+{% endif %}
 
 </div>
 {% endblock %}
