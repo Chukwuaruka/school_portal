@@ -910,6 +910,17 @@ def edit_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
     report = grade.report  # Linked GradeReport
 
+    class SkillRating:
+        def __init__(self, name, rating):
+            self.name = name
+            self.rating = rating
+
+    # Prepare existing behavioural skill ratings for the form
+    skills_list = []
+    for skill in BEHAVIOURAL_SKILLS:
+        existing = report.behavioural_skills.filter(skill_name=skill).first()
+        skills_list.append(SkillRating(skill, existing.rating if existing else None))
+
     def parse_int(value):
         try:
             return int(value)
@@ -959,31 +970,24 @@ def edit_grade(request, grade_id):
         report.save()
 
         # BEHAVIOURAL SKILLS updates
-        for skill in BEHAVIOURAL_SKILLS:
-            key_name = f'beh_{skill.replace(" ", "_")}'
+        for skill_obj in skills_list:
+            key_name = f'beh_{skill_obj.name.replace(" ", "_")}'
             rating = request.POST.get(key_name)
             if rating:
                 BehaviouralSkill.objects.update_or_create(
                     student=report.student,
                     report=report,
-                    skill_name=skill,
+                    skill_name=skill_obj.name,
                     defaults={'rating': int(rating)}
                 )
 
         messages.success(request, "Grade and behavioural skills updated successfully.")
         return redirect('teacher_upload_grades')
 
-    # Prepare existing behavioural skill ratings for the form
-    skills_data = {}
-    for skill in BEHAVIOURAL_SKILLS:
-        existing = report.behavioural_skills.filter(skill_name=skill).first()
-        skills_data[skill] = existing.rating if existing else None
-
     context = {
         'grade': grade,
         'report': report,
-        'behavioural_skills': BEHAVIOURAL_SKILLS,
-        'skills_data': skills_data,
+        'skills_list': skills_list,
     }
     return render(request, 'portal/edit_grade.html', context)
 
