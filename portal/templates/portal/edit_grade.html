@@ -79,7 +79,7 @@
                 <input type="text" name="session" class="form-control" value="{{ grade.session }}" required>
             </div>
 
-            <!-- Grade Level Comments -->
+            <!-- Grade-Level Comments -->
             <div class="col-12">
                 <label class="form-label">Teacher Comment (Grade Level)</label>
                 <textarea name="comment" class="form-control" rows="2">{{ grade.comment|default:'' }}</textarea>
@@ -132,13 +132,14 @@
         </div>
 
         <hr class="my-4">
+
         <!-- Behavioural Skills -->
         <h4 class="mt-3">🎯 Behavioural Skills</h4>
         <div class="row">
             {% for skill in behavioural_skills %}
                 <div class="col-md-4 mb-3">
                     <label class="form-label">{{ skill }}</label>
-                    <select name="beh_{{ skill|replace:' ':'_' }}" class="form-select">
+                    <select name="beh_{{ skill|slugify }}" class="form-select">
                         <option value="">-- Select --</option>
                         {% for i in "12345" %}
                             <option value="{{ i }}" {% if skills_data[skill] == i|add:"0" %}selected{% endif %}>
