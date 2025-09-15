@@ -915,7 +915,7 @@ def edit_grade(request, grade_id):
             self.name = name
             self.rating = rating
 
-    # Prepare existing behavioural skill ratings for the form
+    # Prepare existing behavioural skill ratings
     skills_list = []
     for skill in BEHAVIOURAL_SKILLS:
         existing = report.behavioural_skills.filter(skill_name=skill).first()
@@ -934,7 +934,7 @@ def edit_grade(request, grade_id):
             return current
 
     if request.method == 'POST':
-        # SUBJECT GRADE updates (safe assignment)
+        # --- SUBJECT GRADE updates ---
         grade.subject = request.POST.get('subject', grade.subject).strip() or grade.subject
         grade.first_test = parse_int(request.POST.get('first_test'), grade.first_test)
         grade.second_test = parse_int(request.POST.get('second_test'), grade.second_test)
@@ -947,11 +947,9 @@ def edit_grade(request, grade_id):
         grade.average_score = parse_float(request.POST.get('average_score'), grade.average_score)
         grade.term = request.POST.get('term') or grade.term
         grade.session = request.POST.get('session') or grade.session
-        grade.comment = request.POST.get('comment', grade.comment).strip()
-        grade.admin_comment = request.POST.get('admin_comment', grade.admin_comment).strip()
         grade.save()
 
-        # REPORT updates (safe)
+        # --- REPORT updates ---
         report.total_available_score = parse_int(request.POST.get('total_available_score'), report.total_available_score)
         report.overall_score = parse_int(request.POST.get('overall_score'), report.overall_score)
         report.overall_average = parse_float(request.POST.get('overall_average'), report.overall_average)
@@ -969,7 +967,7 @@ def edit_grade(request, grade_id):
         report.date_uploaded = timezone.now()
         report.save()
 
-        # BEHAVIOURAL SKILLS updates
+        # --- BEHAVIOURAL SKILLS updates ---
         for skill_obj in skills_list:
             key_name = f'beh_{skill_obj.name.replace(" ", "_")}'
             rating = request.POST.get(key_name)
@@ -981,7 +979,7 @@ def edit_grade(request, grade_id):
                     defaults={'rating': int(rating)}
                 )
 
-        messages.success(request, "Grade and behavioural skills updated successfully.")
+        messages.success(request, "Grade and comments updated successfully.")
 
         # Redirect depending on user role
         if hasattr(request.user, "role") and request.user.role == "admin":
@@ -995,7 +993,6 @@ def edit_grade(request, grade_id):
         'skills_list': skills_list,
     }
     return render(request, 'portal/edit_grade.html', context)
-
 
 # --- Admin Views ---
 @login_required
