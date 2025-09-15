@@ -951,7 +951,7 @@ def edit_grade(request, grade_id):
         grade.admin_comment = request.POST.get('admin_comment', grade.admin_comment).strip()
         grade.save()
 
-        # REPORT updates (already safe)
+        # REPORT updates (safe)
         report.total_available_score = parse_int(request.POST.get('total_available_score'), report.total_available_score)
         report.overall_score = parse_int(request.POST.get('overall_score'), report.overall_score)
         report.overall_average = parse_float(request.POST.get('overall_average'), report.overall_average)
@@ -982,7 +982,12 @@ def edit_grade(request, grade_id):
                 )
 
         messages.success(request, "Grade and behavioural skills updated successfully.")
-        return redirect('teacher_upload_grades')
+
+        # Redirect depending on user role
+        if hasattr(request.user, "role") and request.user.role == "admin":
+            return redirect('admin_manage_grades')
+        else:
+            return redirect('teacher_upload_grades')
 
     context = {
         'grade': grade,
@@ -990,6 +995,7 @@ def edit_grade(request, grade_id):
         'skills_list': skills_list,
     }
     return render(request, 'portal/edit_grade.html', context)
+
 
 # --- Admin Views ---
 @login_required
