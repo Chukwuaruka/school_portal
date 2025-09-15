@@ -1281,19 +1281,28 @@ def admin_manage_grades(request):
 @login_required
 def delete_final_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
+    report = grade.report  # linked report
 
     if request.method == 'POST':
         grade.delete()
+        # Delete report if no more grades exist
+        if report and not report.subject_grades.exists():
+            report.delete()
         messages.success(request, "Grade deleted successfully.")
         return redirect('teacher_upload_grades')
 
     messages.error(request, "Invalid request method.")
     return redirect('teacher_upload_grades')
 
+
 @login_required
 def delete_student_grade(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
+    report = grade.report  # linked report
     grade.delete()
+    # Delete report if no more grades exist
+    if report and not report.subject_grades.exists():
+        report.delete()
     messages.success(request, "Grade deleted successfully.")
     return redirect('admin_manage_grades')
 
