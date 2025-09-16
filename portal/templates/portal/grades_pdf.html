@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Student Report Card</title>
+<title>{{ student_name }} - Report Card</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -43,6 +43,19 @@
     float: right;
     width: 30%;
     margin-left: 20px;
+  }
+  .skill-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .skill {
+    background-color: #444;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    width: 45%;
+    text-align: center;
   }
   table {
     width: 100%;
@@ -88,7 +101,7 @@
 <body>
 
 <div class="header">
-  <img src="logo_url_here" alt="Logo" class="logo">
+  <img src="{{ logo_url }}" alt="Logo" class="logo">
   <div class="school-details">
     <div class="school-name">PEN ARK SCHOOLS</div>
     <div class="school-address">
@@ -102,8 +115,8 @@
 
 <div class="student-profile">
   <table>
-    <tr><td><strong>Student Profile:</strong> PA-SS-002</td></tr>
-    <tr><td><strong>Name:</strong> {{ student_profile.student_name }}</td></tr>
+    <tr><td><strong>Student Profile:</strong> {{ student_profile.profile_id }}</td></tr>
+    <tr><td><strong>Name:</strong> {{ student_profile.name }}</td></tr>
     <tr><td><strong>Class:</strong> {{ student_profile.classroom }}</td></tr>
     <tr><td><strong>Sex:</strong> {{ student_profile.sex }}</td></tr>
     <tr><td><strong>Height:</strong> {{ student_profile.height }}</td></tr>
@@ -131,15 +144,15 @@
     {% for grade in grades %}
     <tr>
       <td>{{ grade.subject }}</td>
-      <td>{{ grade.first_test|default:"–" }}</td>
-      <td>{{ grade.second_test|default:"–" }}</td>
-      <td>{{ grade.exam|default:"–" }}</td>
-      <td class="highlight">{{ grade.total_score|default:"–" }}</td>
-      <td>{{ grade.first_term_score|default:"–" }}</td>
-      <td>{{ grade.second_term_score|default:"–" }}</td>
-      <td>{{ grade.average_score|default:"–" }}</td>
-      <td>{{ grade.manual_grade|default:grade.grade }}</td>
-      <td class="highlight">{{ grade.grade_comment|default:"–" }}</td>
+      <td>{{ grade.first_test }}</td>
+      <td>{{ grade.second_test }}</td>
+      <td>{{ grade.exam }}</td>
+      <td class="highlight">{{ grade.total_score }}</td>
+      <td>{{ grade.first_term_score }}</td>
+      <td>{{ grade.second_term_score }}</td>
+      <td>{{ grade.average_score }}</td>
+      <td>{{ grade.manual_grade }}</td>
+      <td class="highlight">{{ grade.grade_comment }}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -182,6 +195,31 @@
     </tr>
   </table>
 </div>
+
+<div class="skill-box">
+  <h4>📋 Behavioural Assessment (1-5)</h4>
+  {% for skill in behavioural_skills %}
+  <div class="skill">{{ skill.skill_name }} <span class="highlight">{{ skill.rating }}</span></div>
+  {% endfor %}
+</div>
+
+<table class="summary-table">
+<tr>
+<td width="50%">
+📌 <strong>Performance Summary</strong><br>
+Total Score: <span class="highlight">{{ report.total_available_score }}</span><br>
+Student Score: <span class="highlight">{{ report.overall_score }}</span><br>
+Average: <span class="highlight">{{ report.overall_average }}%</span><br>
+Position: <span class="highlight">{{ report.overall_position }}</span>
+</td>
+<td width="50%">
+🗣️ <strong>Teacher/Admin Comments</strong><br>
+Teacher: <span class="highlight">{{ report.teacher_comment }}</span><br>
+Admin: {{ report.admin_comment_report }}<br>
+Next Term Begins: {{ report.next_term_date|date:"F j, Y" }}
+</td>
+</tr>
+</table>
 
 <div class="footer">
   PEN ARK SCHOOLS — Trained For Duty And For Thee.
