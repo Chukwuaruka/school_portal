@@ -1360,38 +1360,63 @@ def admin_download_grade_report_pdf(request, student_id):
 
 @login_required
 def first_test_upload(request):
-    # Get all students
     students = User.objects.filter(role='student').order_by('first_name')
 
     if request.method == "POST":
         student_id = request.POST.get("student_id")
         subject = request.POST.get("subject")
         score = request.POST.get("first_test")
+        term = request.POST.get("term") or "1st Term"
+        session = request.POST.get("session") or "2024/2025"
+        classroom_name = request.POST.get("classroom")
 
-        if not student_id or not subject or score is None:
-            messages.error(request, "Student, subject and score are required.")
-        else:
-            try:
-                student = User.objects.get(id=student_id, role='student')
-                score = int(score)
-                if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
-                    SubjectGrade.objects.create(
-                        student=student,
-                        subject=subject,
-                        first_test=score,
-                    )
-                    messages.success(request, f"First test for {subject} uploaded successfully for {student.get_full_name()}.")
-                else:
-                    messages.error(request, f"Score must be between 0 and {SubjectGrade.MAX_FIRST_TEST}.")
-            except User.DoesNotExist:
-                messages.error(request, "Selected student does not exist.")
-            except ValueError:
-                messages.error(request, "Invalid score entered.")
+        if not all([student_id, subject, classroom_name]):
+            messages.error(request, "Student, subject, and classroom are required.")
+            return redirect("first_test_upload")
+
+        try:
+            student = User.objects.get(id=student_id, role='student')
+            classroom = Classroom.objects.get(name=classroom_name)
+            score = int(score)
+
+            if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
+                # Get or create the grade report
+                grade_report, created = GradeReport.objects.get_or_create(
+                    student=student,
+                    classroom=classroom,
+                    term=term,
+                    session=session
+                )
+
+                # Create or update first test
+                grade, created = SubjectGrade.objects.get_or_create(
+                    report=grade_report,
+                    subject=subject,
+                    defaults={'first_test': score}
+                )
+                if not created:
+                    grade.first_test = score
+                    grade.save()
+
+                messages.success(request, f"First test for {subject} uploaded for {student.get_full_name()}.")
+            else:
+                messages.error(request, f"Score must be between 0 and {SubjectGrade.MAX_FIRST_TEST}.")
+        except User.DoesNotExist:
+            messages.error(request, "Selected student does not exist.")
+        except Classroom.DoesNotExist:
+            messages.error(request, "Selected classroom does not exist.")
+        except ValueError:
+            messages.error(request, "Invalid score entered.")
 
         return redirect("first_test_upload")
 
     grades = SubjectGrade.objects.all().order_by("-id")
-    return render(request, "portal/first_test_upload.html", {"grades": grades, "students": students})
+    classrooms = Classroom.objects.all()
+    return render(request, "portal/first_test_upload.html", {
+        "grades": grades,
+        "students": students,
+        "classrooms": classrooms
+    })
 
 # ---- Edit First Test ----
 @login_required
@@ -1412,7 +1437,10 @@ def first_test_edit(request, grade_id):
                 grade.subject = subject
                 grade.first_test = score
                 grade.save()
-                messages.success(request, f"First test for {subject} updated successfully for {student.get_full_name()}.")
+                messages.success(
+                    request, 
+                    f"First test for {subject} updated successfully for {student.get_full_name()}."
+                )
             else:
                 messages.error(request, f"Score must be between 0 and {SubjectGrade.MAX_FIRST_TEST}.")
         except User.DoesNotExist:

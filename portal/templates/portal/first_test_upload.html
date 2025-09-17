@@ -18,6 +18,34 @@
       </select>
     </div>
 
+    <!-- Classroom Selection -->
+    <div class="mb-3">
+      <label class="form-label">Classroom</label>
+      <select name="classroom" class="form-select" required>
+        <option value="">Select classroom</option>
+        {% for room in classrooms %}
+          <option value="{{ room.name }}">{{ room.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Term Selection -->
+    <div class="mb-3">
+      <label class="form-label">Term</label>
+      <select name="term" class="form-select" required>
+        <option value="">Select term</option>
+        <option>1st Term</option>
+        <option>2nd Term</option>
+        <option>3rd Term</option>
+      </select>
+    </div>
+
+    <!-- Session -->
+    <div class="mb-3">
+      <label class="form-label">Session</label>
+      <input type="text" name="session" class="form-control" placeholder="e.g. 2024/2025" required>
+    </div>
+
     <!-- Subject -->
     <div class="mb-3">
       <label class="form-label">Subject</label>
@@ -47,7 +75,7 @@
     <tbody>
       {% for grade in grades %}
       <tr>
-        <td>{{ grade.student.get_full_name }}</td>
+        <td>{{ grade.report.student.get_full_name }}</td>
         <td>{{ grade.subject }}</td>
         <td>{{ grade.first_test }}</td>
         <td>
