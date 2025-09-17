@@ -23,6 +23,7 @@ urlpatterns = [
     path('student/details/edit/', views.edit_student_profile, name='edit_student_profile'),
     path('student/test-examination-grades/', views.student_grades_view, name='student_test_examination_grades'),
     path('download-my-grade-report/', views.download_my_grade_report_pdf, name='download_my_grade_report_pdf'),
+    path("student/first-tests/", views.student_first_tests, name="student_first_tests"),
 
     # 🧑‍🏫 Teacher Dashboard & Features
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
@@ -38,6 +39,9 @@ urlpatterns = [
     path('teacher/grades/delete/<int:grade_id>/', views.delete_final_grade, name='delete_final_grade'),
     path('teacher/upload-grades/', views.teacher_upload_grades, name='teacher_upload_grades'),
     path('teacher/edit-grade/<int:grade_id>/', views.edit_grade, name='edit_grade'),
+    path("teacher/first-test/", views.first_test_upload, name="first_test_upload"),
+    path("teacher/first-test/edit/<int:grade_id>/", views.first_test_edit, name="first_test_edit"),
+    path("teacher/first-test/delete/<int:grade_id>/", views.first_test_delete, name="first_test_delete"),
 
     # 🛠 Admin Dashboard & Management
     path('dashboard-admin/', views.admin_dashboard, name='admin_dashboard'),
@@ -57,6 +61,9 @@ urlpatterns = [
     path('dashboard-admin/announcements/create/', views.create_announcement, name='create_announcement'),
     path('dashboard-admin/announcements/edit/<int:announcement_id>/', views.edit_announcement, name='edit_announcement'),
     path('dashboard-admin/announcements/delete/<int:announcement_id>/', views.delete_announcement, name='delete_announcement'),
+    path("dashboard-admin/first-test/", views.first_test_upload, name="admin_first_test_upload"),
+    path("dashboard-admin/first-test/edit/<int:grade_id>/", views.first_test_edit, name="admin_first_test_edit"),
+    path("dashboard-admin/first-test/delete/<int:grade_id>/", views.first_test_delete, name="admin_first_test_delete"),
 
     # 🔑 Password Reset
     path('password_reset/', auth_views.PasswordResetView.as_view(

@@ -1357,3 +1357,75 @@ def admin_download_grade_report_pdf(request, student_id):
 
     response.write(result.getvalue())
     return response
+
+@login_required
+def first_test_upload(request):
+    if request.method == "POST":
+        subject = request.POST.get("subject")
+        score = request.POST.get("first_test")
+
+        if not subject or score is None:
+            messages.error(request, "Subject and First Test score are required.")
+        else:
+            try:
+                score = int(score)
+                if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
+                    grade = SubjectGrade.objects.create(
+                        student=request.user,  # Or assign selected student later
+                        subject=subject,
+                        first_test=score,
+                        report=None,
+                    )
+                    messages.success(request, f"First test for {subject} uploaded successfully.")
+                else:
+                    messages.error(request, f"Score must be between 0 and {SubjectGrade.MAX_FIRST_TEST}.")
+            except ValueError:
+                messages.error(request, "Invalid score entered.")
+
+        return redirect("first_test_upload")
+
+    grades = SubjectGrade.objects.all().order_by("-id")
+    return render(request, "portal/first_test_upload.html", {"grades": grades})
+
+
+# ---- Edit First Test ----
+@login_required
+def first_test_edit(request, grade_id):
+    grade = get_object_or_404(SubjectGrade, id=grade_id)
+
+    if request.method == "POST":
+        subject = request.POST.get("subject", grade.subject)
+        score = request.POST.get("first_test", grade.first_test)
+
+        try:
+            score = int(score)
+            if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
+                grade.subject = subject
+                grade.first_test = score
+                grade.save()
+                messages.success(request, f"First test for {subject} updated successfully.")
+            else:
+                messages.error(request, f"Score must be between 0 and {SubjectGrade.MAX_FIRST_TEST}.")
+        except ValueError:
+            messages.error(request, "Invalid score entered.")
+
+        return redirect("first_test_upload")
+
+    return render(request, "portal/first_test_edit.html", {"grade": grade})
+
+
+# ---- Delete First Test ----
+@login_required
+def first_test_delete(request, grade_id):
+    grade = get_object_or_404(SubjectGrade, id=grade_id)
+    subject = grade.subject
+    grade.delete()
+    messages.success(request, f"First test for {subject} deleted successfully.")
+    return redirect("first_test_upload")
+
+
+# ---- Student: View Their First Test Scores ----
+@login_required
+def student_first_tests(request):
+    grades = SubjectGrade.objects.filter(student=request.user).order_by("subject")
+    return render(request, "portal/student_first_tests.html", {"grades": grades})
