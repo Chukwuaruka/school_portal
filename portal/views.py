@@ -1360,59 +1360,69 @@ def admin_download_grade_report_pdf(request, student_id):
 
 @login_required
 def first_test_upload(request):
+    # Get all students
+    students = User.objects.filter(role='student').order_by('first_name')
+
     if request.method == "POST":
+        student_id = request.POST.get("student_id")
         subject = request.POST.get("subject")
         score = request.POST.get("first_test")
 
-        if not subject or score is None:
-            messages.error(request, "Subject and First Test score are required.")
+        if not student_id or not subject or score is None:
+            messages.error(request, "Student, subject and score are required.")
         else:
             try:
+                student = User.objects.get(id=student_id, role='student')
                 score = int(score)
                 if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
-                    grade = SubjectGrade.objects.create(
-                        student=request.user,  # Or assign selected student later
+                    SubjectGrade.objects.create(
+                        student=student,
                         subject=subject,
                         first_test=score,
-                        report=None,
                     )
-                    messages.success(request, f"First test for {subject} uploaded successfully.")
+                    messages.success(request, f"First test for {subject} uploaded successfully for {student.get_full_name()}.")
                 else:
                     messages.error(request, f"Score must be between 0 and {SubjectGrade.MAX_FIRST_TEST}.")
+            except User.DoesNotExist:
+                messages.error(request, "Selected student does not exist.")
             except ValueError:
                 messages.error(request, "Invalid score entered.")
 
         return redirect("first_test_upload")
 
     grades = SubjectGrade.objects.all().order_by("-id")
-    return render(request, "portal/first_test_upload.html", {"grades": grades})
-
+    return render(request, "portal/first_test_upload.html", {"grades": grades, "students": students})
 
 # ---- Edit First Test ----
 @login_required
 def first_test_edit(request, grade_id):
     grade = get_object_or_404(SubjectGrade, id=grade_id)
+    students = User.objects.filter(role='student').order_by('first_name')
 
     if request.method == "POST":
+        student_id = request.POST.get("student_id")
         subject = request.POST.get("subject", grade.subject)
         score = request.POST.get("first_test", grade.first_test)
 
         try:
+            student = User.objects.get(id=student_id, role='student')
             score = int(score)
             if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
+                grade.student = student
                 grade.subject = subject
                 grade.first_test = score
                 grade.save()
-                messages.success(request, f"First test for {subject} updated successfully.")
+                messages.success(request, f"First test for {subject} updated successfully for {student.get_full_name()}.")
             else:
                 messages.error(request, f"Score must be between 0 and {SubjectGrade.MAX_FIRST_TEST}.")
+        except User.DoesNotExist:
+            messages.error(request, "Selected student does not exist.")
         except ValueError:
             messages.error(request, "Invalid score entered.")
 
         return redirect("first_test_upload")
 
-    return render(request, "portal/first_test_edit.html", {"grade": grade})
-
+    return render(request, "portal/first_test_edit.html", {"grade": grade, "students": students})
 
 # ---- Delete First Test ----
 @login_required

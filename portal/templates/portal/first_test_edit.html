@@ -5,14 +5,31 @@
 
   <form method="post">
     {% csrf_token %}
+
+    <!-- Student Selection -->
+    <div class="mb-3">
+      <label class="form-label">Student</label>
+      <select name="student_id" class="form-select" required>
+        {% for student in students %}
+          <option value="{{ student.id }}" {% if grade.student.id == student.id %}selected{% endif %}>
+            {{ student.get_full_name }} ({{ student.classroom.name }})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Subject -->
     <div class="mb-3">
       <label class="form-label">Subject</label>
       <input type="text" name="subject" class="form-control" value="{{ grade.subject }}" required>
     </div>
+
+    <!-- First Test Score -->
     <div class="mb-3">
       <label class="form-label">First Test Score (0–20)</label>
       <input type="number" name="first_test" class="form-control" value="{{ grade.first_test }}" min="0" max="20" required>
     </div>
+
     <button type="submit" class="btn btn-primary">Save Changes</button>
     <a href="{% url 'first_test_upload' %}" class="btn btn-secondary">Cancel</a>
   </form>

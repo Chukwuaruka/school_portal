@@ -6,14 +6,30 @@
   <!-- Upload form -->
   <form method="post" class="mb-4">
     {% csrf_token %}
+
+    <!-- Student Selection -->
+    <div class="mb-3">
+      <label class="form-label">Student</label>
+      <select name="student_id" class="form-select" required>
+        <option value="">Select a student</option>
+        {% for student in students %}
+          <option value="{{ student.id }}">{{ student.get_full_name }} ({{ student.classroom.name }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Subject -->
     <div class="mb-3">
       <label class="form-label">Subject</label>
       <input type="text" name="subject" class="form-control" required>
     </div>
+
+    <!-- Score -->
     <div class="mb-3">
       <label class="form-label">First Test Score (0–20)</label>
       <input type="number" name="first_test" class="form-control" min="0" max="20" required>
     </div>
+
     <button type="submit" class="btn btn-success">Upload</button>
   </form>
 
