@@ -3,7 +3,6 @@
 <div class="container mt-4">
   <h2>Edit First Test Score</h2>
 
-  <!-- Edit form -->
   <form method="post">
     {% csrf_token %}
 
@@ -12,7 +11,8 @@
       <label class="form-label">Student</label>
       <select name="student_id" class="form-select" required>
         {% for student in students %}
-          <option value="{{ student.id }}" {% if grade.student.id == student.id %}selected{% endif %}>
+          <option value="{{ student.id }}"
+            {% if grade.report and grade.report.student and grade.report.student.id == student.id %}selected{% endif %}>
             {{ student.get_full_name }} ({{ student.classroom.name }})
           </option>
         {% endfor %}
@@ -22,13 +22,15 @@
     <!-- Subject -->
     <div class="mb-3">
       <label class="form-label">Subject</label>
-      <input type="text" name="subject" class="form-control" value="{{ grade.subject }}" required>
+      <input type="text" name="subject" class="form-control" 
+             value="{{ grade.subject }}" required>
     </div>
 
     <!-- First Test Score -->
     <div class="mb-3">
       <label class="form-label">First Test Score (0–20)</label>
-      <input type="number" name="first_test" class="form-control" value="{{ grade.first_test }}" min="0" max="20" required>
+      <input type="number" name="first_test" class="form-control" 
+             value="{{ grade.first_test }}" min="0" max="20" required>
     </div>
 
     <button type="submit" class="btn btn-primary">Save Changes</button>

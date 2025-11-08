@@ -1358,9 +1358,11 @@ def admin_download_grade_report_pdf(request, student_id):
     response.write(result.getvalue())
     return response
 
+# ---- Upload First Test ----
 @login_required
 def first_test_upload(request):
     students = User.objects.filter(role='student').order_by('first_name')
+    classrooms = Classroom.objects.all()
 
     if request.method == "POST":
         student_id = request.POST.get("student_id")
@@ -1381,14 +1383,14 @@ def first_test_upload(request):
 
             if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
                 # Get or create the grade report
-                grade_report, created = GradeReport.objects.get_or_create(
+                grade_report, _ = GradeReport.objects.get_or_create(
                     student=student,
                     classroom=classroom,
                     term=term,
                     session=session
                 )
 
-                # Create or update first test
+                # Get or create/update the subject grade
                 grade, created = SubjectGrade.objects.get_or_create(
                     report=grade_report,
                     subject=subject,
@@ -1410,13 +1412,13 @@ def first_test_upload(request):
 
         return redirect("first_test_upload")
 
-    grades = SubjectGrade.objects.all().order_by("-id")
-    classrooms = Classroom.objects.all()
+    grades = SubjectGrade.objects.select_related('report', 'report__student', 'report__classroom').all().order_by("-id")
     return render(request, "portal/first_test_upload.html", {
         "grades": grades,
         "students": students,
         "classrooms": classrooms
     })
+
 
 # ---- Edit First Test ----
 @login_required
@@ -1434,18 +1436,23 @@ def first_test_edit(request, grade_id):
             score = int(score)
 
             if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
-                # Update the GradeReport student if changed
+                # Update or create new report if student changed
                 if grade.report.student != student:
-                    grade.report.student = student
-                    grade.report.save()
+                    new_report, _ = GradeReport.objects.get_or_create(
+                        student=student,
+                        classroom=grade.report.classroom,
+                        term=grade.report.term,
+                        session=grade.report.session
+                    )
+                    grade.report = new_report
 
-                # Update test info
+                # Update subject grade
                 grade.subject = subject
                 grade.first_test = score
                 grade.save()
 
                 messages.success(
-                    request, 
+                    request,
                     f"First test for {subject} updated successfully for {student.get_full_name()}."
                 )
             else:
@@ -1461,6 +1468,7 @@ def first_test_edit(request, grade_id):
         "grade": grade,
         "students": students,
     })
+
 
 # ---- Delete First Test ----
 @login_required

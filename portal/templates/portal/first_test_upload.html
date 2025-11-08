@@ -3,11 +3,9 @@
 <div class="container mt-4">
   <h2>Upload First Test Score</h2>
 
-  <!-- Upload form -->
   <form method="post" class="mb-4">
     {% csrf_token %}
 
-    <!-- Student Selection -->
     <div class="mb-3">
       <label class="form-label">Student</label>
       <select name="student_id" class="form-select" required>
@@ -18,7 +16,6 @@
       </select>
     </div>
 
-    <!-- Classroom Selection -->
     <div class="mb-3">
       <label class="form-label">Classroom</label>
       <select name="classroom" class="form-select" required>
@@ -29,7 +26,6 @@
       </select>
     </div>
 
-    <!-- Term Selection -->
     <div class="mb-3">
       <label class="form-label">Term</label>
       <select name="term" class="form-select" required>
@@ -40,19 +36,16 @@
       </select>
     </div>
 
-    <!-- Session -->
     <div class="mb-3">
       <label class="form-label">Session</label>
       <input type="text" name="session" class="form-control" placeholder="e.g. 2024/2025" required>
     </div>
 
-    <!-- Subject -->
     <div class="mb-3">
       <label class="form-label">Subject</label>
       <input type="text" name="subject" class="form-control" required>
     </div>
 
-    <!-- Score -->
     <div class="mb-3">
       <label class="form-label">First Test Score (0–20)</label>
       <input type="number" name="first_test" class="form-control" min="0" max="20" required>
@@ -61,12 +54,12 @@
     <button type="submit" class="btn btn-success">Upload</button>
   </form>
 
-  <!-- List of uploaded tests -->
   <h3>All First Test Scores</h3>
   <table class="table table-bordered table-striped">
     <thead>
       <tr>
         <th>Student</th>
+        <th>Classroom</th>
         <th>Subject</th>
         <th>Score</th>
         <th>Actions</th>
@@ -75,21 +68,18 @@
     <tbody>
       {% for grade in grades %}
       <tr>
-        <td>{{ grade.report.student.get_full_name }}</td>
+        <td>{{ grade.report.student.get_full_name if grade.report and grade.report.student else "Unknown" }}</td>
+        <td>{{ grade.report.classroom.name if grade.report and grade.report.classroom else "N/A" }}</td>
         <td>{{ grade.subject }}</td>
         <td>{{ grade.first_test }}</td>
         <td>
           <a href="{% url 'first_test_edit' grade.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
-          <a href="{% url 'first_test_delete' grade.id %}" 
-             class="btn btn-sm btn-outline-danger"
-             onclick="return confirm('Are you sure you want to delete this score?');">
-             Delete
-          </a>
+          <a href="{% url 'first_test_delete' grade.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?');">Delete</a>
         </td>
       </tr>
       {% empty %}
       <tr>
-        <td colspan="4" class="text-center">No scores uploaded yet.</td>
+        <td colspan="5" class="text-center">No scores uploaded yet.</td>
       </tr>
       {% endfor %}
     </tbody>
