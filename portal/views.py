@@ -1432,11 +1432,18 @@ def first_test_edit(request, grade_id):
         try:
             student = User.objects.get(id=student_id, role='student')
             score = int(score)
+
             if 0 <= score <= SubjectGrade.MAX_FIRST_TEST:
-                grade.student = student
+                # Update the GradeReport student if changed
+                if grade.report.student != student:
+                    grade.report.student = student
+                    grade.report.save()
+
+                # Update test info
                 grade.subject = subject
                 grade.first_test = score
                 grade.save()
+
                 messages.success(
                     request, 
                     f"First test for {subject} updated successfully for {student.get_full_name()}."
@@ -1450,7 +1457,10 @@ def first_test_edit(request, grade_id):
 
         return redirect("first_test_upload")
 
-    return render(request, "portal/first_test_edit.html", {"grade": grade, "students": students})
+    return render(request, "portal/first_test_edit.html", {
+        "grade": grade,
+        "students": students,
+    })
 
 # ---- Delete First Test ----
 @login_required
