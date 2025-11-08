@@ -3,6 +3,7 @@
 <div class="container mt-4">
   <h2>Edit First Test Score</h2>
 
+  <!-- Edit form -->
   <form method="post">
     {% csrf_token %}
 
@@ -11,8 +12,10 @@
       <label class="form-label">Student</label>
       <select name="student_id" class="form-select" required>
         {% for student in students %}
-          <option value="{{ student.id }}"
-            {% if grade.report and grade.report.student and grade.report.student.id == student.id %}selected{% endif %}>
+          <option value="{{ student.id }}" 
+            {% if grade.report and grade.report.student and grade.report.student.id == student.id %}
+              selected
+            {% endif %}>
             {{ student.get_full_name }} ({{ student.classroom.name }})
           </option>
         {% endfor %}
