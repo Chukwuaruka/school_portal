@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -246,7 +246,12 @@
         <strong>TEACHER'S COMMENT:</strong> {{ report.teacher_comment|default:"" }}<br>
         <strong>DATE:</strong> {{ report.date_uploaded|date:"d/m/Y" }} <strong style="margin-left: 10px;">NEXT TERM:</strong> {% if report.next_term_date %}{{ report.next_term_date|date:"d/m/Y" }}{% endif %}<br><br>
         <strong>ADMINISTRATOR'S COMMENT:</strong> {{ report.admin_comment_report|default:"" }}<br><br>
-        <strong>SIGN:</strong> ____________________
+        <strong>SIGN:</strong><br>
+          <img
+            src="{% static 'images/signature.jpeg' %}"
+            alt="Signature"
+            style="width:120px; height:auto; margin-top:4px;"
+          >]
       </td>
     </tr>
   </table>
