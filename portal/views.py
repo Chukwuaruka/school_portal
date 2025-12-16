@@ -454,22 +454,35 @@ def download_my_grade_report_pdf(request):
     grades = report.subject_grades.all()
     behavioural_skills = report.behavioural_skills.all()
 
+    # Calculate time present/absent if needed, or use a default
+    time_present = getattr(report, 'time_present', '120/0')  # Assuming it's stored in report or calculate
+
     student_profile = {
-        "student_name": student.get_full_name(),
+        "profile_id": student.username,
+        "name": student.get_full_name(),
+        "nationality": getattr(student, 'nationality', 'NIGERIA'),
         "classroom": getattr(student.classroom, 'name', ''),
-        "age": getattr(student, 'age', ''),
+        "sex": student.gender,
+        "height": getattr(student, 'height', ''),
+        "weight": getattr(student, 'weight', ''),
+        "time_present": time_present,
     }
 
-    logo_url = getattr(student, 'school_logo', None)
-    if logo_url:
-        logo_url = logo_url.url
+    # Encode logo as data URI for PDF
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.png')
+    logo_data_uri = ''
+    if os.path.exists(logo_path):
+        mime_type, _ = mimetypes.guess_type(logo_path)
+        with open(logo_path, "rb") as image_file:
+            encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
+            logo_data_uri = f"data:{mime_type};base64,{encoded_logo}"
 
     context = {
         "student_name": student.get_full_name(),
         "student_profile": student_profile,
         "grades": grades,
         "report": report,
-        "logo_url": logo_url,
+        "logo_url": logo_data_uri,
         "behavioural_skills": behavioural_skills,
     }
 
@@ -783,6 +796,8 @@ BEHAVIOURAL_SKILLS = [
 def teacher_upload_grades(request):
     students = User.objects.filter(role='student')
     selected_classroom = request.GET.get('classroom')
+    search = request.GET.get('search', '').strip()
+
     if selected_classroom:
         students = students.filter(classroom__name=selected_classroom)
 
@@ -797,6 +812,26 @@ def teacher_upload_grades(request):
         if student not in student_grades:
             student_grades[student] = []
         student_grades[student].extend(report.subject_grades.all())
+
+    # Apply search filter
+    if search:
+        filtered_students = {}
+        for student, grades in student_grades.items():
+            if search.lower() in student.get_full_name().lower() or search.lower() in student.username.lower():
+                filtered_students[student] = grades
+        student_grades = filtered_students
+    else:
+        # If no search, limit to most recent 10 students based on latest report date_uploaded
+        student_latest_dates = {}
+        for student, grades in student_grades.items():
+            if grades:
+                dates = [grade.report.date_uploaded for grade in grades if grade.report.date_uploaded is not None]
+                if dates:
+                    latest_date = max(dates)
+                    student_latest_dates[student] = latest_date
+        # Sort by latest date descending, take top 10
+        sorted_students = sorted(student_latest_dates.items(), key=lambda x: x[1], reverse=True)[:10]
+        student_grades = {student: student_grades[student] for student, _ in sorted_students}
 
     if request.method == 'POST':
         student_username = request.POST.get('student_username')
@@ -833,6 +868,7 @@ def teacher_upload_grades(request):
         grade_comment = request.POST.get('grade_comment', '').strip()
         first_term_score = to_int(request.POST.get('first_term_score'))
         second_term_score = to_int(request.POST.get('second_term_score'))
+        third_term_score = to_int(request.POST.get('third_term_score'))
         average_score = to_float(request.POST.get('average_score'))
 
         # Overall report fields
@@ -866,7 +902,7 @@ def teacher_upload_grades(request):
                 'first_test': first_test, 'second_test': second_test, 'exam': exam,
                 'manual_total': manual_total, 'manual_grade': manual_grade,
                 'grade_comment': grade_comment, 'first_term_score': first_term_score,
-                'second_term_score': second_term_score, 'average_score': average_score
+                'second_term_score': second_term_score, 'third_term_score': third_term_score, 'average_score': average_score
             }
         )
         if not created:
@@ -878,6 +914,7 @@ def teacher_upload_grades(request):
             grade.grade_comment = grade_comment
             grade.first_term_score = first_term_score
             grade.second_term_score = second_term_score
+            grade.third_term_score = third_term_score
             grade.average_score = average_score
             grade.save()
 
@@ -902,7 +939,8 @@ def teacher_upload_grades(request):
         'student_grades': student_grades,
         'selected_classroom': selected_classroom,
         'classrooms': classrooms,
-        'behavioural_skills': BEHAVIOURAL_SKILLS
+        'behavioural_skills': BEHAVIOURAL_SKILLS,
+        'search': search
     })
 
 @login_required
@@ -944,6 +982,7 @@ def edit_grade(request, grade_id):
         grade.grade_comment = request.POST.get('grade_comment', grade.grade_comment).strip()
         grade.first_term_score = parse_int(request.POST.get('first_term_score'), grade.first_term_score)
         grade.second_term_score = parse_int(request.POST.get('second_term_score'), grade.second_term_score)
+        grade.third_term_score = parse_int(request.POST.get('third_term_score'), grade.third_term_score)
         grade.average_score = parse_float(request.POST.get('average_score'), grade.average_score)
         grade.term = request.POST.get('term') or grade.term
         grade.session = request.POST.get('session') or grade.session
@@ -1015,7 +1054,24 @@ def manage_registration_codes(request):
         return redirect('manage_registration_codes')
 
     registration_codes = RegistrationCode.objects.all().order_by('-created_at')
-    return render(request, 'portal/manage_registration_codes.html', {'registration_codes': registration_codes})
+
+    # Filtering
+    search = request.GET.get('search', '').strip()
+    status = request.GET.get('status', '')
+
+    if search:
+        registration_codes = registration_codes.filter(code__icontains=search)
+
+    if status == 'used':
+        registration_codes = registration_codes.filter(is_active=False)
+    elif status == 'unused':
+        registration_codes = registration_codes.filter(is_active=True)
+
+    return render(request, 'portal/manage_registration_codes.html', {
+        'registration_codes': registration_codes,
+        'search': search,
+        'status': status
+    })
 
 @login_required
 @user_passes_test(is_admin)
@@ -1325,6 +1381,22 @@ def admin_download_grade_report_pdf(request, student_id):
     if not latest_report:
         return HttpResponse("No report found.", status=404)
 
+    # Calculate time present/absent if needed, or use a default
+    time_present = getattr(latest_report, 'time_present', '120/0')  # Assuming it's stored in report or calculate
+
+    student_profile = {
+        "profile_id": student.username,
+        "name": student.get_full_name() or student.username,
+        "nationality": getattr(student, 'nationality', 'NIGERIA'),
+        "classroom": getattr(student.classroom, 'name', 'Not Assigned'),
+        "sex": student.gender or 'Not Specified',
+        "height": str(getattr(student, 'height', 'N/A')),
+        "weight": str(getattr(student, 'weight', 'N/A')),
+        "time_present": time_present,
+    }
+
+    behavioural_skills = latest_report.behavioural_skills.all()
+
     # Encode logo for PDF header
     logo_path = os.path.join(settings.BASE_DIR, 'static', 'portal', 'images', 'logo.jpg')
     logo_data_uri = ''
@@ -1339,6 +1411,8 @@ def admin_download_grade_report_pdf(request, student_id):
         'reports': reports,
         'report': latest_report,
         'student_name': student.get_full_name() or student.username,
+        'student_profile': student_profile,
+        'behavioural_skills': behavioural_skills,
         'logo_url': logo_data_uri,
     }
 
@@ -1412,11 +1486,31 @@ def first_test_upload(request):
 
         return redirect("first_test_upload")
 
+    # Handle GET parameters for filtering
+    search = request.GET.get('search', '').strip()
+    selected_classroom = request.GET.get('classroom', '')
+
     grades = SubjectGrade.objects.select_related('report', 'report__student', 'report__classroom').all().order_by("-id")
+
+    # Apply classroom filter
+    if selected_classroom:
+        grades = grades.filter(report__classroom__name=selected_classroom)
+
+    # Apply search filter (student name and subject)
+    if search:
+        grades = grades.filter(
+            Q(report__student__first_name__icontains=search) |
+            Q(report__student__last_name__icontains=search) |
+            Q(report__student__username__icontains=search) |
+            Q(subject__icontains=search)
+        )
+
     return render(request, "portal/first_test_upload.html", {
         "grades": grades,
         "students": students,
-        "classrooms": classrooms
+        "classrooms": classrooms,
+        "search": search,
+        "selected_classroom": selected_classroom
     })
 
 

@@ -14,6 +14,27 @@
     </div>
   </form>
 
+  <!-- Filter and Search -->
+  <div class="mb-4">
+    <form method="GET">
+      <div class="row">
+        <div class="col-md-5">
+          <input type="text" name="search" class="form-control" placeholder="Search by code..." value="{{ search }}">
+        </div>
+        <div class="col-md-4">
+          <select name="status" class="form-control">
+            <option value="">All Status</option>
+            <option value="used" {% if status == 'used' %}selected{% endif %}>Used</option>
+            <option value="unused" {% if status == 'unused' %}selected{% endif %}>Unused</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
   <!-- Existing Codes List -->
   <h4>Existing Codes</h4>
   <div class="table-responsive">

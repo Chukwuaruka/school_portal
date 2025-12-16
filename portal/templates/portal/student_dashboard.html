@@ -1,116 +1,332 @@
 {% extends 'portal/base.html' %}
 {% block content %}
-<h2 class="mb-4">🎓 Welcome, {{ user.first_name }} ({{ user.classroom.name }})</h2>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-<div class="row row-cols-1 row-cols-md-2 g-4">
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f8f9fa;
+    color: #212529;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
 
-  <!-- My Details -->
-  <div class="col">
-    <a href="{% url 'student_details' %}" class="text-decoration-none">
-      <div class="card text-white bg-dark shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">🙋‍♂️ My Details</h3>
-          <p class="card-text">View your profile and account information.</p>
-        </div>
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Hero Section */
+  .hero {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 24px;
+    padding: 48px;
+    margin-bottom: 48px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    color: white;
+  }
+
+  .hero-text h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+    color: #1a1a1a;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+    color: #6c757d;
+    margin-bottom: 4px;
+  }
+
+  .hero-class {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    color: #6366f1;
+    margin-top: 12px;
+  }
+
+  /* Dashboard Grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .dashboard-card {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 20px;
+    padding: 32px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .dashboard-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  .dashboard-card:hover::before {
+    opacity: 1;
+  }
+
+  .card-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-description {
+    font-size: 14px;
+    color: #9ca3af;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Icon Colors */
+  .icon-purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+  .icon-pink { background: rgba(236, 72, 153, 0.15); color: #f472b6; }
+  .icon-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+  .icon-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+  .icon-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+  .icon-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; }
+  .icon-rose { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+  .icon-orange { background: rgba(249, 115, 22, 0.15); color: #fb923c; }
+  .icon-indigo { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    body {
+      padding: 20px 16px;
+    }
+
+    .hero {
+      padding: 32px 24px;
+    }
+
+    .hero-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .hero-text h1 {
+      font-size: 24px;
+    }
+
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Smooth entrance animation */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .dashboard-card {
+    animation: fadeInUp 0.6s ease-out backwards;
+  }
+
+  .dashboard-card:nth-child(1) { animation-delay: 0.05s; }
+  .dashboard-card:nth-child(2) { animation-delay: 0.1s; }
+  .dashboard-card:nth-child(3) { animation-delay: 0.15s; }
+  .dashboard-card:nth-child(4) { animation-delay: 0.2s; }
+  .dashboard-card:nth-child(5) { animation-delay: 0.25s; }
+  .dashboard-card:nth-child(6) { animation-delay: 0.3s; }
+  .dashboard-card:nth-child(7) { animation-delay: 0.35s; }
+  .dashboard-card:nth-child(8) { animation-delay: 0.4s; }
+  .dashboard-card:nth-child(9) { animation-delay: 0.45s; }
+</style>
+
+<div class="container">
+  <!-- Hero Section -->
+  <div class="hero">
+    <div class="hero-content">
+      <div class="profile-avatar">
+        {% if user.profile_picture %}
+          <img src="{{ user.profile_picture.url }}" alt="Profile Picture" style="width: 100%; height: 100%; border-radius: 20px; object-fit: cover;">
+        {% else %}
+          <i class="fas fa-user"></i>
+        {% endif %}
       </div>
-    </a>
+      <div class="hero-text">
+        <h1>Welcome back, {{ user.first_name }}</h1>
+        <p class="hero-subtitle">Your personalized learning dashboard</p>
+        <span class="hero-class">{{ user.classroom.name }} • Student Portal</span>
+      </div>
+    </div>
   </div>
 
-  <!-- Timetable -->
-  <div class="col">
-    <a href="{% url 'student_timetable' %}" class="text-decoration-none">
-      <div class="card text-white bg-primary shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📅 Timetable</h3>
-          <p class="card-text">View your class schedule.</p>
-        </div>
+  <!-- Dashboard Grid -->
+  <div class="dashboard-grid">
+    <!-- My Details -->
+    <a href="{% url 'student_details' %}" class="dashboard-card">
+      <div class="card-icon icon-purple">
+        <i class="fas fa-user"></i>
       </div>
+      <h3 class="card-title">My Details</h3>
+      <p class="card-description">View and manage your profile and account information</p>
+    </a>
+
+    <!-- Timetable -->
+    <a href="{% url 'student_timetable' %}" class="dashboard-card">
+      <div class="card-icon icon-pink">
+        <i class="fas fa-calendar-alt"></i>
+      </div>
+      <h3 class="card-title">Timetable</h3>
+      <p class="card-description">Check your class schedule and upcoming sessions</p>
+    </a>
+
+    <!-- Assignments -->
+    <a href="{% url 'student_assignments' %}" class="dashboard-card">
+      <div class="card-icon icon-blue">
+        <i class="fas fa-tasks"></i>
+      </div>
+      <h3 class="card-title">Assignments</h3>
+      <p class="card-description">View pending tasks and submit your work</p>
+    </a>
+
+    <!-- Submissions -->
+    <a href="{% url 'student_submissions' %}" class="dashboard-card">
+      <div class="card-icon icon-emerald">
+        <i class="fas fa-paper-plane"></i>
+      </div>
+      <h3 class="card-title">Submissions</h3>
+      <p class="card-description">Track submitted assignments and review feedback</p>
+    </a>
+
+    <!-- Test/Exams -->
+    <a href="{% url 'student_test_examination_grades' %}" class="dashboard-card">
+      <div class="card-icon icon-amber">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <h3 class="card-title">Test & Exams</h3>
+      <p class="card-description">View your test scores and examination results</p>
+    </a>
+
+    <!-- First Test -->
+    <a href="{% url 'student_first_tests' %}" class="dashboard-card">
+      <div class="card-icon icon-cyan">
+        <i class="fas fa-chart-bar"></i>
+      </div>
+      <h3 class="card-title">First Test Scores</h3>
+      <p class="card-description">Access your first test results across all subjects</p>
+    </a>
+
+    <!-- CBT Exam -->
+    <a href="https://exam.penarkschoolsportal.com/" target="_blank" class="dashboard-card">
+      <div class="card-icon icon-rose">
+        <i class="fas fa-brain"></i>
+      </div>
+      <h3 class="card-title">PenArk CBT Exam</h3>
+      <p class="card-description">Access your computer-based testing portal</p>
+    </a>
+
+    <!-- Resources -->
+    <a href="{% url 'student_resources' %}" class="dashboard-card">
+      <div class="card-icon icon-orange">
+        <i class="fas fa-book"></i>
+      </div>
+      <h3 class="card-title">Resources</h3>
+      <p class="card-description">Browse course materials and digital library</p>
+    </a>
+
+    <!-- Announcements -->
+    <a href="{% url 'student_announcements' %}" class="dashboard-card">
+      <div class="card-icon icon-indigo">
+        <i class="fas fa-bullhorn"></i>
+      </div>
+      <h3 class="card-title">Announcements</h3>
+      <p class="card-description">Stay informed with latest school updates</p>
     </a>
   </div>
-
-  <!-- Assignments -->
-  <div class="col">
-    <a href="{% url 'student_assignments' %}" class="text-decoration-none">
-      <div class="card text-white bg-success shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📝 Assignments</h3>
-          <p class="card-text">Check and submit your assignments.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Submissions & Feedback -->
-  <div class="col">
-    <a href="{% url 'student_submissions' %}" class="text-decoration-none">
-      <div class="card text-white bg-secondary shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📤 Submissions</h3>
-          <p class="card-text">Track submitted work and review feedback.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Test/Examination Grades -->
-  <div class="col">
-    <a href="{% url 'student_test_examination_grades' %}" class="text-decoration-none">
-      <div class="card text-white shadow-lg h-100" style="background-color: rebeccapurple;">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">🧪 Test/Exams</h3>
-          <p class="card-text">View your test and examination scores.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- First Test Scores -->
-  <div class="col">
-    <a href="{% url 'student_first_tests' %}" class="text-decoration-none">
-      <div class="card text-white bg-warning shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📊 First Test</h3>
-          <p class="card-text">View your first test scores for all subjects.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- 🧠 PenArk CBT Exam -->
-  <div class="col">
-    <a href="https://exam.penarkschoolsportal.com/" target="_blank" class="text-decoration-none">
-      <div class="card text-white bg-dark shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">🧠 PenArk CBT Exam</h3>
-          <p class="card-text">Access your online exam portal.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Resources -->
-  <div class="col">
-    <a href="{% url 'student_resources' %}" class="text-decoration-none">
-      <div class="card text-white bg-info shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📚 Resources</h3>
-          <p class="card-text">Access course materials and e-books.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- Announcements -->
-  <div class="col">
-    <a href="{% url 'student_announcements' %}" class="text-decoration-none">
-      <div class="card text-white bg-danger shadow-lg h-100">
-        <div class="card-body py-5 text-center">
-          <h3 class="card-title">📢 Announcements</h3>
-          <p class="card-text">Stay updated with school news.</p>
-        </div>
-      </div>
-    </a>
-  </div>
-
 </div>
 {% endblock %}

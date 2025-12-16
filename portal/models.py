@@ -256,6 +256,7 @@ class SubjectGrade(models.Model):
 
     first_term_score = models.PositiveIntegerField(null=True, blank=True)
     second_term_score = models.PositiveIntegerField(null=True, blank=True)
+    third_term_score = models.PositiveIntegerField(null=True, blank=True)
     average_score = models.FloatField(null=True, blank=True)
 
     def __str__(self):
@@ -297,7 +298,7 @@ class SubjectGrade(models.Model):
             raise ValidationError({'manual_total': 'Manual total must be between 0 and 100'})
 
         # Scores cannot be negative
-        for field in ['first_term_score', 'second_term_score', 'average_score']:
+        for field in ['first_term_score', 'second_term_score', 'third_term_score', 'average_score']:
             val = getattr(self, field)
             if val is not None and val < 0:
                 raise ValidationError({field: f'{field.replace("_", " ").capitalize()} cannot be negative.'})

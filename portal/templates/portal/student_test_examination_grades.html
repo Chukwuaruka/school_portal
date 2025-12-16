@@ -20,6 +20,7 @@
                             <th>Total<br>(100)</th>
                             <th>1st Term<br>Score</th>
                             <th>2nd Term<br>Score</th>
+                            <th>3rd Term<br>Score</th>
                             <th>Average</th>
                             <th>Grade</th>
                             <th>Comment</th>
@@ -36,6 +37,7 @@
                             <td>{{ grade.total_score|default:"–" }}</td>
                             <td>{{ grade.first_term_score|default:"–" }}</td>
                             <td>{{ grade.second_term_score|default:"–" }}</td>
+                            <td>{{ grade.third_term_score|default:"–" }}</td>
                             <td>{{ grade.average_score|default:"–" }}</td>
                             <td><strong>{{ grade.manual_grade|default:"–" }}</strong></td>
                             <td>{{ grade.grade_comment|default:"–" }}</td>

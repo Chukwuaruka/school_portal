@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="{% static 'portal/css/styles.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="icon" href="{% static 'portal/images/logo.jpg' %}" type="image/jpg">
 
   <style>
@@ -19,15 +20,40 @@
 
     .sidebar {
       height: 100vh;
-      background-color: #003d73;
+      background-color: #557c99; 
+      
+      background-image: linear-gradient(
+         135deg, 
+         #36658C 0%,
+         #5a8c8e 20%,
+         #6f8d9c 40%,
+         #86a3c1 50%,        #597380 60%,
+         #5F9EA0 80%,
+         #36658C 100%     
+      );
+
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
       color: white;
       position: fixed;
-      width: 220px;
+      width: 250px;
       padding-top: 20px;
       top: 0;
       left: 0;
       overflow-y: auto;
       transition: transform 0.3s ease-in-out;
+      /* box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2); */
+      
+    }
+
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+      pointer-events: none;
     }
 
     .sidebar a {
@@ -39,11 +65,12 @@
 
     .sidebar a:hover,
     .sidebar a.active {
-      background-color: #0056a3;
+      background: rgba(255, 255, 255, 0.2);
+      border-left: 3px solid #fff;
     }
 
     .content {
-      margin-left: 220px;
+      margin-left: 250px;
       padding: 30px;
     }
 
@@ -68,7 +95,7 @@
         top: 10px;
         left: 10px;
         z-index: 1100;
-        background-color: #003d73;
+        background-color: #146bee;
         color: white;
         border: none;
         padding: 10px 15px;
@@ -87,39 +114,123 @@
     <button class="menu-toggle d-md-none" onclick="toggleSidebar()">☰</button>
 
     <div class="sidebar" id="sidebar">
-      <div class="text-center mb-3">
-        <img src="{% static 'portal/images/logo.jpg' %}" class="img-fluid rounded-circle" width="80" alt="Logo">
-        <h5 class="mt-2">Pen-Ark</h5>
+      <div class="logo-section text-center">
+        <img src="{% static 'portal/images/logo.png' %}" class="img-fluid rounded-circle" width="100" alt="Pen-Ark Logo">
+        <h5>Pen-Ark Schools</h5>
       </div>
 
       {% if user.is_authenticated %}
-        {% if user.role == 'student' %}
-          <a href="{% url 'student_dashboard' %}" class="{% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">Dashboard</a>
-          <a href="{% url 'student_details' %}" class="{% if request.resolver_match.url_name == 'student_details' %}active{% endif %}">My Details</a>
-          <a href="{% url 'student_timetable' %}" class="{% if request.resolver_match.url_name == 'student_timetable' %}active{% endif %}">Timetable</a>
-          <a href="{% url 'student_assignments' %}" class="{% if request.resolver_match.url_name == 'student_assignments' %}active{% endif %}">Assignments</a>
-          <a href="{% url 'student_submissions' %}" class="{% if request.resolver_match.url_name == 'student_submissions' %}active{% endif %}">Submissions</a>
-          <a href="{% url 'student_test_examination_grades' %}" class="{% if request.resolver_match.url_name == 'student_test_examination_grades' %}active{% endif %}">Test/Examination Grades</a>
-          <a href="{% url 'student_resources' %}" class="{% if request.resolver_match.url_name == 'student_resources' %}active{% endif %}">Resources</a>
-          <a href="{% url 'student_announcements' %}" class="{% if request.resolver_match.url_name == 'student_announcements' %}active{% endif %}">Announcements</a>
+        <div class="nav-section">
+          {% if user.role == 'student' %}
+            <div class="nav-item">
+              <a href="{% url 'student_dashboard' %}" class="{% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'student_details' %}" class="{% if request.resolver_match.url_name == 'student_details' %}active{% endif %}">
+                <i class="fas fa-user"></i> My Details
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'student_timetable' %}" class="{% if request.resolver_match.url_name == 'student_timetable' %}active{% endif %}">
+                <i class="fas fa-calendar-alt"></i> Timetable
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'student_assignments' %}" class="{% if request.resolver_match.url_name == 'student_assignments' %}active{% endif %}">
+                <i class="fas fa-tasks"></i> Assignments
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'student_submissions' %}" class="{% if request.resolver_match.url_name == 'student_submissions' %}active{% endif %}">
+                <i class="fas fa-paper-plane"></i> Submissions
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'student_test_examination_grades' %}" class="{% if request.resolver_match.url_name == 'student_test_examination_grades' %}active{% endif %}">
+                <i class="fas fa-chart-line"></i> Grades
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'student_resources' %}" class="{% if request.resolver_match.url_name == 'student_resources' %}active{% endif %}">
+                <i class="fas fa-book"></i> Resources
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'student_announcements' %}" class="{% if request.resolver_match.url_name == 'student_announcements' %}active{% endif %}">
+                <i class="fas fa-bullhorn"></i> Announcements
+              </a>
+            </div>
 
-        {% elif user.role == 'teacher' %}
-          <a href="{% url 'teacher_dashboard' %}" class="{% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}">Dashboard</a>
-          <a href="{% url 'teacher_assignments' %}" class="{% if request.resolver_match.url_name == 'teacher_assignments' %}active{% endif %}">Assignments</a>
-          <a href="{% url 'teacher_resources' %}" class="{% if request.resolver_match.url_name == 'teacher_resources' %}active{% endif %}">Resources</a>
-          <a href="{% url 'teacher_submissions' %}" class="{% if request.resolver_match.url_name == 'teacher_submissions' %}active{% endif %}">Submissions</a>
-          <a href="{% url 'teacher_profile' %}" class="{% if request.resolver_match.url_name == 'teacher_profile' %}active{% endif %}">Profile</a>
-          <a href="{% url 'edit_teacher_profile' %}" class="{% if request.resolver_match.url_name == 'edit_teacher_profile' %}active{% endif %}">Edit Profile</a>
+          {% elif user.role == 'teacher' %}
+            <div class="nav-item">
+              <a href="{% url 'teacher_dashboard' %}" class="{% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'teacher_assignments' %}" class="{% if request.resolver_match.url_name == 'teacher_assignments' %}active{% endif %}">
+                <i class="fas fa-tasks"></i> Assignments
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'teacher_resources' %}" class="{% if request.resolver_match.url_name == 'teacher_resources' %}active{% endif %}">
+                <i class="fas fa-book"></i> Resources
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'teacher_submissions' %}" class="{% if request.resolver_match.url_name == 'teacher_submissions' %}active{% endif %}">
+                <i class="fas fa-paper-plane"></i> Submissions
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'teacher_profile' %}" class="{% if request.resolver_match.url_name == 'teacher_profile' %}active{% endif %}">
+                <i class="fas fa-user"></i> Profile
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'edit_teacher_profile' %}" class="{% if request.resolver_match.url_name == 'edit_teacher_profile' %}active{% endif %}">
+                <i class="fas fa-edit"></i> Edit Profile
+              </a>
+            </div>
 
-        {% elif user.role == 'admin' %}
-          <a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">Dashboard</a>
-          <a href="{% url 'manage_timetables' %}" class="{% if request.resolver_match.url_name == 'manage_timetables' %}active{% endif %}">Timetables</a>
-          <a href="{% url 'admin_resources' %}" class="{% if request.resolver_match.url_name == 'admin_resources' %}active{% endif %}">Resources</a>
-          <a href="{% url 'manage_announcements' %}" class="{% if request.resolver_match.url_name == 'manage_announcements' %}active{% endif %}">Announcements</a>
-          <a href="{% url 'manage_registration_codes' %}" class="{% if request.resolver_match.url_name == 'manage_registration_codes' %}active{% endif %}">Registration Codes</a>
-        {% endif %}
+          {% elif user.role == 'admin' %}
+            <div class="nav-item">
+              <a href="{% url 'admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'manage_timetables' %}" class="{% if request.resolver_match.url_name == 'manage_timetables' %}active{% endif %}">
+                <i class="fas fa-calendar-alt"></i> Timetables
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'admin_resources' %}" class="{% if request.resolver_match.url_name == 'admin_resources' %}active{% endif %}">
+                <i class="fas fa-book"></i> Resources
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'manage_announcements' %}" class="{% if request.resolver_match.url_name == 'manage_announcements' %}active{% endif %}">
+                <i class="fas fa-bullhorn"></i> Announcements
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="{% url 'manage_registration_codes' %}" class="{% if request.resolver_match.url_name == 'manage_registration_codes' %}active{% endif %}">
+                <i class="fas fa-key"></i> Reg Codes
+              </a>
+            </div>
+          {% endif %}
 
-        <a href="{% url 'logout' %}">Logout</a>
+          <div class="logout-link">
+            <div class="nav-item">
+              <a href="{% url 'logout' %}">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>
+          </div>
+        </div>
       {% endif %}
     </div>
   {% endif %}

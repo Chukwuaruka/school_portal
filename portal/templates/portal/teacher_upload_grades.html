@@ -4,9 +4,8 @@
 {% block content %}
 <div class="container mt-4">
   <h2 class="mb-4">📝 Upload or Edit Student Grades</h2>
-
   <!-- Grade Upload Form -->
-  <form method="POST" novalidate>
+  <form method="POST" novalidate class="card p-3">
     {% csrf_token %}
     <div class="row g-3">
 
@@ -78,15 +77,19 @@
       </div>
 
       <!-- Term Scores & Average -->
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="first_term_score" class="form-label">1st Term Score</label>
         <input type="number" id="first_term_score" name="first_term_score" class="form-control" min="0" max="100">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="second_term_score" class="form-label">2nd Term Score</label>
         <input type="number" id="second_term_score" name="second_term_score" class="form-control" min="0" max="100">
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
+        <label for="third_term_score" class="form-label">3rd Term Score</label>
+        <input type="number" id="third_term_score" name="third_term_score" class="form-control" min="0" max="100">
+      </div>
+      <div class="col-md-3">
         <label for="average_score" class="form-label">Average (%)</label>
         <input type="number" step="0.01" id="average_score" name="average_score" class="form-control" min="0" max="100">
       </div>
@@ -159,6 +162,29 @@
 
   <!-- Uploaded Grades Table -->
 <h4>📋 Uploaded Grades</h4>
+
+<!-- Search and Filter Form -->
+<div class="mb-4">
+  <form method="GET" class="row g-3">
+    <div class="col-md-4">
+      <label for="search" class="form-label">Search Students</label>
+      <input type="text" id="search" name="search" class="form-control" placeholder="Name or username" value="{{ search }}">
+    </div>
+    <div class="col-md-4">
+      <label for="classroom_filter" class="form-label">Filter by Classroom</label>
+      <select id="classroom_filter" name="classroom" class="form-select">
+        <option value="">All Classrooms</option>
+        {% for room in classrooms %}
+          <option value="{{ room.name }}" {% if selected_classroom == room.name %}selected{% endif %}>{{ room.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary me-2">Filter</button>
+      <a href="{% url 'teacher_upload_grades' %}" class="btn btn-secondary">Clear</a>
+    </div>
+  </form>
+</div>
 {% if student_grades %}
     {% for student_grade in student_grades.items %}
         {% with student=student_grade.0 grades=student_grade.1 %}
@@ -174,6 +200,7 @@
                             <th>Total</th>
                             <th>1st Term</th>
                             <th>2nd Term</th>
+                            <th>3rd Term</th>
                             <th>Average</th>
                             <th>Grade</th>
                             <th>Comment</th>
@@ -190,6 +217,7 @@
                             <td>{{ grade.total_score|default:"–" }}</td>
                             <td>{{ grade.first_term_score|default:"–" }}</td>
                             <td>{{ grade.second_term_score|default:"–" }}</td>
+                            <td>{{ grade.third_term_score|default:"–" }}</td>
                             <td>{{ grade.average_score|default:"–" }}</td>
                             <td>{{ grade.manual_grade|default:grade.grade }}</td>
                             <td>{{ grade.grade_comment|default:"–" }}</td>

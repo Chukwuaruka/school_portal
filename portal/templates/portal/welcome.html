@@ -2,13 +2,146 @@
 {% load static %}
 
 {% block content %}
-<div class="container text-center mt-5">
-    <h1 class="mb-4">Welcome to the School Portal</h1>
-    <p class="mb-4">Select an option to get started:</p>
-    <div class="d-flex justify-content-center gap-3 flex-wrap">
-        <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
-        <a href="{% url 'student_register' %}" class="btn btn-success">Student Registration</a>
-        <a href="{% url 'teacher_register' %}" class="btn btn-info">Teacher Registration</a>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+    .hero-section {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{% static "portal/images/school-bg.jpg" %}') no-repeat center center/cover;
+        opacity: 0.1;
+        z-index: 1;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 800px;
+        padding: 1rem;
+    }
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        animation: fadeInUp 1s ease-out;
+    }
+    .hero-subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+        animation: fadeInUp 1.2s ease-out;
+    }
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        animation: fadeInUp 1.4s ease-out;
+    }
+    .btn-modern {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        position: relative;
+        overflow: hidden;
+        color: white;
+    }
+    .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    .btn-modern:hover::before {
+        left: 100%;
+    }
+    .btn-modern:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    .btn-login {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+    .btn-student {
+        background: linear-gradient(45deg, #28a745, #1e7e34);
+    }
+    .btn-teacher {
+        background: linear-gradient(45deg, #17a2b8, #117a8b);
+    }
+    .icon {
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        .btn-modern {
+            width: 100%;
+            max-width: 250px;
+        }
+    }
+</style>
+
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to Our School Portal</h1>
+        <p class="hero-subtitle">Empowering education through seamless access to resources, grades, and communication. Join our community today!</p>
+        <div class="action-buttons">
+            <a href="{% url 'login' %}" class="btn-modern btn-login">
+                <i class="icon">🔐</i>Login to Your Account
+            </a>
+            <a href="{% url 'student_register' %}" class="btn-modern btn-student">
+                <i class="icon">🎓</i>Student Registration
+            </a>
+            <a href="{% url 'teacher_register' %}" class="btn-modern btn-teacher">
+                <i class="icon">👨‍🏫</i>Teacher Registration
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}

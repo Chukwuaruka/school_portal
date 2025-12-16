@@ -44,6 +44,7 @@
                             <th scope="col">Total</th>
                             <th scope="col">1st Term</th>
                             <th scope="col">2nd Term</th>
+                            <th scope="col">3rd Term</th>
                             <th scope="col">Average</th>
                             <th scope="col">Grade</th>
                             <th scope="col">Grade Comment</th>
@@ -61,6 +62,7 @@
                             <td><strong>{{ grade.total_score }}</strong></td>
                             <td>{{ grade.first_term_score|default:"–" }}</td>
                             <td>{{ grade.second_term_score|default:"–" }}</td>
+                            <td>{{ grade.third_term_score|default:"–" }}</td>
                             <td>{{ grade.average_score|default:"–" }}</td>
                             <td>{{ grade.manual_grade|default:"–" }}</td>
                             <td>{{ grade.grade_comment|default:"–" }}</td>
