@@ -1,4 +1,4 @@
-﻿{% load static %}#
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -247,27 +247,11 @@
         <strong>TEACHER'S COMMENT:</strong> {{ report.teacher_comment|default:"" }}<br>
         <strong>DATE:</strong> {{ report.date_uploaded|date:"d/m/Y" }} <strong style="margin-left: 10px;">NEXT TERM:</strong> {% if report.next_term_date %}{{ report.next_term_date|date:"d/m/Y" }}{% endif %}<br><br>
         <strong>ADMINISTRATOR'S COMMENT:</strong> {{ report.admin_comment_report|default:"" }}<br><br>
-        <strong>SIGN:</strong><br>
-          <div style="
-            width: 160px;
-            height: 60px;
-            margin-top: 6px;
-          ">
-            <img
-              src="{% static 'images/signature.jpeg' %}"
-              alt="Signature"
-              style="
-                max-width: 100%;
-                max-height: 100%;
-                object-fit: contain;
-                display: block;
-              "
-            >
-          </div>
-
-          <span style="font-size:8px; display:block; margin-top:2px;">
-            Authorized Signature
-          </span>
+        <!-- <strong>SIGN:</strong> <img src="{% static 'portal/images/signaturebg.png' %}" alt="Signature"> -->
+        <strong>SIGN:</strong> 
+          <img src="https://res.cloudinary.com/dqquwiorh/image/upload/v1765895392/signaturebg_u9ghvj.png" 
+              alt="Signature" 
+              style="height: 50px; width: auto; vertical-align: middle;">
       </td>
     </tr>
   </table>
